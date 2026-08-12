@@ -64,6 +64,8 @@ Implemented so far:
 - Unit coverage for the Markdown title split/compose behavior.
 - Frontend TypeScript, Biome checks, full frontend unit suite, and production frontend build validated successfully after the navigation and title milestone at commit `aad1efc9c70b7de22ac694b1a9a544bf21a213e9`.
 
+The next implementation milestone is persistent per-note colors. The color extension will be designed as the smallest durable data-model addition that can be carried through the API, storage backends, editor, card renderer, migrations, tests, and export path without breaking Markdown portability.
+
 Still planned for the first GoreeCloud Notes release:
 
 - Per-note colors.
