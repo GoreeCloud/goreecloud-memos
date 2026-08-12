@@ -35,7 +35,7 @@ describe("MemoDisplaySettingMenu", () => {
     localStorage.clear();
   });
 
-  it("opens from an accessible trigger and explains the compact grid constraint", () => {
+  it("opens with the responsive grid selected and unlocks compact mode in list view", () => {
     render(
       <ViewProvider>
         <MemoDisplaySettingMenu />
@@ -48,14 +48,15 @@ describe("MemoDisplaySettingMenu", () => {
 
     fireEvent.click(trigger);
 
+    expect(screen.getByRole("radio", { name: "Auto" })).toHaveAttribute("aria-checked", "true");
     const compactMode = screen.getByRole("switch", { name: "Compact mode" });
-    expect(compactMode).not.toBeChecked();
-    expect(compactMode).toBeEnabled();
-
-    fireEvent.click(screen.getByRole("radio", { name: "2 columns" }));
-
     expect(compactMode).toBeChecked();
     expect(compactMode).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByText("Grid layouts always use compact cards.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("radio", { name: "List" }));
+
+    expect(compactMode).not.toBeChecked();
+    expect(compactMode).toBeEnabled();
   });
 });
