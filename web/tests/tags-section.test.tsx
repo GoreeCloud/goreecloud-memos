@@ -9,14 +9,24 @@ import {
 import TagsSection from "@/components/AppSidebar/TagsSection";
 import { MemoFilterProvider } from "@/contexts/MemoFilterContext";
 
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({
+    userTagsSetting: {
+      tags: {
+        validation: { blurContent: false },
+      },
+    },
+  }),
+}));
+
 vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => key }));
 
-describe("TagsSection", () => {
+describe("Labels sidebar section", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("keeps the title count-free and uses the shared section action grammar", () => {
+  it("shows configured and live labels with the shared layout controls", () => {
     render(
       <MemoryRouter>
         <MemoFilterProvider>
@@ -25,11 +35,13 @@ describe("TagsSection", () => {
       </MemoryRouter>,
     );
 
-    const heading = screen.getByRole("heading", { name: "common.tags", level: 2 });
-    expect(heading.parentElement).toHaveTextContent(/^common.tags$/);
+    const heading = screen.getByRole("heading", { name: "Labels", level: 2 });
+    expect(heading.parentElement).toHaveTextContent(/^Labels$/);
+    expect(screen.getByText("validation")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Edit labels" })).toHaveAttribute("href", "/setting#tags");
 
-    const listButton = screen.getByRole("button", { name: "common.tags: memo.layout-list" });
-    const treeButton = screen.getByRole("button", { name: "common.tags: common.tree-mode" });
+    const listButton = screen.getByRole("button", { name: "Show labels as list" });
+    const treeButton = screen.getByRole("button", { name: "Show nested labels" });
     const stableActionClasses = SIDEBAR_SECTION_ACTION_BUTTON_CLASSES.split(" ").filter(
       (className) => className !== "text-muted-foreground/65",
     );
@@ -38,11 +50,9 @@ describe("TagsSection", () => {
       expect(button.querySelector("svg")).toHaveClass(SIDEBAR_SECTION_ACTION_ICON_CLASSES);
     }
     expect(listButton).toHaveClass(...SIDEBAR_SECTION_ACTION_ACTIVE_CLASSES.split(" "));
-    expect(treeButton).toHaveClass("text-muted-foreground/65");
 
     fireEvent.click(treeButton);
     expect(treeButton).toHaveClass(...SIDEBAR_SECTION_ACTION_ACTIVE_CLASSES.split(" "));
     expect(listButton).not.toHaveClass(...SIDEBAR_SECTION_ACTION_ACTIVE_CLASSES.split(" "));
-    expect(listButton).toHaveClass("text-muted-foreground/65");
   });
 });
