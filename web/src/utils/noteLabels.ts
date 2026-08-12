@@ -1,3 +1,6 @@
+import { getNoteColor, setNoteColor, stripNoteColorMetadata } from "./noteColor";
+import { getNoteTrashOrigin, setNoteTrashed, stripNoteTrashMetadata } from "./noteTrash";
+
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
@@ -20,10 +23,16 @@ export const hasNoteLabel = (content: string, value: string): boolean => {
 
 const TRAILING_LABEL_LINE = /(^|\n)(#[^\s#]+(?:[ \t]+#[^\s#]+)*)[ \t]*$/u;
 
-export const addNoteLabel = (content: string, value: string): string => {
-  const label = normalizeNoteLabel(value);
-  if (!label || hasNoteLabel(content, label)) return content;
+const stripGoreeCloudStateMetadata = (content: string) => stripNoteTrashMetadata(stripNoteColorMetadata(content));
 
+const restoreGoreeCloudStateMetadata = (content: string, originalContent: string): string => {
+  const color = getNoteColor(originalContent);
+  const trashOrigin = getNoteTrashOrigin(originalContent);
+  const coloredContent = setNoteColor(content, color);
+  return trashOrigin ? setNoteTrashed(coloredContent, trashOrigin) : coloredContent;
+};
+
+const addLabelToBody = (content: string, label: string): string => {
   const trimmed = content.trimEnd();
   if (!trimmed) return `#${label}`;
 
@@ -34,10 +43,7 @@ export const addNoteLabel = (content: string, value: string): string => {
   return `${trimmed}\n\n#${label}`;
 };
 
-export const removeNoteLabel = (content: string, value: string): string => {
-  const label = normalizeNoteLabel(value);
-  if (!label) return content;
-
+const removeLabelFromBody = (content: string, label: string): string => {
   const token = new RegExp(`(^|\\s)#${escapeRegExp(label)}(?=\\s|$)`, "gu");
   const next = content.replace(token, (_match, prefix: string) => (prefix.includes("\n") ? prefix : " "));
 
@@ -50,6 +56,22 @@ export const removeNoteLabel = (content: string, value: string): string => {
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trimEnd();
+};
+
+export const addNoteLabel = (content: string, value: string): string => {
+  const label = normalizeNoteLabel(value);
+  if (!label || hasNoteLabel(content, label)) return content;
+
+  const body = stripGoreeCloudStateMetadata(content);
+  return restoreGoreeCloudStateMetadata(addLabelToBody(body, label), content);
+};
+
+export const removeNoteLabel = (content: string, value: string): string => {
+  const label = normalizeNoteLabel(value);
+  if (!label || !hasNoteLabel(content, label)) return content;
+
+  const body = stripGoreeCloudStateMetadata(content);
+  return restoreGoreeCloudStateMetadata(removeLabelFromBody(body, label), content);
 };
 
 export const setNoteLabelEnabled = (content: string, value: string, enabled: boolean): string =>
