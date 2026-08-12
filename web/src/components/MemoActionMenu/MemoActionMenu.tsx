@@ -6,6 +6,7 @@ import {
   CheckCheckIcon,
   CheckIcon,
   CopyIcon,
+  DownloadIcon,
   Edit3Icon,
   FileTextIcon,
   LinkIcon,
@@ -38,11 +39,8 @@ import type { MemoActionMenuProps } from "./types";
 const MemoActionMenu = (props: MemoActionMenuProps) => {
   const { memo, readonly } = props;
   const t = useTranslate();
-
-  // Dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Derived state
   const isComment = Boolean(memo.parent);
   const isArchived = memo.state === State.ARCHIVED;
   const isTrashed = !isComment && isNoteTrashed(memo.content);
@@ -50,7 +48,6 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
   const hasOpenTasks = Boolean(memo.property?.hasIncompleteTasks);
   const noteColor = getNoteColor(memo.content);
 
-  // Action handlers
   const {
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
@@ -60,15 +57,12 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
     handleRestoreFromTrash,
     handleCopyLink,
     handleCopyContent,
+    handleExportMarkdown,
     handleCheckAllTaskListItemsClick,
     handleUncheckAllTaskListItemsClick,
     handleDeleteMemoClick,
     confirmDeleteMemo,
-  } = useMemoActionHandlers({
-    memo,
-    onEdit: props.onEdit,
-    setDeleteDialogOpen,
-  });
+  } = useMemoActionHandlers({ memo, onEdit: props.onEdit, setDeleteDialogOpen });
 
   return (
     <DropdownMenu>
@@ -76,7 +70,6 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
         <MoreVerticalIcon className="text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={2}>
-        {/* Edit actions (non-readonly, non-archived, non-trashed) */}
         {!readonly && !isArchived && !isTrashed && (
           <>
             {!isComment && (
@@ -109,7 +102,6 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
           </>
         )}
 
-        {/* Copy submenu (non-archived) */}
         {!isArchived && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
@@ -129,7 +121,13 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
           </DropdownMenuSub>
         )}
 
-        {/* Task submenu (writable task memos) */}
+        {!isComment && (
+          <DropdownMenuItem onClick={handleExportMarkdown}>
+            <DownloadIcon className="w-4 h-auto" />
+            Export Markdown
+          </DropdownMenuItem>
+        )}
+
         {canMutateTasks && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
@@ -149,7 +147,6 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
           </DropdownMenuSub>
         )}
 
-        {/* Write actions (non-readonly) */}
         {!readonly && (
           <>
             {!isComment && isTrashed && (
