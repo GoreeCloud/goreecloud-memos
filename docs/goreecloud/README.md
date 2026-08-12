@@ -93,6 +93,7 @@ Implemented so far:
 - Upstream Release Please and Canary publication workflows guarded so pushes to the GoreeCloud fork do not attempt to publish upstream `usememos`/`neosmemo` artifacts.
 - Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the deployment package at commit `dd1f5093e28cfa57c420dafac2970807e6971c03`.
 - GoreeCloud container validation passed at the same commit, including image build, Compose rendering, hardened runtime startup, and successful `/healthz` response.
+- The first GoreeCloud validation release identifier is selected as `goreecloud-v0.1.0-rc.1`. The intended first stable identifier is `goreecloud-v0.1.0` only after the release-candidate deployment, private-access, backup/restore, and end-to-end validation gates pass.
 
 Current export limitation: the first portable export format does not bundle attachment binary content, comments, or reactions. Attachment metadata is preserved in JSON. These exclusions are declared in the JSON export itself so the artifact does not imply that those data categories were included.
 
@@ -100,12 +101,12 @@ The repository-level first-release implementation is now substantially complete.
 
 Still planned for the first GoreeCloud Notes release:
 
-- Final Docker image and release identifier selection.
+- Create the `goreecloud-v0.1.0-rc.1` tag from the validated release-candidate branch head.
 - Publish and record the exact immutable GoreeCloud image digest.
 - Private `notes.goreecloud.com` publication through the approved NetBird, AdGuard Home, and Caddy model on the selected deployment host.
 - Persistent-data backup and restore validation against the actual GoreeCloud backup environment.
 - End-to-end desktop and mobile/PWA validation against the private production-style URL.
-- Final PR review, merge decision, and first GoreeCloud Notes release.
+- Final PR review, merge decision, and `goreecloud-v0.1.0` stable release only after all gates pass.
 
 ## Privacy Boundary
 
@@ -136,9 +137,19 @@ Before integrating upstream changes, I will:
 
 ## Release Identification
 
-I will identify GoreeCloud releases with both upstream ancestry and a GoreeCloud revision. I will finalize the first release identifier only after selecting the exact upstream baseline used for the first deployable GoreeCloud build.
+GoreeCloud Notes uses an independent GoreeCloud release sequence while preserving upstream ancestry separately.
 
-GoreeCloud container publication uses a separate `goreecloud-v*` tag namespace so the fork does not collide with upstream Memos release automation.
+The first validation release is:
+
+- `goreecloud-v0.1.0-rc.1`
+
+The intended first stable release, if the validation gates pass without requiring another release candidate, is:
+
+- `goreecloud-v0.1.0`
+
+I am not using the previously planned `0.30.0-gc.1` identifier because that would imply that the GoreeCloud tree is an exact derivative of Memos v0.30.0. The actual fork baseline was upstream `main` at `34e2a59a4a94176ad95cdb8ce0a93917f471795c`, 36 commits ahead of the reviewed v0.30.0 tag. I record that upstream ancestry explicitly instead of encoding a misleading upstream version into the GoreeCloud product version.
+
+GoreeCloud container publication uses the separate `goreecloud-v*` tag namespace so the fork does not collide with upstream Memos release automation. Production deployment uses an immutable GHCR digest even when a human-readable release tag exists.
 
 ## License and Attribution
 
