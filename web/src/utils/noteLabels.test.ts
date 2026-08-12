@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { getNoteColor, setNoteColor } from "./noteColor";
 import { addNoteLabel, hasNoteLabel, normalizeNoteLabel, removeNoteLabel, setNoteLabelEnabled } from "./noteLabels";
+import { getNoteTrashOrigin, setNoteTrashed } from "./noteTrash";
 
 describe("GoreeCloud note labels", () => {
   it("normalizes a user-facing label name", () => {
@@ -29,5 +31,27 @@ describe("GoreeCloud note labels", () => {
     const labeled = setNoteLabelEnabled("Body", "validation", true);
     expect(hasNoteLabel(labeled, "validation")).toBe(true);
     expect(hasNoteLabel(setNoteLabelEnabled(labeled, "validation", false), "validation")).toBe(false);
+  });
+
+  it("preserves a note color marker while adding and removing labels", () => {
+    const colored = setNoteColor("Body", "purple");
+    const labeled = addNoteLabel(colored, "validation");
+
+    expect(getNoteColor(labeled)).toBe("purple");
+    expect(hasNoteLabel(labeled, "validation")).toBe(true);
+    expect(labeled.endsWith("<!-- goreecloud-note-color: purple -->")).toBe(true);
+
+    const unlabeled = removeNoteLabel(labeled, "validation");
+    expect(getNoteColor(unlabeled)).toBe("purple");
+    expect(hasNoteLabel(unlabeled, "validation")).toBe(false);
+  });
+
+  it("preserves Trash origin and color when label helpers encounter a trashed note", () => {
+    const trashed = setNoteTrashed(setNoteColor("Body", "yellow"), "archived");
+    const labeled = addNoteLabel(trashed, "validation");
+
+    expect(getNoteTrashOrigin(labeled)).toBe("archived");
+    expect(getNoteColor(labeled)).toBe("yellow");
+    expect(hasNoteLabel(labeled, "validation")).toBe(true);
   });
 });
