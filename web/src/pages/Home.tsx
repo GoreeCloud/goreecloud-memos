@@ -30,6 +30,7 @@ const Home = () => {
 
   return (
     <div className="w-full min-h-full bg-background text-foreground">
+      <h1 className="sr-only">Notes</h1>
       <NewMemoProvider>
         <PagedMemoList
           renderer={(memo: Memo, { compact }) => (
@@ -52,12 +53,14 @@ const Home = () => {
             if (!isUserSettingsInitialized) return null;
 
             return (
-              <MemoEditor
-                className={useGrid ? "shadow-sm" : "mb-2 shadow-sm"}
-                cacheKey="home-memo-editor"
-                placeholder="Take a note…"
-                defaultCreateTime={defaultCreateTime}
-              />
+              <section aria-label="Create note">
+                <MemoEditor
+                  className={useGrid ? "shadow-sm" : "mb-2 shadow-sm"}
+                  cacheKey="home-memo-editor"
+                  placeholder="Take a note…"
+                  defaultCreateTime={defaultCreateTime}
+                />
+              </section>
             );
           }}
         />
