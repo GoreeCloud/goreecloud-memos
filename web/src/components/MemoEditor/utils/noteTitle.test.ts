@@ -27,8 +27,6 @@ describe("GoreeCloud note title helpers", () => {
   });
 
   it("normalizes whitespace in the title without changing the body", () => {
-    expect(composeNoteContent("  Trip   ideas  ", "## Alabama\nVisit Birmingham")).toBe(
-      "# Trip ideas\n\n## Alabama\nVisit Birmingham",
-    );
+    expect(composeNoteContent("  Trip   ideas  ", "## Alabama\nVisit Birmingham")).toBe("# Trip ideas\n\n## Alabama\nVisit Birmingham");
   });
 });
