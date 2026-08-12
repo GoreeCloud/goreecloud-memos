@@ -58,12 +58,34 @@ type NestedKeyOf<T, K = keyof T> = K extends keyof T & (string | number)
 // Represents the keys of nested translation objects.
 export type Translations = NestedKeyOf<typeof enTranslation>;
 
+// GoreeCloud Notes intentionally changes a small set of English product terms without
+// rewriting upstream locale files. Non-English locales continue to use upstream translations
+// until GoreeCloud-specific translations are deliberately reviewed.
+const GOREECLOUD_ENGLISH_OVERRIDES: Partial<Record<Translations, string>> = {
+  "common.home": "Notes",
+  "common.memo": "Note",
+  "common.memos": "Notes",
+  "common.sign-in-to-memos": "Sign in to GoreeCloud Notes",
+  "memo.no-memos": "No notes.",
+  "memo.no-archived-memos": "No archived notes.",
+  "memo.search-placeholder": "Search notes...",
+  "message.memo-not-found": "Note not found.",
+  "router.go-to-home": "Go to Notes",
+};
+
 // Represents a typed translation function.
 type TypedT = (key: Translations, params?: Record<string, unknown>) => string;
 
 export const useTranslate = (): TypedT => {
-  const { t } = useTranslation<Translations>();
-  return t;
+  const { t, i18n: activeI18n } = useTranslation<Translations>();
+
+  return (key, params) => {
+    if (activeI18n.resolvedLanguage?.toLowerCase().startsWith("en")) {
+      const override = GOREECLOUD_ENGLISH_OVERRIDES[key];
+      if (override) return override;
+    }
+    return t(key, params);
+  };
 };
 
 export const isValidLocale = (locale: string | undefined | null): boolean => {
