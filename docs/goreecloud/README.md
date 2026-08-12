@@ -1,0 +1,72 @@
+# GoreeCloud Notes Fork Record
+
+## Role
+
+I maintain this repository as **GoreeCloud Notes**, the private, self-hosted quick-note application for GoreeCloud.
+
+This repository is a fork of [`usememos/memos`](https://github.com/usememos/memos). I preserve upstream attribution and the MIT license while maintaining GoreeCloud-specific product identity, user-experience changes, integrations, and features.
+
+## Development Model
+
+I will minimize divergence from upstream. I will keep upstream behavior when it already satisfies GoreeCloud requirements and add GoreeCloud-specific behavior only when it provides a material product, privacy, recovery, or maintenance benefit.
+
+The initial GoreeCloud development branch is:
+
+- `feature/goreecloud-foundation`
+
+The branch was created from the fork's `main` branch at upstream commit:
+
+- `34e2a59a4a94176ad95cdb8ce0a93917f471795c`
+- Upstream commit date: August 11, 2026
+
+The last stable release reviewed before the fork was Memos `v0.30.0` at commit:
+
+- `2036c1ffc1b0a1e1fa6a473738c2a5ef520df67f`
+
+At fork initialization, upstream `main` was 36 commits ahead of `v0.30.0`. I therefore treat `v0.30.0` as the initial reviewed release rather than claiming that the GoreeCloud development branch is built from the exact `v0.30.0` tree.
+
+## Product Direction
+
+The GoreeCloud product direction is a Google Keep-style notes workspace with:
+
+- Fast note capture.
+- A responsive card-oriented workspace.
+- Pinned notes.
+- Markdown-backed note content.
+- Checklists.
+- Labels using the upstream tag model.
+- Attachments and inline images.
+- Search and filtering.
+- Archive and restore.
+- Private-by-default note creation.
+- Individual user accounts.
+- Portable export and documented recovery.
+
+Later GoreeCloud-specific work may add persistent per-note colors, a recoverable Trash workflow, reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
+
+## Privacy Boundary
+
+GoreeCloud Notes is intended to operate as a private GoreeCloud family service. I will not require public discovery, social interaction, telemetry, hosted control planes, proprietary authentication, or external AI providers for core note-taking functionality.
+
+The upstream editor already initializes new notes with private visibility. I will preserve that behavior and avoid unnecessary fork-only code where upstream already satisfies the requirement.
+
+## Upstream Maintenance
+
+I will use `main` as the upstream-aligned stable branch until GoreeCloud changes are reviewed and intentionally merged. GoreeCloud feature work will use `feature/*`, fixes will use `fix/*`, security work will use `security/*`, and temporary upstream integration work will use `upstream-sync/*`.
+
+Before integrating upstream changes, I will:
+
+1. Review upstream release notes and commits.
+2. Compare upstream changes against GoreeCloud modifications.
+3. Review migrations, dependencies, authentication, storage, export, privacy, and user-interface changes.
+4. Integrate through an isolated `upstream-sync/*` branch when needed.
+5. Run the applicable upstream and GoreeCloud-specific tests.
+6. Validate data migration and recovery before production deployment.
+
+## Release Identification
+
+I will identify GoreeCloud releases with both upstream ancestry and a GoreeCloud revision. I will finalize the first release identifier only after selecting the exact upstream baseline used for the first deployable GoreeCloud build.
+
+## License and Attribution
+
+Memos is distributed under the MIT License. GoreeCloud modifications remain subject to the repository's license and required copyright notices. I will not remove upstream attribution or represent upstream Memos work as original GoreeCloud authorship.
