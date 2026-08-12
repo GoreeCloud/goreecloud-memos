@@ -418,12 +418,16 @@ const GlobalNavigation = () => {
     }
   }, [memoScope, resolvedScope, routeOwnsScope, setMemoScope]);
 
-  const scopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [
+  const allScopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [
     { id: "home", label: t("common.home"), icon: HouseIcon },
     { id: "explore", label: t("common.explore"), icon: EarthIcon },
     { id: "archived", label: t("common.archived"), icon: ArchiveIcon },
   ];
-  const activeScopeItem = scopeItems.find((item) => item.id === resolvedScope) ?? scopeItems[0];
+  // GoreeCloud Notes is a private notes workspace. Keep the upstream Explore
+  // route available for compatibility and direct links without advertising it
+  // in the normal signed-in scope switcher.
+  const scopeItems = currentUser ? allScopeItems.filter((item) => item.id !== "explore") : allScopeItems;
+  const activeScopeItem = allScopeItems.find((item) => item.id === resolvedScope) ?? allScopeItems[0];
   const ActiveScopeIcon = activeScopeItem.icon;
 
   const navigateToScope = (scope: MemoScope) => {
