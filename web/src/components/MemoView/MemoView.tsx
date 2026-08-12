@@ -11,7 +11,7 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import { lazyWithReload } from "@/utils/lazy";
 import { getNoteColor, getNoteColorCardClassName } from "@/utils/noteColor";
 import { isSuperUser } from "@/utils/user";
-import { MemoBody, MemoCommentListView, MemoHeader } from "./components";
+import { GoreeCloudCardActions, MemoBody, MemoCommentListView, MemoHeader } from "./components";
 import { MEMO_CARD_BASE_CLASSES } from "./constants";
 import { useImagePreview } from "./hooks";
 import { computeCommentAmount, MemoViewContext } from "./MemoViewContext";
@@ -134,6 +134,8 @@ const MemoView: React.FC<MemoViewProps> = (props: MemoViewProps) => {
       <MemoHeader showCreator={showCreator} showVisibility={showVisibility} showPinned={showPinned} />
 
       <MemoBody compact={compact} />
+
+      <GoreeCloudCardActions />
 
       {previewState.items.length > 0 && (
         <Suspense fallback={null}>
