@@ -47,6 +47,10 @@ interface Props {
   renderLeading?: (options: { useGrid: boolean }) => ReactNode;
   /** Keep route-owned leading content above the entire grid instead of packing it as the first tile. */
   leadingFullWidth?: boolean;
+  /** Split pinned notes into their own section while preserving the existing memo query and sorting model. */
+  groupPinned?: boolean;
+  /** Label used for the non-pinned section when grouped pinned notes exist. */
+  notesSectionLabel?: string;
 }
 
 function useAutoFetchWhenNotScrollable({
@@ -201,6 +205,9 @@ const PagedMemoList = (props: Props) => {
   const displayMemoList = isDisplayPending ? [] : sortedMemoList;
   const firstMemo = displayMemoList[0];
   const priorityKey = newMemoName && firstMemo?.name === newMemoName ? getMemoKey(firstMemo) : undefined;
+  const pinnedMemoList = props.groupPinned ? displayMemoList.filter((memo) => memo.pinned) : [];
+  const regularMemoList = props.groupPinned ? displayMemoList.filter((memo) => !memo.pinned) : displayMemoList;
+  const showPinnedSections = Boolean(props.groupPinned && pinnedMemoList.length > 0);
 
   // Stable reference so MentionResolutionProvider's memo (keyed on the array) actually holds.
   const contents = useMemo(() => displayMemoList.map((memo) => memo.content), [displayMemoList]);
@@ -238,6 +245,22 @@ const PagedMemoList = (props: Props) => {
       </div>
     ) : undefined;
 
+  const sectionLabel = (label: string) => (
+    <div className="px-1 pb-2 pt-1 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
+  );
+
+  const renderGrid = (items: Memo[], gridPriorityKey?: string) => (
+    <ColumnGrid
+      items={items}
+      getKey={getMemoKey}
+      renderItem={(memo) => props.renderer(memo, { compact: effectiveCompact })}
+      estimateHeight={estimateMemoCardHeight}
+      priorityKey={gridPriorityKey}
+      maxColumns={maxColumns}
+      maxColumnWidth={MAX_COLUMN_WIDTH}
+    />
+  );
+
   // Pagination controls are identical across both layouts.
   const footer = (
     <>
@@ -261,16 +284,33 @@ const PagedMemoList = (props: Props) => {
                   {gridLeading}
                 </div>
               )}
-              <ColumnGrid
-                items={displayMemoList}
-                getKey={getMemoKey}
-                renderItem={(memo) => props.renderer(memo, { compact: effectiveCompact })}
-                estimateHeight={estimateMemoCardHeight}
-                leading={props.leadingFullWidth ? undefined : gridLeading}
-                priorityKey={priorityKey}
-                maxColumns={maxColumns}
-                maxColumnWidth={MAX_COLUMN_WIDTH}
-              />
+              {showPinnedSections ? (
+                <>
+                  <section aria-label={t("common.pinned")} className="w-full">
+                    {sectionLabel(t("common.pinned"))}
+                    {renderGrid(pinnedMemoList)}
+                  </section>
+                  <section
+                    aria-label={props.notesSectionLabel || t("common.memos")}
+                    className="w-full"
+                    style={{ marginTop: GRID_GAP }}
+                  >
+                    {sectionLabel(props.notesSectionLabel || t("common.memos"))}
+                    {renderGrid(regularMemoList, priorityKey && regularMemoList.some((memo) => memo.name === priorityKey) ? priorityKey : undefined)}
+                  </section>
+                </>
+              ) : (
+                <ColumnGrid
+                  items={displayMemoList}
+                  getKey={getMemoKey}
+                  renderItem={(memo) => props.renderer(memo, { compact: effectiveCompact })}
+                  estimateHeight={estimateMemoCardHeight}
+                  leading={props.leadingFullWidth ? undefined : gridLeading}
+                  priorityKey={priorityKey}
+                  maxColumns={maxColumns}
+                  maxColumnWidth={MAX_COLUMN_WIDTH}
+                />
+              )}
               {!isDisplayPending && footer}
             </>
           ) : (
@@ -278,7 +318,16 @@ const PagedMemoList = (props: Props) => {
               {leadingContent}
               <MemoFilters className="mb-2" />
               {initialLoader}
-              {displayMemoList.map((memo) => props.renderer(memo, { compact: effectiveCompact }))}
+              {showPinnedSections ? (
+                <>
+                  {sectionLabel(t("common.pinned"))}
+                  {pinnedMemoList.map((memo) => props.renderer(memo, { compact: effectiveCompact }))}
+                  {sectionLabel(props.notesSectionLabel || t("common.memos"))}
+                  {regularMemoList.map((memo) => props.renderer(memo, { compact: effectiveCompact }))}
+                </>
+              ) : (
+                displayMemoList.map((memo) => props.renderer(memo, { compact: effectiveCompact }))
+              )}
               {emptyPlaceholder}
               {!isDisplayPending && footer}
             </>
