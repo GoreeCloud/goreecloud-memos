@@ -150,7 +150,11 @@ const TagsSection = () => {
         title="Organize notes with labels"
         description="Create labels here, then assign them from a note's menu. GoreeCloud Notes stores labels as portable Markdown tags so they remain searchable and exportable."
       >
-        <SettingPanel footer={<span className="text-xs text-muted-foreground">Multi-word labels currently use hyphens, for example family-records.</span>}>
+        <SettingPanel
+          footer={
+            <span className="text-xs text-muted-foreground">Multi-word labels currently use hyphens, for example family-records.</span>
+          }
+        >
           <div className="flex flex-col gap-3 px-3 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -182,7 +186,13 @@ const TagsSection = () => {
                   onChange={(event) => setNewLabelColor(event.target.value)}
                   aria-label="New label color"
                 />
-                <Button variant="ghost" size="sm" onClick={() => setNewLabelColor(undefined)} disabled={!newLabelColor} className="h-6 px-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setNewLabelColor(undefined)}
+                  disabled={!newLabelColor}
+                  className="h-6 px-1.5"
+                >
                   Clear
                 </Button>
               </div>
@@ -202,7 +212,9 @@ const TagsSection = () => {
             <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center">
               <TagIcon className="size-5 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">No labels yet</p>
-              <p className="max-w-sm text-xs text-muted-foreground">Create your first label above. It will appear in the Notes sidebar and in each note's Labels menu.</p>
+              <p className="max-w-sm text-xs text-muted-foreground">
+                Create your first label above. It will appear in the Notes sidebar and in each note's Labels menu.
+              </p>
             </div>
           ) : (
             configuredEntries.map((row) => (
@@ -212,7 +224,9 @@ const TagsSection = () => {
                     <TagIcon className="size-4 shrink-0 text-muted-foreground" />
                     <span className="truncate text-sm font-medium text-foreground">{row.name}</span>
                   </div>
-                  <p className="mt-1 pl-6 text-xs text-muted-foreground">Used by {row.count} {row.count === 1 ? "note" : "notes"}</p>
+                  <p className="mt-1 pl-6 text-xs text-muted-foreground">
+                    Used by {row.count} {row.count === 1 ? "note" : "notes"}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
