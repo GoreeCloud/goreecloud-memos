@@ -42,11 +42,11 @@ The GoreeCloud product direction is a Google Keep-style notes workspace with:
 - Individual user accounts.
 - Portable export and documented recovery.
 
-Later GoreeCloud-specific work may add persistent per-note colors, a recoverable Trash workflow, reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
+Later GoreeCloud-specific work may add a recoverable Trash workflow, reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
 
 ## Current Implementation Status
 
-The initial GoreeCloud foundation and the first Keep-style workspace changes are implemented on `feature/goreecloud-foundation`.
+The initial GoreeCloud foundation, Keep-style workspace, title model, and persistent note-color milestone are implemented on `feature/goreecloud-foundation`.
 
 Implemented so far:
 
@@ -62,13 +62,17 @@ Implemented so far:
 - Separate title/body editing for top-level notes while replies retain the upstream single-document editor.
 - Keep-style rendering for a leading H1 title without changing the appearance of ordinary H1 headings elsewhere in a note.
 - Unit coverage for the Markdown title split/compose behavior.
-- Frontend TypeScript, Biome checks, full frontend unit suite, and production frontend build validated successfully after the navigation and title milestone at commit `aad1efc9c70b7de22ac694b1a9a544bf21a213e9`.
+- Persistent per-note colors with default, red, orange, yellow, green, teal, blue, purple, and pink choices.
+- A note-card **Color** submenu with visual swatches and selected-color indication.
+- Color state stored as a trailing GoreeCloud HTML comment in the Markdown document rather than a database or API schema extension, preserving compatibility with the existing Memos storage model and keeping the data portable.
+- Color metadata hidden from the editor and copied note content while being preserved automatically when a colored note is edited.
+- Unit coverage for color detection, replacement, removal, and metadata stripping.
+- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the color milestone at commit `200c6aab412cba80a13bc8d98aba1f497042598b`.
 
-The next implementation milestone is persistent per-note colors. The color extension will be designed as the smallest durable data-model addition that can be carried through the API, storage backends, editor, card renderer, migrations, tests, and export path without breaking Markdown portability.
+The next implementation milestone is recoverable Trash. I will replace normal top-level note deletion with a recoverable state transition and provide a Trash view with restore and explicit permanent-delete behavior while preserving upstream-compatible storage wherever practical.
 
 Still planned for the first GoreeCloud Notes release:
 
-- Per-note colors.
 - Recoverable Trash and restore behavior.
 - Portable Markdown and JSON export.
 - GoreeCloud-specific validation and deployment packaging.
