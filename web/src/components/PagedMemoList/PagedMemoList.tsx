@@ -45,6 +45,8 @@ interface Props {
   enabled?: boolean;
   /** Route-owned content rendered before the list and inside column one in grid mode. */
   renderLeading?: (options: { useGrid: boolean }) => ReactNode;
+  /** Keep route-owned leading content above the entire grid instead of packing it as the first tile. */
+  leadingFullWidth?: boolean;
 }
 
 function useAutoFetchWhenNotScrollable({
@@ -254,12 +256,17 @@ const PagedMemoList = (props: Props) => {
         <div className={cn("flex flex-col justify-start w-full mx-auto", useGrid ? "max-w-none" : "max-w-2xl")}>
           {useGrid ? (
             <>
+              {props.leadingFullWidth && gridLeading && (
+                <div className="w-full max-w-2xl mx-auto" style={{ marginBottom: GRID_GAP }}>
+                  {gridLeading}
+                </div>
+              )}
               <ColumnGrid
                 items={displayMemoList}
                 getKey={getMemoKey}
                 renderItem={(memo) => props.renderer(memo, { compact: effectiveCompact })}
                 estimateHeight={estimateMemoCardHeight}
-                leading={gridLeading}
+                leading={props.leadingFullWidth ? undefined : gridLeading}
                 priorityKey={priorityKey}
                 maxColumns={maxColumns}
                 maxColumnWidth={MAX_COLUMN_WIDTH}
