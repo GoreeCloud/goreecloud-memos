@@ -31,25 +31,27 @@ jobs:
                   raise SystemExit(f"Expected source block not found in {path}")
               file.write_text(text.replace(old, new, 1))
 
-          replace_exact(
-              "web/src/components/AppSidebar/AppSidebar.tsx",
-              '''  const scopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [
-            { id: "home", label: t("common.home"), icon: HouseIcon },
-            { id: "explore", label: t("common.explore"), icon: EarthIcon },
-            { id: "archived", label: t("common.archived"), icon: ArchiveIcon },
-          ];
-          const activeScopeItem = scopeItems.find((item) => item.id === resolvedScope) ?? scopeItems[0];''',
-              '''  const allScopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [
-            { id: "home", label: t("common.home"), icon: HouseIcon },
-            { id: "explore", label: t("common.explore"), icon: EarthIcon },
-            { id: "archived", label: t("common.archived"), icon: ArchiveIcon },
-          ];
-          // GoreeCloud Notes is a private notes workspace. Keep the upstream Explore
-          // route available for compatibility and direct links without advertising it
-          // in the normal signed-in scope switcher.
-          const scopeItems = currentUser ? allScopeItems.filter((item) => item.id !== "explore") : allScopeItems;
-          const activeScopeItem = allScopeItems.find((item) => item.id === resolvedScope) ?? allScopeItems[0];''',
+          old_scope = (
+              '  const scopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [\n'
+              '    { id: "home", label: t("common.home"), icon: HouseIcon },\n'
+              '    { id: "explore", label: t("common.explore"), icon: EarthIcon },\n'
+              '    { id: "archived", label: t("common.archived"), icon: ArchiveIcon },\n'
+              '  ];\n'
+              '  const activeScopeItem = scopeItems.find((item) => item.id === resolvedScope) ?? scopeItems[0];'
           )
+          new_scope = (
+              '  const allScopeItems: Array<{ id: MemoScope; label: string; icon: LucideIcon }> = [\n'
+              '    { id: "home", label: t("common.home"), icon: HouseIcon },\n'
+              '    { id: "explore", label: t("common.explore"), icon: EarthIcon },\n'
+              '    { id: "archived", label: t("common.archived"), icon: ArchiveIcon },\n'
+              '  ];\n'
+              '  // GoreeCloud Notes is a private notes workspace. Keep the upstream Explore\n'
+              '  // route available for compatibility and direct links without advertising it\n'
+              '  // in the normal signed-in scope switcher.\n'
+              '  const scopeItems = currentUser ? allScopeItems.filter((item) => item.id !== "explore") : allScopeItems;\n'
+              '  const activeScopeItem = allScopeItems.find((item) => item.id === resolvedScope) ?? allScopeItems[0];'
+          )
+          replace_exact("web/src/components/AppSidebar/AppSidebar.tsx", old_scope, new_scope)
 
           replace_exact(
               "web/src/components/MemoEditor/index.tsx",
@@ -57,23 +59,24 @@ jobs:
               'import { AudioRecorderPanel, EditorContent, EditorMetadata, FocusModeOverlay, NoteTitleField, TimestampPopover } from "./components";',
           )
 
-          replace_exact(
-              "web/src/components/MemoEditor/index.tsx",
-              '''        {/* Editor content grows to fill available space in focus mode */}
-                <EditorContent ref={editorRef} placeholder={placeholder} onSubmit={handleSave} onFiles={handleInsertImages} />''',
-              '''        {/* A top-level note title maps to the leading Markdown H1. Replies keep
-                    the upstream single-document editor because they do not need titles. */}
-                {!parentMemoName && <NoteTitleField onEnter={() => editorRef.current?.focus()} />}
-
-                {/* Editor content grows to fill available space in focus mode. */}
-                <EditorContent
-                  ref={editorRef}
-                  placeholder={placeholder}
-                  separateTitle={!parentMemoName}
-                  onSubmit={handleSave}
-                  onFiles={handleInsertImages}
-                />''',
+          old_editor = (
+              '        {/* Editor content grows to fill available space in focus mode */}\n'
+              '        <EditorContent ref={editorRef} placeholder={placeholder} onSubmit={handleSave} onFiles={handleInsertImages} />'
           )
+          new_editor = (
+              '        {/* A top-level note title maps to the leading Markdown H1. Replies keep\n'
+              '            the upstream single-document editor because they do not need titles. */}\n'
+              '        {!parentMemoName && <NoteTitleField onEnter={() => editorRef.current?.focus()} />}\n\n'
+              '        {/* Editor content grows to fill available space in focus mode. */}\n'
+              '        <EditorContent\n'
+              '          ref={editorRef}\n'
+              '          placeholder={placeholder}\n'
+              '          separateTitle={!parentMemoName}\n'
+              '          onSubmit={handleSave}\n'
+              '          onFiles={handleInsertImages}\n'
+              '        />'
+          )
+          replace_exact("web/src/components/MemoEditor/index.tsx", old_editor, new_editor)
 
           replace_exact(
               "web/src/components/MemoEditor/index.tsx",
