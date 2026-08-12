@@ -38,9 +38,7 @@ const PrivateNotesNavigation = () => {
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex h-10 items-center gap-3 rounded-r-full px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-              active
-                ? "bg-primary/12 text-foreground"
-                : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground",
+              active ? "bg-primary/12 text-foreground" : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground",
             )}
           >
             <Icon className="size-[18px] shrink-0" strokeWidth={1.8} />
