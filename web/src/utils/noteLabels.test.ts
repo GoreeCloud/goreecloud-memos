@@ -25,7 +25,7 @@ describe("GoreeCloud note labels", () => {
 
   it("removes only the selected label token", () => {
     expect(removeNoteLabel("Release candidate note.\n\n#validation #family", "validation")).toBe(
-      "Release candidate note.\n\n #family",
+      "Release candidate note.\n\n#family",
     );
   });
 
