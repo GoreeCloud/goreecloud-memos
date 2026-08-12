@@ -167,7 +167,8 @@ describe("GoreeCloud Notes sidebar shell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Calendar")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Notes navigation" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "common.search" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "common.attachments", level: 2 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "common.attachments" })).toHaveAttribute("aria-current", "page");
   });
