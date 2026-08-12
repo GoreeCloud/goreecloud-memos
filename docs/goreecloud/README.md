@@ -62,7 +62,7 @@ Implemented so far:
 - Separate title/body editing for top-level notes while replies retain the upstream single-document editor.
 - Keep-style rendering for a leading H1 title without changing the appearance of ordinary H1 headings elsewhere in a note.
 - Unit coverage for the Markdown title split/compose behavior.
-- Frontend TypeScript, Biome checks, full frontend unit suite, and production frontend build validated successfully after the navigation and title milestone.
+- Frontend TypeScript, Biome checks, full frontend unit suite, and production frontend build validated successfully after the navigation and title milestone at commit `aad1efc9c70b7de22ac694b1a9a544bf21a213e9`.
 
 Still planned for the first GoreeCloud Notes release:
 
