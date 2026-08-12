@@ -31,7 +31,7 @@ const Home = () => {
   });
 
   return (
-    <div className="w-full min-h-full bg-background text-foreground">
+    <div className="min-h-full w-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <h1 className="sr-only">Notes</h1>
       <NewMemoProvider>
         <PagedMemoList
@@ -53,7 +53,6 @@ const Home = () => {
           notesSectionLabel="Notes"
           renderLeading={({ useGrid }) => {
             if (!isUserSettingsInitialized) return null;
-
             return (
               <section aria-label="Create note">
                 <MemoEditor
