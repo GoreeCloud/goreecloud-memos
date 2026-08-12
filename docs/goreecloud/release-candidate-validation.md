@@ -16,34 +16,74 @@ Validated infrastructure behavior included:
 - Successful `/healthz` response.
 - Successful authenticated application startup and note creation.
 
-RC1 did **not** pass user-interface acceptance. The deployed interface remained too close to upstream Memos and did not meet the intended Google Keep-style GoreeCloud Notes experience. Specific acceptance failures included:
+RC1 did **not** pass user-interface acceptance. The deployed interface remained too close to upstream Memos and did not meet the intended Google Keep-style GoreeCloud Notes experience. Specific acceptance failures included the activity-calendar-heavy sidebar, oversized single-column presentation, poor label discoverability, upstream-oriented navigation, and insufficient GoreeCloud product identity.
 
-- The activity calendar consumed prominent sidebar space in the private Notes workspace.
-- Navigation remained oriented around upstream Memos concepts rather than a dedicated notes application.
-- The cached/default single-column layout produced oversized note cards and excessive empty space.
-- Labels were not discoverable as a first-class note workflow.
-- Label creation and assignment were not presented in user-facing GoreeCloud Notes terminology.
-- The overall application shell did not yet feel sufficiently distinct from upstream Memos.
+RC1 remains a validation artifact and must not be promoted to stable.
 
-RC1 therefore remains a validation artifact and must not be promoted to the first stable GoreeCloud Notes release.
+## RC2
 
-## RC2 UI Redesign Gate
+Release candidate `goreecloud-v0.1.0-rc.2` implemented the first substantial GoreeCloud Notes workspace redesign and was published and deployed to the same private validation environment without replacing the existing SQLite data.
 
-The next validation candidate is `goreecloud-v0.1.0-rc.2` after the redesigned frontend passes automated validation.
+RC2 validation confirmed:
 
-The RC2 redesign includes:
+- Dedicated GoreeCloud Notes navigation for Notes, Archive, Trash, Labels, Attachments, and Inbox.
+- Removal of the activity calendar and Views/Tasks clutter from the primary Notes workspace.
+- Responsive multi-column card-wall behavior.
+- A first-class Labels manager backed by the upstream tag/index model.
+- Label creation, label color, label assignment/removal, usage counts, card display, and sidebar filtering.
+- Existing title, checklist, pin, note color, Archive, Trash, restore, authentication, and persistent-data behavior.
+- Exact immutable image deployment with no backend host-port publication.
+- Private AdGuard Home resolution, Caddy HTTPS publication, and successful application health checks.
 
-- A dedicated GoreeCloud Notes workspace sidebar for Notes, Archive, Trash, Labels, Attachments, and Inbox.
-- Removal of the activity calendar and upstream scope-switcher clutter from the primary private Notes workspace.
-- A prominent desktop `Search notes` control while retaining responsive mobile search/navigation.
-- A responsive multi-column card wall as the default layout, with existing view controls still available.
-- Labels surfaced as a first-class GoreeCloud Notes concept while continuing to use Memos' portable Markdown tag/index model internally.
-- A user-facing Labels manager for creating labels and assigning optional label colors.
-- A Labels submenu in each editable top-level note for assigning and removing configured labels.
-- Existing note title, pin, color, Archive, Trash, restore, export, privacy, and deployment behavior retained.
+RC2 passed the functional acceptance gate for the redesigned Notes workspace and Labels workflow, but visual/product acceptance remained **partial**. Remaining issues included upstream Memos terminology and administration surfaces in Settings, `#`-prefixed label presentation, modal-style Quick Find instead of direct workspace filtering, an always-expanded composer, and card actions that remained too dependent on the overflow menu.
 
-## Promotion Rule
+RC2 therefore remains a release candidate rather than the stable first release.
 
-RC2 must pass all automated frontend and container checks and then receive a new visual acceptance review on the deployed private `notes.goreecloud.com` instance.
+## RC3 Product Polish Gate
 
-Backup/restore validation remains required before `goreecloud-v0.1.0` stable promotion. PR #1 remains draft until the applicable release gates are complete.
+The next candidate is `goreecloud-v0.1.0-rc.3` after the RC3 branch head passes automated frontend and container validation.
+
+RC3 focuses on product polish rather than infrastructure changes. The implementation includes:
+
+- Clean user-facing label chips that display the configured label name without exposing the Markdown `#` token.
+- Direct desktop `Search notes` filtering through the existing `contentSearch` filter model instead of opening a second Quick Find dialog.
+- A collapsed `Take a note…` capture surface that expands into the full editor only when the user begins composing.
+- Direct card actions for pin/unpin, color, labels, Archive/restore, with Trash restore surfaced directly where applicable; the overflow menu remains for secondary actions.
+- Removal of reactions from the primary Notes card workflow, consistent with the initial GoreeCloud Notes MVP scope.
+- A dedicated GoreeCloud Notes Settings navigation shell using GoreeCloud terminology.
+- User-facing Settings reduced to My account, Preferences, and Labels.
+- Administrator Settings reduced to Members, System, Notes, Storage, and Notifications for the initial product surface.
+- Upstream Webhooks, SSO, AI, Resources, and Access Tokens hidden from the GoreeCloud Notes Settings experience for the initial MVP instead of defining the visible product interface.
+- The former Memo administration page presented as Notes with note-oriented terminology, while reaction configuration is removed from that page.
+- Softer rounded card geometry, restrained elevation, hover movement, translucent workspace surfaces, and other refinements aligned with GoreeCloud Glaze UI.
+
+The upstream implementation remains available in source where removing it would create unnecessary divergence. RC3 changes the GoreeCloud product surface and does not change the SQLite data model, persistent storage paths, private DNS architecture, Caddy route, or backend network-exposure model.
+
+## RC3 Acceptance Requirements
+
+Before RC3 can be considered visually accepted, the deployed private instance must be reviewed for:
+
+- Notes workspace visual hierarchy and Glaze UI consistency.
+- Collapsed and expanded composer behavior.
+- Direct inline search and clearing behavior.
+- Responsive card layout and direct card actions.
+- Labels creation, assignment, clean chip presentation, counts, and filtering.
+- Notes, Archive, and Trash workflows.
+- GoreeCloud Settings navigation and terminology.
+- Absence of ordinary user-facing Memos branding or irrelevant upstream administration in the intended Notes workflow.
+- Light and dark appearance behavior.
+- Desktop and supported mobile/PWA layouts.
+
+## Stable Promotion Rule
+
+`goreecloud-v0.1.0` must not be created until all applicable first-release gates pass:
+
+- RC3 automated frontend and container validation.
+- RC3 desktop visual/product acceptance.
+- Android/PWA visual and functional acceptance.
+- End-to-end validation for notes, titles, checklists, labels, colors, pinning, attachments, Archive, Trash, restore, search, export, authentication, and restart persistence.
+- Kopia integration or the approved long-term application-backup path.
+- A real isolated restore test proving the application data can be recovered.
+- Final pull-request review.
+
+PR #1 remains draft and unmerged until those gates are complete.
