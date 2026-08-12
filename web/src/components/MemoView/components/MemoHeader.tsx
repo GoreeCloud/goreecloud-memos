@@ -1,18 +1,16 @@
 import { BookmarkIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import RelativeTime from "@/components/RelativeTime";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNewMemo } from "@/contexts/NewMemoContext";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import i18n from "@/i18n";
-import { cn } from "@/lib/utils";
 import { Visibility } from "@/types/proto/api/v1/memo_service_pb";
 import type { User } from "@/types/proto/api/v1/user_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { convertVisibilityToString } from "@/utils/memo";
 import MemoActionMenu from "../../MemoActionMenu";
-import { ReactionSelector } from "../../MemoReactionListView";
 import UserAvatar from "../../UserAvatar";
 import VisibilityIcon from "../../VisibilityIcon";
 import { useMemoActions } from "../hooks";
@@ -21,7 +19,6 @@ import type { MemoHeaderProps } from "../types";
 
 const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, showPinned }) => {
   const t = useTranslate();
-  const [reactionSelectorOpen, setReactionSelectorOpen] = useState(false);
 
   const { memo, creator, currentUser, parentPage, isArchived, readonly, openEditor } = useMemoViewContext();
   const { createTime, updateTime, displayTime: memoDisplayTime, isDisplayingUpdatedTime, relativeTimeFormat } = useMemoViewDerived();
@@ -55,8 +52,8 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
   };
 
   return (
-    <div className="w-full flex flex-row justify-between items-center gap-2">
-      <div className="w-auto max-w-[calc(100%-8rem)] grow flex flex-row justify-start items-center">
+    <div className="flex w-full flex-row items-center justify-between gap-2">
+      <div className="flex w-auto max-w-[calc(100%-8rem)] grow flex-row items-center justify-start">
         {showCreator && creator ? (
           <CreatorDisplay creator={creator} displayTime={displayTime} timeTooltip={timeTooltip} onGotoDetail={handleGotoMemoDetailPage} />
         ) : (
@@ -69,19 +66,11 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
         )}
       </div>
 
-      <div className="flex flex-row justify-end items-center select-none shrink-0 gap-2">
-        {currentUser && !isArchived && (
-          <ReactionSelector
-            className={cn("border-none w-auto h-auto", reactionSelectorOpen && "block!", "block sm:hidden sm:group-hover:block")}
-            memo={memo}
-            onOpenChange={setReactionSelectorOpen}
-          />
-        )}
-
+      <div className="flex shrink-0 select-none flex-row items-center justify-end gap-2">
         {showVisibility && memo.visibility !== Visibility.PRIVATE && (
           <Tooltip>
             <TooltipTrigger>
-              <span className="flex justify-center items-center rounded-md hover:opacity-80">
+              <span className="flex items-center justify-center rounded-md hover:opacity-80">
                 <VisibilityIcon visibility={memo.visibility} />
               </span>
             </TooltipTrigger>
@@ -95,7 +84,7 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger render={<span className="cursor-pointer" />}>
-                <BookmarkIcon className="w-4 h-auto text-primary" onClick={unpinMemo} />
+                <BookmarkIcon className="h-auto w-4 text-primary" onClick={unpinMemo} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{t("common.unpin")}</p>
@@ -104,7 +93,9 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
           </TooltipProvider>
         )}
 
-        <MemoActionMenu memo={memo} readonly={readonly} onEdit={openEditor} />
+        <div className="opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+          <MemoActionMenu memo={memo} readonly={readonly} onEdit={openEditor} />
+        </div>
       </div>
     </div>
   );
@@ -118,13 +109,13 @@ interface CreatorDisplayProps {
 }
 
 const CreatorDisplay: React.FC<CreatorDisplayProps> = ({ creator, displayTime, timeTooltip, onGotoDetail }) => (
-  <div className="w-full flex flex-row justify-start items-center">
-    <Link className="w-auto hover:opacity-80 rounded-md transition-colors" to={`/u/${encodeURIComponent(creator.username)}`} viewTransition>
+  <div className="flex w-full flex-row items-center justify-start">
+    <Link className="w-auto rounded-md transition-colors hover:opacity-80" to={`/u/${encodeURIComponent(creator.username)}`} viewTransition>
       <UserAvatar className="mr-2 shrink-0" avatarUrl={creator.avatarUrl} />
     </Link>
-    <div className="w-full flex flex-col justify-center items-start">
+    <div className="flex w-full flex-col items-start justify-center">
       <Link
-        className="block leading-tight hover:opacity-80 rounded-md transition-colors truncate text-muted-foreground"
+        className="block truncate rounded-md leading-tight text-muted-foreground transition-colors hover:opacity-80"
         to={`/u/${encodeURIComponent(creator.username)}`}
         viewTransition
       >
@@ -132,7 +123,7 @@ const CreatorDisplay: React.FC<CreatorDisplayProps> = ({ creator, displayTime, t
       </Link>
       <TimeTooltip content={timeTooltip}>
         <span
-          className="w-auto -mt-0.5 text-xs leading-tight text-muted-foreground select-none cursor-pointer hover:opacity-80 transition-colors text-left"
+          className="-mt-0.5 w-auto cursor-pointer select-none text-left text-xs leading-tight text-muted-foreground transition-colors hover:opacity-80"
           onClick={onGotoDetail}
         >
           {displayTime}
@@ -166,7 +157,7 @@ interface TimeDisplayProps {
 const TimeDisplay: React.FC<TimeDisplayProps> = ({ displayTime, timeTooltip, onGotoDetail }) => (
   <TimeTooltip content={timeTooltip}>
     <span
-      className="w-auto text-sm leading-tight text-muted-foreground select-none cursor-pointer hover:text-foreground transition-colors text-left"
+      className="w-auto cursor-pointer select-none text-left text-sm leading-tight text-muted-foreground transition-colors hover:text-foreground"
       onClick={onGotoDetail}
     >
       {displayTime}
