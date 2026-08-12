@@ -10,6 +10,9 @@ import { useInstance } from "@/contexts/InstanceContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { User_Role } from "@/types/proto/api/v1/user_service_pb";
 
+const GOREECLOUD_BASIC_SETTINGS = new Set<SettingSectionKey>(["my-account", "preference", "tags"]);
+const GOREECLOUD_ADMIN_SETTINGS = new Set<SettingSectionKey>(["member", "system", "memo", "storage", "notification"]);
+
 const Setting = () => {
   const location = useLocation();
   const user = useCurrentUser();
@@ -18,7 +21,10 @@ const Setting = () => {
   const isHost = user?.role === User_Role.ADMIN;
 
   const sectionGroups = useMemo(() => {
-    const visibleSections = SETTINGS_SECTIONS.filter((section) => section.scope === "basic" || isHost);
+    const visibleSections = SETTINGS_SECTIONS.filter((section) => {
+      if (section.scope === "basic") return GOREECLOUD_BASIC_SETTINGS.has(section.key);
+      return isHost && GOREECLOUD_ADMIN_SETTINGS.has(section.key);
+    });
     return {
       admin: visibleSections.filter((section) => section.scope === "admin"),
       all: visibleSections,
@@ -58,7 +64,7 @@ const Setting = () => {
   const ActiveSection = selectedSectionDefinition.component;
 
   return (
-    <section className="w-full min-h-full">
+    <section className="min-h-full w-full bg-background">
       <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-4 sm:px-6 md:pt-8">
         <div className="min-w-0">
           <ActiveSection />
