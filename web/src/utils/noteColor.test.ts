@@ -7,9 +7,7 @@ describe("GoreeCloud note color metadata", () => {
   });
 
   it("adds a portable trailing metadata marker", () => {
-    expect(setNoteColor("# Grocery list\n\nMilk", "yellow")).toBe(
-      "# Grocery list\n\nMilk\n\n<!-- goreecloud-note-color: yellow -->",
-    );
+    expect(setNoteColor("# Grocery list\n\nMilk", "yellow")).toBe("# Grocery list\n\nMilk\n\n<!-- goreecloud-note-color: yellow -->");
   });
 
   it("replaces an existing color without stacking markers", () => {
@@ -23,8 +21,6 @@ describe("GoreeCloud note color metadata", () => {
 
   it("strips only GoreeCloud color metadata from the end of a note", () => {
     expect(stripNoteColorMetadata("Body\n\n<!-- goreecloud-note-color: teal -->")).toBe("Body");
-    expect(stripNoteColorMetadata("<!-- goreecloud-note-color: teal -->\n\nBody")).toBe(
-      "<!-- goreecloud-note-color: teal -->\n\nBody",
-    );
+    expect(stripNoteColorMetadata("<!-- goreecloud-note-color: teal -->\n\nBody")).toBe("<!-- goreecloud-note-color: teal -->\n\nBody");
   });
 });
