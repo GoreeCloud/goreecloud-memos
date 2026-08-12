@@ -68,9 +68,7 @@ const GoreeCloudWorkspaceSidebar = () => {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex h-11 items-center gap-4 rounded-r-full px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                active
-                  ? "bg-primary/12 text-foreground"
-                  : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground",
+                active ? "bg-primary/12 text-foreground" : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground",
               )}
             >
               <Icon className="size-5 shrink-0" strokeWidth={1.8} />
@@ -133,7 +131,10 @@ export const GoreeCloudMobileAppHeader = () => {
       <Button variant="ghost" size="icon-sm" className="size-9" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
         <MenuIcon className="size-5" />
       </Button>
-      <Link to={ROUTES.HOME} className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+      <Link
+        to={ROUTES.HOME}
+        className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
         <MemosLogo compact />
       </Link>
       <Button variant="ghost" size="icon-sm" className="size-9" onClick={() => setQuickFindOpen(true)} aria-label="Search notes">
