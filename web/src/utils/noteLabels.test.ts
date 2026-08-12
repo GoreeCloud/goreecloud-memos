@@ -12,9 +12,7 @@ describe("GoreeCloud note labels", () => {
   });
 
   it("groups additional labels on the trailing label line", () => {
-    expect(addNoteLabel("Release candidate note.\n\n#validation", "family")).toBe(
-      "Release candidate note.\n\n#validation #family",
-    );
+    expect(addNoteLabel("Release candidate note.\n\n#validation", "family")).toBe("Release candidate note.\n\n#validation #family");
   });
 
   it("does not duplicate a label that is already present", () => {
@@ -24,9 +22,7 @@ describe("GoreeCloud note labels", () => {
   });
 
   it("removes only the selected label token", () => {
-    expect(removeNoteLabel("Release candidate note.\n\n#validation #family", "validation")).toBe(
-      "Release candidate note.\n\n#family",
-    );
+    expect(removeNoteLabel("Release candidate note.\n\n#validation #family", "validation")).toBe("Release candidate note.\n\n#family");
   });
 
   it("toggles labels through one helper", () => {
