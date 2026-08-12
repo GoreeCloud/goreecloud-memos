@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { PlusIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import MemoEditor from "@/components/MemoEditor";
 import { deriveDefaultCreateTimeFromFilters } from "@/components/MemoEditor/utils/deriveDefaultCreateTime";
 import MemoView from "@/components/MemoView";
@@ -17,6 +18,7 @@ const Home = () => {
   const { isUserSettingsInitialized } = useAuth();
   const { filters } = useMemoFilterContext();
   const defaultCreateTime = useMemo(() => deriveDefaultCreateTimeFromFilters(filters), [filters]);
+  const [composerOpen, setComposerOpen] = useState(false);
 
   const memoFilter = useMemoFilters({
     creatorName: user?.name,
@@ -55,12 +57,28 @@ const Home = () => {
             if (!isUserSettingsInitialized) return null;
             return (
               <section aria-label="Create note">
-                <MemoEditor
-                  className={useGrid ? "shadow-sm" : "mb-2 shadow-sm"}
-                  cacheKey="home-memo-editor"
-                  placeholder="Take a note…"
-                  defaultCreateTime={defaultCreateTime}
-                />
+                {composerOpen ? (
+                  <MemoEditor
+                    autoFocus
+                    className={useGrid ? "shadow-md" : "mb-2 shadow-md"}
+                    cacheKey="home-memo-editor"
+                    placeholder="Take a note…"
+                    defaultCreateTime={defaultCreateTime}
+                    onConfirm={() => setComposerOpen(false)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setComposerOpen(true)}
+                    aria-expanded={false}
+                    className="group flex h-14 w-full items-center gap-3 rounded-2xl border border-border/60 bg-card/88 px-4 text-left text-sm text-muted-foreground shadow-sm backdrop-blur-lg transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted/80 text-foreground transition-colors group-hover:bg-muted">
+                      <PlusIcon className="size-4" strokeWidth={1.9} />
+                    </span>
+                    <span className="font-medium">Take a note…</span>
+                  </button>
+                )}
               </section>
             );
           }}
