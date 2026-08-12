@@ -38,15 +38,16 @@ The GoreeCloud product direction is a Google Keep-style notes workspace with:
 - Attachments and inline images.
 - Search and filtering.
 - Archive and restore.
+- Recoverable Trash and explicit permanent deletion.
 - Private-by-default note creation.
 - Individual user accounts.
 - Portable export and documented recovery.
 
-Later GoreeCloud-specific work may add a recoverable Trash workflow, reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
+Later GoreeCloud-specific work may add reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
 
 ## Current Implementation Status
 
-The initial GoreeCloud foundation, Keep-style workspace, title model, and persistent note-color milestone are implemented on `feature/goreecloud-foundation`.
+The initial GoreeCloud foundation, Keep-style workspace, title model, persistent note colors, and recoverable Trash workflow are implemented on `feature/goreecloud-foundation`.
 
 Implemented so far:
 
@@ -67,13 +68,20 @@ Implemented so far:
 - Color state stored as a trailing GoreeCloud HTML comment in the Markdown document rather than a database or API schema extension, preserving compatibility with the existing Memos storage model and keeping the data portable.
 - Color metadata hidden from the editor and copied note content while being preserved automatically when a colored note is edited.
 - Unit coverage for color detection, replacement, removal, and metadata stripping.
-- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the color milestone at commit `200c6aab412cba80a13bc8d98aba1f497042598b`.
+- Recoverable Trash for top-level notes. The normal delete action now moves a note to Trash instead of calling the upstream hard-delete operation immediately.
+- Trash state stored as a GoreeCloud Markdown metadata marker that preserves whether the note originated from Notes or Archive.
+- Trashed notes moved to the upstream `NORMAL` state internally and excluded from ordinary Notes and Archive queries using the existing cross-database CEL filter engine.
+- A dedicated authenticated `/trash` page that lists only trashed notes owned by the signed-in user.
+- Restore behavior that removes Trash metadata and returns a note to its original Notes or Archive state.
+- Explicit **Delete permanently** behavior inside Trash that continues to use the upstream hard-delete path, including upstream cleanup of comments, relations, and attachments.
+- Trash access from the signed-in user menu.
+- Unit coverage for Trash metadata, color preservation, replacement, restore stripping, and server-side Trash filter composition.
+- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the Trash milestone at commit `55b09b5351e4586023ee00e33962950c54d9aec4`.
 
-The next implementation milestone is recoverable Trash. I will replace normal top-level note deletion with a recoverable state transition and provide a Trash view with restore and explicit permanent-delete behavior while preserving upstream-compatible storage wherever practical.
+The next implementation milestone is portable export. I will add Markdown and JSON export paths that preserve the user-authored note content and required GoreeCloud metadata without exposing internal implementation markers as ordinary note text.
 
 Still planned for the first GoreeCloud Notes release:
 
-- Recoverable Trash and restore behavior.
 - Portable Markdown and JSON export.
 - GoreeCloud-specific validation and deployment packaging.
 
