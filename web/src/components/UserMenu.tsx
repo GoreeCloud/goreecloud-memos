@@ -57,19 +57,13 @@ const UserMenu = (props: Props) => {
   const handleLocaleChange = async (locale: Locale) => {
     if (!currentUser) return;
     loadLocale(locale);
-    updateUserGeneralSetting(
-      { generalSetting: { locale }, updateMask: ["locale"] },
-      { onSuccess: () => refetchSettings() },
-    );
+    updateUserGeneralSetting({ generalSetting: { locale }, updateMask: ["locale"] }, { onSuccess: () => refetchSettings() });
   };
 
   const handleThemeChange = async (theme: string) => {
     if (!currentUser) return;
     loadTheme(theme);
-    updateUserGeneralSetting(
-      { generalSetting: { theme }, updateMask: ["theme"] },
-      { onSuccess: () => refetchSettings() },
-    );
+    updateUserGeneralSetting({ generalSetting: { theme }, updateMask: ["theme"] }, { onSuccess: () => refetchSettings() });
   };
 
   const handleSignOut = async () => {
