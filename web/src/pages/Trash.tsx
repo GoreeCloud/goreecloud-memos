@@ -20,9 +20,9 @@ const Trash = () => {
   });
 
   return (
-    <div className="w-full min-h-full bg-background text-foreground">
-      <div className="mx-auto mb-5 max-w-3xl px-1">
-        <h1 className="text-xl font-semibold">Trash</h1>
+    <div className="min-h-full w-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <div className="mx-auto mb-6 max-w-6xl">
+        <h1 className="text-xl font-semibold tracking-tight">Trash</h1>
         <p className="mt-1 text-sm text-muted-foreground">Notes stay here until you restore them or choose Delete permanently.</p>
       </div>
       <PagedMemoList
