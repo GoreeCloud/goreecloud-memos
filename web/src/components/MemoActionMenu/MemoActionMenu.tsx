@@ -43,8 +43,7 @@ import { isNoteTrashed } from "@/utils/noteTrash";
 import { useMemoActionHandlers } from "./hooks";
 import type { MemoActionMenuProps } from "./types";
 
-const isAssignableLabel = (label: string) =>
-  normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
+const isAssignableLabel = (label: string) => normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
 
 const MemoActionMenu = (props: MemoActionMenuProps) => {
   const { memo, readonly } = props;
