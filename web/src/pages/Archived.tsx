@@ -16,20 +16,22 @@ const Archived = () => {
   });
   const visibleMemoFilter = withTrashFilter(memoFilter, false);
 
-  // Get sorting logic using unified hook (pinned first, archived state)
   const { listSort, orderBy } = useMemoSorting({
     pinnedFirst: true,
     state: State.ARCHIVED,
   });
 
   return (
-    <PagedMemoList
-      renderer={(memo: Memo, { compact }) => <MemoView key={getMemoKey(memo)} memo={memo} showVisibility compact={compact} />}
-      listSort={listSort}
-      state={State.ARCHIVED}
-      orderBy={orderBy}
-      filter={visibleMemoFilter}
-    />
+    <div className="min-h-full w-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <h1 className="sr-only">Archive</h1>
+      <PagedMemoList
+        renderer={(memo: Memo, { compact }) => <MemoView key={getMemoKey(memo)} memo={memo} showVisibility compact={compact} />}
+        listSort={listSort}
+        state={State.ARCHIVED}
+        orderBy={orderBy}
+        filter={visibleMemoFilter}
+      />
+    </div>
   );
 };
 
