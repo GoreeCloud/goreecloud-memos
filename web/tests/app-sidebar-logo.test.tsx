@@ -211,7 +211,7 @@ describe("App sidebar logo", () => {
     const scopeTrigger = screen.getByRole("button", { name: "common.home" });
     fireEvent.click(scopeTrigger);
     expect(await screen.findByRole("menuitem", { name: "common.home" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "common.explore" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "common.explore" })).not.toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "common.archived" })).toBeInTheDocument();
   });
 
