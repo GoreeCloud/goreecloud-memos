@@ -9,6 +9,7 @@ import AppSidebar, {
   SidebarResizeHandle,
   useSidebarWidth,
 } from "@/components/AppSidebar";
+import GoreeCloudNotesHeader from "@/components/GoreeCloudNotesHeader";
 import { AppSidebarProvider } from "@/contexts/AppSidebarContext";
 import { useInstance } from "@/contexts/InstanceContext";
 import { MemoFilterProvider, useMemoFilterContext } from "@/contexts/MemoFilterContext";
@@ -84,6 +85,7 @@ const RootLayoutContent = () => {
         <MobileAppSidebar />
         <main className="flex min-h-full w-full min-w-0 flex-col items-center md:pl-(--app-sidebar-width)">
           <MobileAppHeader />
+          <GoreeCloudNotesHeader />
           {profile.demo && <DemoBanner />}
           <Outlet />
         </main>
