@@ -41,7 +41,13 @@ RC2 therefore remains a release candidate rather than the stable first release.
 
 ## RC3 Product Polish Gate
 
-The next candidate is `goreecloud-v0.1.0-rc.3` after the RC3 branch head passes automated frontend and container validation.
+Release candidate `goreecloud-v0.1.0-rc.3` was published on August 12, 2026 at 6:09 PM CDT from validated commit `eaa7bcd71937aa2025c91d0d4f838f901448a01e`.
+
+The tag-triggered GoreeCloud Container workflow, run `31649812690`, completed successfully. The release job built and published the exact tag for both `linux/amd64` and `linux/arm64`.
+
+Published immutable image:
+
+`ghcr.io/goreecloud/memos@sha256:73613691c167b1ec261685168404b781edf844be04ed27e7bb59ebc78cdf0347`
 
 RC3 focuses on product polish rather than infrastructure changes. The implementation includes:
 
