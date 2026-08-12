@@ -10,11 +10,9 @@ import { useMemoFilters, useMemoSorting } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { Memo } from "@/types/proto/api/v1/memo_service_pb";
-import { useTranslate } from "@/utils/i18n";
 
 const Home = () => {
   const user = useCurrentUser();
-  const t = useTranslate();
   const { isUserSettingsInitialized } = useAuth();
   const { filters } = useMemoFilterContext();
   const defaultCreateTime = useMemo(() => deriveDefaultCreateTimeFromFilters(filters), [filters]);
@@ -35,19 +33,27 @@ const Home = () => {
       <NewMemoProvider>
         <PagedMemoList
           renderer={(memo: Memo, { compact }) => (
-            <MemoView key={getMemoKey(memo)} memo={memo} showVisibility showPinned compact={compact} />
+            <MemoView
+              key={getMemoKey(memo)}
+              memo={memo}
+              showVisibility
+              showPinned
+              compact={compact}
+              className={memo.pinned ? "ring-1 ring-primary/20 shadow-sm" : undefined}
+            />
           )}
           listSort={listSort}
           orderBy={orderBy}
           filter={memoFilter}
+          leadingFullWidth
           renderLeading={({ useGrid }) => {
             if (!isUserSettingsInitialized) return null;
 
             return (
               <MemoEditor
-                className={useGrid ? undefined : "mb-2"}
+                className={useGrid ? "shadow-sm" : "mb-2 shadow-sm"}
                 cacheKey="home-memo-editor"
-                placeholder={t("editor.any-thoughts")}
+                placeholder="Take a note…"
                 defaultCreateTime={defaultCreateTime}
               />
             );
