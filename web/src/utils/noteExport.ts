@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
-import { memoServiceClient } from "@/connect";
 import { splitNoteTitle } from "@/components/MemoEditor/utils/noteTitle";
+import { memoServiceClient } from "@/connect";
 import { buildMemoCreatorFilter, extractMemoIdFromName } from "@/lib/resource-names";
 import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
