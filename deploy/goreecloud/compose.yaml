@@ -1,0 +1,47 @@
+name: goreecloud-notes
+
+services:
+  notes:
+    image: ${GOREECLOUD_NOTES_IMAGE:?Set GOREECLOUD_NOTES_IMAGE to a validated immutable image reference}
+    container_name: goreecloud-notes
+    restart: unless-stopped
+    user: "10001:10001"
+    environment:
+      TZ: ${GOREECLOUD_NOTES_TZ:-America/Chicago}
+      MEMOS_PORT: "5230"
+      MEMOS_DATA: /var/opt/memos
+      MEMOS_DRIVER: sqlite
+      MEMOS_LOG_LEVEL: info
+    volumes:
+      - type: bind
+        source: ${GOREECLOUD_NOTES_DATA_PATH:-/srv/docker/appdata/notes}
+        target: /var/opt/memos
+      - type: bind
+        source: ${GOREECLOUD_NOTES_CONFIG_PATH:-/srv/docker/secrets/notes}
+        target: /etc/secrets
+        read_only: true
+    expose:
+      - "5230"
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5230/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  proxy:
+    external: true
+    name: ${GOREECLOUD_PROXY_NETWORK:-proxy}

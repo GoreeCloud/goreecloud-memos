@@ -1,0 +1,198 @@
+name: GoreeCloud Container
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/goreecloud-container.yml"
+      - "cmd/**"
+      - "deploy/goreecloud/**"
+      - "go.mod"
+      - "go.sum"
+      - "internal/**"
+      - "proto/**"
+      - "scripts/**"
+      - "server/**"
+      - "store/**"
+      - "web/**"
+  workflow_dispatch:
+  push:
+    tags:
+      - "goreecloud-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "11.0.1"
+  IMAGE_NAME: ghcr.io/goreecloud/memos
+
+jobs:
+  validate:
+    name: Build and validate GoreeCloud image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4.2.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend release assets
+        working-directory: web
+        run: pnpm release
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build validation image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./scripts/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: goreecloud-notes:ci
+          build-args: |
+            VERSION=goreecloud-ci
+            COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=goreecloud-container-amd64
+          cache-to: type=gha,mode=max,scope=goreecloud-container-amd64
+
+      - name: Prepare isolated Compose validation paths
+        run: |
+          sudo install -d -o 10001 -g 10001 -m 0770 /tmp/goreecloud-notes-data
+          sudo install -d -o 10001 -g 10001 -m 0750 /tmp/goreecloud-notes-config
+          sudo cp deploy/goreecloud/memos-instance-setting-general.json.example \
+            /tmp/goreecloud-notes-config/memos-instance-setting-general.json
+          sudo chown 10001:10001 /tmp/goreecloud-notes-config/memos-instance-setting-general.json
+          sudo chmod 0640 /tmp/goreecloud-notes-config/memos-instance-setting-general.json
+          docker network create proxy
+
+      - name: Validate Compose rendering
+        env:
+          GOREECLOUD_NOTES_IMAGE: goreecloud-notes:ci
+          GOREECLOUD_NOTES_DATA_PATH: /tmp/goreecloud-notes-data
+          GOREECLOUD_NOTES_CONFIG_PATH: /tmp/goreecloud-notes-config
+          GOREECLOUD_PROXY_NETWORK: proxy
+          GOREECLOUD_NOTES_TZ: America/Chicago
+        run: docker compose -f deploy/goreecloud/compose.yaml config
+
+      - name: Start Compose validation instance
+        env:
+          GOREECLOUD_NOTES_IMAGE: goreecloud-notes:ci
+          GOREECLOUD_NOTES_DATA_PATH: /tmp/goreecloud-notes-data
+          GOREECLOUD_NOTES_CONFIG_PATH: /tmp/goreecloud-notes-config
+          GOREECLOUD_PROXY_NETWORK: proxy
+          GOREECLOUD_NOTES_TZ: America/Chicago
+        run: docker compose -f deploy/goreecloud/compose.yaml up -d
+
+      - name: Wait for health check
+        run: |
+          for attempt in $(seq 1 30); do
+            status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' goreecloud-notes)"
+            if [ "$status" = "healthy" ]; then
+              docker exec goreecloud-notes wget -q -O - http://127.0.0.1:5230/healthz | grep -F "Service ready."
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              docker logs goreecloud-notes
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs goreecloud-notes
+          echo "Timed out waiting for GoreeCloud Notes health check" >&2
+          exit 1
+
+      - name: Show validation logs
+        if: always()
+        run: docker logs goreecloud-notes || true
+
+      - name: Stop validation instance
+        if: always()
+        env:
+          GOREECLOUD_NOTES_IMAGE: goreecloud-notes:ci
+          GOREECLOUD_NOTES_DATA_PATH: /tmp/goreecloud-notes-data
+          GOREECLOUD_NOTES_CONFIG_PATH: /tmp/goreecloud-notes-config
+          GOREECLOUD_PROXY_NETWORK: proxy
+          GOREECLOUD_NOTES_TZ: America/Chicago
+        run: docker compose -f deploy/goreecloud/compose.yaml down || true
+
+  publish:
+    name: Publish tagged GoreeCloud image
+    if: startsWith(github.ref, 'refs/tags/goreecloud-v')
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4.2.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend release assets
+        working-directory: web
+        run: pnpm release
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and publish exact tag
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./scripts/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=goreecloud-release
+          cache-to: type=gha,mode=max,scope=goreecloud-release

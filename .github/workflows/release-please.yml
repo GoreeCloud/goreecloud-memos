@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   release-please:
+    if: github.repository == 'usememos/memos'
     runs-on: ubuntu-latest
     steps:
       - name: Check release token
