@@ -57,11 +57,14 @@ Implemented so far:
 - Separate **Pinned** and **Notes** sections when pinned notes exist.
 - Pinned-note visual emphasis.
 - Rounded note cards with restrained hover elevation for faster visual scanning.
+- Notes-oriented signed-in navigation that removes **Explore** from the normal authenticated scope switcher while retaining the upstream route for compatibility and direct links.
+- A dedicated optional **Title** field for top-level notes, backed by the leading Markdown H1 so the stored document remains upstream-compatible Markdown.
+- Separate title/body editing for top-level notes while replies retain the upstream single-document editor.
+- Keep-style rendering for a leading H1 title without changing the appearance of ordinary H1 headings elsewhere in a note.
+- Unit coverage for the Markdown title split/compose behavior.
 
 Still planned for the first GoreeCloud Notes release:
 
-- Notes-oriented signed-in navigation and removal of unnecessary public/social emphasis.
-- Final title/body interaction polish.
 - Per-note colors.
 - Recoverable Trash and restore behavior.
 - Portable Markdown and JSON export.
