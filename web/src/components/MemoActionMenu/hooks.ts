@@ -13,6 +13,7 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { checkAllTasks, uncheckAllTasks } from "@/utils/markdown-task-actions";
+import { setNoteColor, stripNoteColorMetadata, type NoteColor } from "@/utils/noteColor";
 
 interface UseMemoActionHandlersOptions {
   memo: Memo;
@@ -78,6 +79,31 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     onEdit?.();
   }, [onEdit]);
 
+  const handleSetNoteColor = useCallback(
+    async (color: NoteColor) => {
+      const nextContent = setNoteColor(memo.content, color);
+      if (nextContent === memo.content) {
+        return;
+      }
+
+      try {
+        await updateMemo({
+          update: {
+            name: memo.name,
+            content: nextContent,
+          },
+          updateMask: ["content", "update_time"],
+        });
+      } catch (error: unknown) {
+        handleError(error, toast.error, {
+          context: "Update note color",
+          fallbackMessage: "Unable to update note color",
+        });
+      }
+    },
+    [memo.content, memo.name, updateMemo],
+  );
+
   const handleToggleMemoStatusClick = useCallback(async () => {
     const isArchiving = memo.state !== State.ARCHIVED;
     const state = memo.state === State.ARCHIVED ? State.NORMAL : State.ARCHIVED;
@@ -116,7 +142,7 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
   }, [memo.name, t, profile.instanceUrl]);
 
   const handleCopyContent = useCallback(() => {
-    copy(memo.content);
+    copy(stripNoteColorMetadata(memo.content));
     toast.success(t("message.succeed-copy-content"));
   }, [memo.content, t]);
 
@@ -152,6 +178,7 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
   return {
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
+    handleSetNoteColor,
     handleToggleMemoStatusClick,
     handleCopyLink,
     handleCopyContent,

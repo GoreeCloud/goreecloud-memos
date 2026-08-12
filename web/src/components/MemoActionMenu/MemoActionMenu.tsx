@@ -4,6 +4,7 @@ import {
   BookmarkMinusIcon,
   BookmarkPlusIcon,
   CheckCheckIcon,
+  CheckIcon,
   CopyIcon,
   Edit3Icon,
   FileTextIcon,
@@ -11,6 +12,7 @@ import {
   ListChecksIcon,
   ListRestartIcon,
   MoreVerticalIcon,
+  PaletteIcon,
   TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -25,8 +27,10 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { useTranslate } from "@/utils/i18n";
+import { getNoteColor, NOTE_COLOR_OPTIONS } from "@/utils/noteColor";
 import { useMemoActionHandlers } from "./hooks";
 import type { MemoActionMenuProps } from "./types";
 
@@ -42,11 +46,13 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
   const isArchived = memo.state === State.ARCHIVED;
   const canMutateTasks = !readonly && !isArchived && Boolean(memo.property?.hasTaskList);
   const hasOpenTasks = Boolean(memo.property?.hasIncompleteTasks);
+  const noteColor = getNoteColor(memo.content);
 
   // Action handlers
   const {
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
+    handleSetNoteColor,
     handleToggleMemoStatusClick,
     handleCopyLink,
     handleCopyContent,
@@ -79,6 +85,23 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
               <Edit3Icon className="w-4 h-auto" />
               {t("common.edit")}
             </DropdownMenuItem>
+            {!isComment && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <PaletteIcon className="w-4 h-auto" />
+                  Color
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {NOTE_COLOR_OPTIONS.map((option) => (
+                    <DropdownMenuItem key={option.value} onClick={() => void handleSetNoteColor(option.value)}>
+                      <span className={cn("size-4 rounded-full border", option.swatchClassName)} aria-hidden />
+                      <span className="flex-1">{option.label}</span>
+                      {noteColor === option.value && <CheckIcon className="w-4 h-auto" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
           </>
         )}
 

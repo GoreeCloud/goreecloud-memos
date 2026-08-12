@@ -6,6 +6,7 @@ import type { Attachment } from "@/types/proto/api/v1/attachment_service_pb";
 import { AttachmentSchema } from "@/types/proto/api/v1/attachment_service_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { MemoSchema } from "@/types/proto/api/v1/memo_service_pb";
+import { getNoteColor, setNoteColor, stripNoteColorMetadata } from "@/utils/noteColor";
 import type { EditorState } from "../state";
 import { uploadService } from "./uploadService";
 
@@ -23,14 +24,15 @@ function buildUpdateMask(
   allAttachments: typeof state.metadata.attachments,
 ): { mask: Set<string>; patch: Partial<Memo> } {
   const mask = new Set<string>();
+  const nextContent = setNoteColor(state.content, getNoteColor(prevMemo.content));
   const patch: Partial<Memo> = {
     name: prevMemo.name,
-    content: state.content,
+    content: nextContent,
   };
 
-  if (!isEqual(state.content, prevMemo.content)) {
+  if (!isEqual(nextContent, prevMemo.content)) {
     mask.add("content");
-    patch.content = state.content;
+    patch.content = nextContent;
   }
   if (!isEqual(state.metadata.visibility, prevMemo.visibility)) {
     mask.add("visibility");
@@ -129,7 +131,7 @@ export const memoService = {
    */
   fromMemo(memo: Memo): Pick<EditorState, "content" | "metadata" | "timestamps"> {
     return {
-      content: memo.content,
+      content: stripNoteColorMetadata(memo.content),
       metadata: {
         visibility: memo.visibility,
         attachments: memo.attachments,
