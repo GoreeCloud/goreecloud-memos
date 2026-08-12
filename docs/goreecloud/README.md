@@ -41,13 +41,14 @@ The GoreeCloud product direction is a Google Keep-style notes workspace with:
 - Recoverable Trash and explicit permanent deletion.
 - Private-by-default note creation.
 - Individual user accounts.
-- Portable export and documented recovery.
+- Portable Markdown and JSON export.
+- Documented recovery.
 
-Later GoreeCloud-specific work may add reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
+Later GoreeCloud-specific work may add reminders through ntfy, improved offline/PWA behavior, Google Keep import, richer attachment-bundle export, and optional local-only AI integrations.
 
 ## Current Implementation Status
 
-The initial GoreeCloud foundation, Keep-style workspace, title model, persistent note colors, and recoverable Trash workflow are implemented on `feature/goreecloud-foundation`.
+The initial GoreeCloud foundation, Keep-style workspace, title model, persistent note colors, recoverable Trash workflow, and portable export milestone are implemented on `feature/goreecloud-foundation`.
 
 Implemented so far:
 
@@ -76,14 +77,26 @@ Implemented so far:
 - Explicit **Delete permanently** behavior inside Trash that continues to use the upstream hard-delete path, including upstream cleanup of comments, relations, and attachments.
 - Trash access from the signed-in user menu.
 - Unit coverage for Trash metadata, color preservation, replacement, restore stripping, and server-side Trash filter composition.
-- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the Trash milestone at commit `55b09b5351e4586023ee00e33962950c54d9aec4`.
+- Individual-note **Export Markdown** action that downloads clean user-authored Markdown without GoreeCloud color or Trash implementation markers.
+- Signed-in **Export notes** menu with full-library Markdown and JSON downloads.
+- Full-library export pagination across the signed-in user's normal and archived top-level notes, including trashed notes because Trash is represented as a recoverable GoreeCloud state on normal notes.
+- JSON export format `goreecloud-notes`, schema version 1, preserving note UID/name, title, clean Markdown, normal/archive/Trash state, Trash restore target, visibility, pin state, color, labels, timestamps, location, attachment metadata, and relations.
+- Full-library Markdown export containing clean note content plus non-rendered export boundary metadata; implementation-specific color and Trash markers are stripped.
+- Unit coverage for clean export serialization, title-based Markdown filenames, full-library Markdown, and the JSON schema envelope.
+- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the export milestone at commit `f43e3c86fbdd24a018767658a73a60edc6f9615f`.
 
-The next implementation milestone is portable export. I will add Markdown and JSON export paths that preserve the user-authored note content and required GoreeCloud metadata without exposing internal implementation markers as ordinary note text.
+Current export limitation: the first portable export format does not bundle attachment binary content, comments, or reactions. Attachment metadata is preserved in JSON. These exclusions are declared in the JSON export itself so the artifact does not imply that those data categories were included.
+
+The next implementation milestone is GoreeCloud-specific deployment packaging and end-to-end validation.
 
 Still planned for the first GoreeCloud Notes release:
 
-- Portable Markdown and JSON export.
-- GoreeCloud-specific validation and deployment packaging.
+- Final Docker image and release identifier selection.
+- GoreeCloud Docker Compose deployment configuration.
+- Private `notes.goreecloud.com` publication through the approved NetBird, AdGuard Home, and Caddy model.
+- Persistent-data backup and restore validation.
+- End-to-end desktop and mobile/PWA validation.
+- Final PR review, merge decision, and first GoreeCloud Notes release.
 
 ## Privacy Boundary
 
