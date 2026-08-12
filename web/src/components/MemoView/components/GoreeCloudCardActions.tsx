@@ -37,13 +37,8 @@ const GoreeCloudCardActions = () => {
     [memo.tags, userTagsSetting?.tags],
   );
 
-  const {
-    handleTogglePinMemoBtnClick,
-    handleSetNoteColor,
-    handleToggleLabel,
-    handleToggleMemoStatusClick,
-    handleRestoreFromTrash,
-  } = useMemoActionHandlers({ memo, setDeleteDialogOpen: () => undefined });
+  const { handleTogglePinMemoBtnClick, handleSetNoteColor, handleToggleLabel, handleToggleMemoStatusClick, handleRestoreFromTrash } =
+    useMemoActionHandlers({ memo, setDeleteDialogOpen: () => undefined });
 
   if (readonly || memo.parent) return null;
 
@@ -82,7 +77,9 @@ const GoreeCloudCardActions = () => {
 
       {!isArchived && (
         <DropdownMenu open={colorOpen} onOpenChange={setColorOpen}>
-          <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="icon-sm" className={ACTION_BUTTON_CLASS} aria-label="Change note color" />}>
+          <DropdownMenuTrigger
+            render={<Button type="button" variant="ghost" size="icon-sm" className={ACTION_BUTTON_CLASS} aria-label="Change note color" />}
+          >
             <PaletteIcon className="size-4" strokeWidth={1.8} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={6} className="min-w-44">
@@ -99,7 +96,9 @@ const GoreeCloudCardActions = () => {
 
       {!isArchived && (
         <DropdownMenu open={labelsOpen} onOpenChange={setLabelsOpen}>
-          <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="icon-sm" className={ACTION_BUTTON_CLASS} aria-label="Manage note labels" />}>
+          <DropdownMenuTrigger
+            render={<Button type="button" variant="ghost" size="icon-sm" className={ACTION_BUTTON_CLASS} aria-label="Manage note labels" />}
+          >
             <TagIcon className="size-4" strokeWidth={1.8} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={6} className="min-w-48">

@@ -25,13 +25,7 @@ const GoreeCloudNotesHeader = () => {
     if (nextSearch === activeSearch) return;
 
     const timer = window.setTimeout(() => {
-      setFilters(
-        replaceFiltersByFactor(
-          filters,
-          "contentSearch",
-          nextSearch ? [{ factor: "contentSearch", value: nextSearch }] : [],
-        ),
-      );
+      setFilters(replaceFiltersByFactor(filters, "contentSearch", nextSearch ? [{ factor: "contentSearch", value: nextSearch }] : []));
     }, 180);
 
     return () => window.clearTimeout(timer);
