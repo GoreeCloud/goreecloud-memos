@@ -48,7 +48,7 @@ Later GoreeCloud-specific work may add reminders through ntfy, improved offline/
 
 ## Current Implementation Status
 
-The initial GoreeCloud foundation, Keep-style workspace, title model, persistent note colors, recoverable Trash workflow, and portable export milestone are implemented on `feature/goreecloud-foundation`.
+The initial GoreeCloud foundation, Keep-style workspace, title model, persistent note colors, recoverable Trash workflow, portable export, and GoreeCloud deployment package are implemented on `feature/goreecloud-foundation`.
 
 Implemented so far:
 
@@ -83,19 +83,28 @@ Implemented so far:
 - JSON export format `goreecloud-notes`, schema version 1, preserving note UID/name, title, clean Markdown, normal/archive/Trash state, Trash restore target, visibility, pin state, color, labels, timestamps, location, attachment metadata, and relations.
 - Full-library Markdown export containing clean note content plus non-rendered export boundary metadata; implementation-specific color and Trash markers are stripped.
 - Unit coverage for clean export serialization, title-based Markdown filenames, full-library Markdown, and the JSON schema envelope.
-- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the export milestone at commit `f43e3c86fbdd24a018767658a73a60edc6f9615f`.
+- GoreeCloud deployment package under `deploy/goreecloud/` with Docker Compose, `.env.example`, deployment-policy example, host-preparation instructions, health validation, private-publication boundaries, backup scope, restore-test procedure, rollback guidance, and a production approval gate.
+- Non-root runtime using UID/GID `10001:10001`, `no-new-privileges`, dropped Linux capabilities, bounded container logs, and no backend host-port publication.
+- SQLite persistence at `/var/opt/memos` in the container with the GoreeCloud default bind path `/srv/docker/appdata/notes`.
+- Memos file-backed deployment configuration mounted read-only at `/etc/secrets`, with ordinary user registration disabled and password authentication retained.
+- `MEMOS_INSTANCE_URL` intentionally omitted because this upstream baseline treats a configured instance URL as enabling anonymous mode.
+- A GoreeCloud-specific GitHub Actions container workflow that builds the frontend and backend image from source, renders the Compose file, starts the hardened Compose service, waits for `/healthz`, validates the response, and tears the validation environment down.
+- Tagged GoreeCloud image publication reserved for tags beginning with `goreecloud-v`, targeting `ghcr.io/goreecloud/memos` and publishing only the exact tag rather than a moving production alias.
+- Upstream Release Please and Canary publication workflows guarded so pushes to the GoreeCloud fork do not attempt to publish upstream `usememos`/`neosmemo` artifacts.
+- Frontend TypeScript/Biome checks, full frontend unit suite, and production frontend build validated successfully for the deployment package at commit `dd1f5093e28cfa57c420dafac2970807e6971c03`.
+- GoreeCloud container validation passed at the same commit, including image build, Compose rendering, hardened runtime startup, and successful `/healthz` response.
 
 Current export limitation: the first portable export format does not bundle attachment binary content, comments, or reactions. Attachment metadata is preserved in JSON. These exclusions are declared in the JSON export itself so the artifact does not imply that those data categories were included.
 
-The next implementation milestone is GoreeCloud-specific deployment packaging and end-to-end validation.
+The repository-level first-release implementation is now substantially complete. The remaining gate is environment-specific deployment and recovery validation.
 
 Still planned for the first GoreeCloud Notes release:
 
 - Final Docker image and release identifier selection.
-- GoreeCloud Docker Compose deployment configuration.
-- Private `notes.goreecloud.com` publication through the approved NetBird, AdGuard Home, and Caddy model.
-- Persistent-data backup and restore validation.
-- End-to-end desktop and mobile/PWA validation.
+- Publish and record the exact immutable GoreeCloud image digest.
+- Private `notes.goreecloud.com` publication through the approved NetBird, AdGuard Home, and Caddy model on the selected deployment host.
+- Persistent-data backup and restore validation against the actual GoreeCloud backup environment.
+- End-to-end desktop and mobile/PWA validation against the private production-style URL.
 - Final PR review, merge decision, and first GoreeCloud Notes release.
 
 ## Privacy Boundary
@@ -103,6 +112,14 @@ Still planned for the first GoreeCloud Notes release:
 GoreeCloud Notes is intended to operate as a private GoreeCloud family service. I will not require public discovery, social interaction, telemetry, hosted control planes, proprietary authentication, or external AI providers for core note-taking functionality.
 
 The upstream editor already initializes new notes with private visibility. I will preserve that behavior and avoid unnecessary fork-only code where upstream already satisfies the requirement.
+
+## Deployment Boundary
+
+The Notes repository owns the application source, GoreeCloud-specific Compose package, container validation workflow, and application recovery instructions. It does not own the authoritative GoreeCloud Caddyfile, AdGuard Home configuration, NetBird policies, host backup jobs, or production monitoring configuration.
+
+I will make those infrastructure changes only in their authoritative GoreeCloud locations during the controlled deployment step. The application Compose file exposes port 5230 only inside Docker networking and does not publish that port to the host.
+
+The long-term target remains the GoreeCloud Family Services VM. A temporary validation deployment elsewhere does not change that architectural role.
 
 ## Upstream Maintenance
 
@@ -120,6 +137,8 @@ Before integrating upstream changes, I will:
 ## Release Identification
 
 I will identify GoreeCloud releases with both upstream ancestry and a GoreeCloud revision. I will finalize the first release identifier only after selecting the exact upstream baseline used for the first deployable GoreeCloud build.
+
+GoreeCloud container publication uses a separate `goreecloud-v*` tag namespace so the fork does not collide with upstream Memos release automation.
 
 ## License and Attribution
 
