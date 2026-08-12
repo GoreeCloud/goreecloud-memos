@@ -137,7 +137,13 @@ const TagsSection = ({ tagCount, onSelect, navigationTarget, scope }: Props) => 
           <TagTree key={scope} tagAmounts={labels} activeTag={activeTag} scope={scope} onTagClick={handleLabelClick} />
         ) : (
           labels.map(([label, amount]) => (
-            <FlatLabelRow key={label} label={label} amount={amount} active={activeTags.has(label)} onClick={() => handleLabelClick(label)} />
+            <FlatLabelRow
+              key={label}
+              label={label}
+              amount={amount}
+              active={activeTags.has(label)}
+              onClick={() => handleLabelClick(label)}
+            />
           ))
         ))}
 
