@@ -44,6 +44,29 @@ The GoreeCloud product direction is a Google Keep-style notes workspace with:
 
 Later GoreeCloud-specific work may add persistent per-note colors, a recoverable Trash workflow, reminders through ntfy, improved offline/PWA behavior, Google Keep import, and optional local-only AI integrations.
 
+## Current Implementation Status
+
+The initial GoreeCloud foundation and the first Keep-style workspace changes are implemented on `feature/goreecloud-foundation`.
+
+Implemented so far:
+
+- GoreeCloud Notes product identity in the application shell and PWA manifest.
+- Private-by-default note creation preserved from upstream.
+- A centered full-width quick-capture composer above the multi-column note grid.
+- `Take a note…` quick-capture language.
+- Separate **Pinned** and **Notes** sections when pinned notes exist.
+- Pinned-note visual emphasis.
+- Rounded note cards with restrained hover elevation for faster visual scanning.
+
+Still planned for the first GoreeCloud Notes release:
+
+- Notes-oriented signed-in navigation and removal of unnecessary public/social emphasis.
+- Final title/body interaction polish.
+- Per-note colors.
+- Recoverable Trash and restore behavior.
+- Portable Markdown and JSON export.
+- GoreeCloud-specific validation and deployment packaging.
+
 ## Privacy Boundary
 
 GoreeCloud Notes is intended to operate as a private GoreeCloud family service. I will not require public discovery, social interaction, telemetry, hosted control planes, proprietary authentication, or external AI providers for core note-taking functionality.
