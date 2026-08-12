@@ -15,17 +15,12 @@ import TagsSection from "./TagsSection";
 
 const NOTES_WORKSPACE_ROUTES = new Set<string>([ROUTES.HOME, ROUTES.ARCHIVED, ROUTES.TRASH]);
 
-const GoreeCloudWorkspaceSidebar = () => {
+const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: string }) => {
   const location = useLocation();
-  const currentUser = useCurrentUser();
   const { setMobileOpen, setQuickFindOpen } = useAppSidebar();
   const { data: tagCount = {} } = useTagCounts(true);
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((notification) => notification.status === UserNotification_Status.UNREAD).length;
-
-  if (!currentUser || !NOTES_WORKSPACE_ROUTES.has(location.pathname)) {
-    return <OriginalAppSidebar />;
-  }
 
   const primaryItems = [
     { label: "Notes", path: ROUTES.HOME, icon: LightbulbIcon },
@@ -81,7 +76,12 @@ const GoreeCloudWorkspaceSidebar = () => {
       <div className="mx-4 border-t border-border/70" />
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]">
-        <TagsSection tagCount={tagCount} navigationTarget={ROUTES.HOME} scope={currentUser.name} onSelect={() => setMobileOpen(false)} />
+        <TagsSection
+          tagCount={tagCount}
+          navigationTarget={ROUTES.HOME}
+          scope={currentUserName}
+          onSelect={() => setMobileOpen(false)}
+        />
       </div>
 
       <div className="mx-4 border-t border-border/70" />
@@ -115,6 +115,17 @@ const GoreeCloudWorkspaceSidebar = () => {
       </footer>
     </aside>
   );
+};
+
+const GoreeCloudWorkspaceSidebar = () => {
+  const location = useLocation();
+  const currentUser = useCurrentUser();
+
+  if (!currentUser || !NOTES_WORKSPACE_ROUTES.has(location.pathname)) {
+    return <OriginalAppSidebar />;
+  }
+
+  return <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />;
 };
 
 export const GoreeCloudMobileAppHeader = () => {
@@ -157,7 +168,7 @@ export const GoreeCloudMobileAppSidebar = () => {
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
       <SheetContent side="left" className="w-[min(18rem,calc(100vw-2rem))] gap-0 border-border p-0 shadow-2xl [&>button]:hidden">
         <SheetTitle className="sr-only">GoreeCloud Notes navigation</SheetTitle>
-        <GoreeCloudWorkspaceSidebar />
+        <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />
       </SheetContent>
     </Sheet>
   );
