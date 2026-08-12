@@ -14,6 +14,7 @@ import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { checkAllTasks, uncheckAllTasks } from "@/utils/markdown-task-actions";
 import { type NoteColor, setNoteColor, stripNoteColorMetadata } from "@/utils/noteColor";
+import { getNoteTrashOrigin, setNoteTrashed, stripNoteTrashMetadata } from "@/utils/noteTrash";
 
 interface UseMemoActionHandlersOptions {
   memo: Memo;
@@ -30,6 +31,7 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
   const { mutateAsync: updateMemo } = useUpdateMemo();
   const { mutateAsync: deleteMemo } = useDeleteMemo();
   const isInMemoDetailPage = location.pathname.startsWith(`/${memo.name}`);
+  const trashOrigin = getNoteTrashOrigin(memo.content);
 
   const memoUpdatedCallback = useCallback(() => {
     // Invalidate user stats to trigger refetch
@@ -132,6 +134,58 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     memoUpdatedCallback();
   }, [memo.name, memo.state, t, isInMemoDetailPage, navigateTo, memoUpdatedCallback, updateMemo]);
 
+  const handleMoveToTrash = useCallback(async () => {
+    const origin = memo.state === State.ARCHIVED ? "archived" : "normal";
+    try {
+      await updateMemo({
+        update: {
+          name: memo.name,
+          content: setNoteTrashed(memo.content, origin),
+          state: State.NORMAL,
+        },
+        updateMask: ["content", "state", "update_time"],
+      });
+      toast.success("Moved to trash");
+    } catch (error: unknown) {
+      handleError(error, toast.error, {
+        context: "Move note to Trash",
+        fallbackMessage: "Unable to move note to Trash",
+      });
+      return;
+    }
+
+    if (isInMemoDetailPage) {
+      navigateTo(ROUTES.TRASH);
+    }
+    memoUpdatedCallback();
+  }, [isInMemoDetailPage, memo.content, memo.name, memo.state, memoUpdatedCallback, navigateTo, updateMemo]);
+
+  const handleRestoreFromTrash = useCallback(async () => {
+    const state = trashOrigin === "archived" ? State.ARCHIVED : State.NORMAL;
+    try {
+      await updateMemo({
+        update: {
+          name: memo.name,
+          content: stripNoteTrashMetadata(memo.content),
+          state,
+        },
+        updateMask: ["content", "state", "update_time"],
+      });
+      toast.success("Restored");
+    } catch (error: unknown) {
+      handleError(error, toast.error, {
+        context: "Restore note from Trash",
+        fallbackMessage: "Unable to restore note",
+      });
+      return;
+    }
+
+    if (isInMemoDetailPage) {
+      navigateTo(state === State.ARCHIVED ? ROUTES.ARCHIVED : ROUTES.HOME);
+    }
+    memoUpdatedCallback();
+  }, [isInMemoDetailPage, memo.content, memo.name, memoUpdatedCallback, navigateTo, trashOrigin, updateMemo]);
+
   const handleCopyLink = useCallback(() => {
     let host = profile.instanceUrl;
     if (host === "") {
@@ -142,7 +196,7 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
   }, [memo.name, t, profile.instanceUrl]);
 
   const handleCopyContent = useCallback(() => {
-    copy(stripNoteColorMetadata(memo.content));
+    copy(stripNoteColorMetadata(stripNoteTrashMetadata(memo.content)));
     toast.success(t("message.succeed-copy-content"));
   }, [memo.content, t]);
 
@@ -170,16 +224,18 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
       queryClient.invalidateQueries({ queryKey: memoKeys.comments(memo.parent) });
     }
     if (isInMemoDetailPage) {
-      navigateTo(ROUTES.HOME);
+      navigateTo(trashOrigin ? ROUTES.TRASH : ROUTES.HOME);
     }
     memoUpdatedCallback();
-  }, [memo.name, memo.parent, t, isInMemoDetailPage, navigateTo, memoUpdatedCallback, deleteMemo, queryClient]);
+  }, [memo.name, memo.parent, t, isInMemoDetailPage, navigateTo, memoUpdatedCallback, deleteMemo, queryClient, trashOrigin]);
 
   return {
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
     handleSetNoteColor,
     handleToggleMemoStatusClick,
+    handleMoveToTrash,
+    handleRestoreFromTrash,
     handleCopyLink,
     handleCopyContent,
     handleCheckAllTaskListItemsClick,

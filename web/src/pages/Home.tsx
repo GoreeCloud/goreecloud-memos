@@ -10,6 +10,7 @@ import { useMemoFilters, useMemoSorting } from "@/hooks";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { Memo } from "@/types/proto/api/v1/memo_service_pb";
+import { withTrashFilter } from "@/utils/noteTrash";
 
 const Home = () => {
   const user = useCurrentUser();
@@ -22,6 +23,7 @@ const Home = () => {
     includeMemoViews: true,
     includePinned: true,
   });
+  const visibleMemoFilter = withTrashFilter(memoFilter, false);
 
   const { listSort, orderBy } = useMemoSorting({
     pinnedFirst: true,
@@ -45,7 +47,7 @@ const Home = () => {
           )}
           listSort={listSort}
           orderBy={orderBy}
-          filter={memoFilter}
+          filter={visibleMemoFilter}
           leadingFullWidth
           groupPinned
           notesSectionLabel="Notes"

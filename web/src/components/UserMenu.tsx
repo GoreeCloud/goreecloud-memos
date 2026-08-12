@@ -7,6 +7,7 @@ import {
   PaletteIcon,
   SettingsIcon,
   SquareUserIcon,
+  Trash2Icon,
   User2Icon,
 } from "lucide-react";
 import { useAppSidebar } from "@/contexts/AppSidebarContext";
@@ -178,6 +179,10 @@ const UserMenu = (props: Props) => {
             ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+        <DropdownMenuItem onClick={() => navigateFromMenu(Routes.TRASH)}>
+          <Trash2Icon className="size-4 text-muted-foreground" />
+          Trash
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateFromMenu(Routes.ABOUT)}>
           <InfoIcon className="size-4 text-muted-foreground" />
           {t("common.about")}

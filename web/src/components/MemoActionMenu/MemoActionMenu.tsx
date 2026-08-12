@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { useTranslate } from "@/utils/i18n";
 import { getNoteColor, NOTE_COLOR_OPTIONS } from "@/utils/noteColor";
+import { isNoteTrashed } from "@/utils/noteTrash";
 import { useMemoActionHandlers } from "./hooks";
 import type { MemoActionMenuProps } from "./types";
 
@@ -44,7 +45,8 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
   // Derived state
   const isComment = Boolean(memo.parent);
   const isArchived = memo.state === State.ARCHIVED;
-  const canMutateTasks = !readonly && !isArchived && Boolean(memo.property?.hasTaskList);
+  const isTrashed = !isComment && isNoteTrashed(memo.content);
+  const canMutateTasks = !readonly && !isArchived && !isTrashed && Boolean(memo.property?.hasTaskList);
   const hasOpenTasks = Boolean(memo.property?.hasIncompleteTasks);
   const noteColor = getNoteColor(memo.content);
 
@@ -54,6 +56,8 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
     handleEditMemoClick,
     handleSetNoteColor,
     handleToggleMemoStatusClick,
+    handleMoveToTrash,
+    handleRestoreFromTrash,
     handleCopyLink,
     handleCopyContent,
     handleCheckAllTaskListItemsClick,
@@ -72,8 +76,8 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
         <MoreVerticalIcon className="text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={2}>
-        {/* Edit actions (non-readonly, non-archived) */}
-        {!readonly && !isArchived && (
+        {/* Edit actions (non-readonly, non-archived, non-trashed) */}
+        {!readonly && !isArchived && !isTrashed && (
           <>
             {!isComment && (
               <DropdownMenuItem onClick={handleTogglePinMemoBtnClick}>
@@ -148,30 +152,42 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
         {/* Write actions (non-readonly) */}
         {!readonly && (
           <>
-            {/* Archive/Restore (non-comment) */}
-            {!isComment && (
-              <DropdownMenuItem onClick={handleToggleMemoStatusClick}>
-                {isArchived ? <ArchiveRestoreIcon className="w-4 h-auto" /> : <ArchiveIcon className="w-4 h-auto" />}
-                {isArchived ? t("common.restore") : t("common.archive")}
+            {!isComment && isTrashed && (
+              <DropdownMenuItem onClick={handleRestoreFromTrash}>
+                <ArchiveRestoreIcon className="w-4 h-auto" />
+                {t("common.restore")}
               </DropdownMenuItem>
             )}
 
-            {/* Delete */}
-            <DropdownMenuItem onClick={handleDeleteMemoClick}>
-              <TrashIcon className="w-4 h-auto" />
-              {t("common.delete")}
-            </DropdownMenuItem>
+            {!isComment && !isTrashed && (
+              <>
+                <DropdownMenuItem onClick={handleToggleMemoStatusClick}>
+                  {isArchived ? <ArchiveRestoreIcon className="w-4 h-auto" /> : <ArchiveIcon className="w-4 h-auto" />}
+                  {isArchived ? t("common.restore") : t("common.archive")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleMoveToTrash}>
+                  <TrashIcon className="w-4 h-auto" />
+                  Move to trash
+                </DropdownMenuItem>
+              </>
+            )}
+
+            {(isComment || isTrashed) && (
+              <DropdownMenuItem onClick={handleDeleteMemoClick}>
+                <TrashIcon className="w-4 h-auto" />
+                {isTrashed ? "Delete permanently" : t("common.delete")}
+              </DropdownMenuItem>
+            )}
           </>
         )}
       </DropdownMenuContent>
 
-      {/* Delete confirmation dialog */}
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={t("memo.delete-confirm")}
-        confirmLabel={t("common.delete")}
-        description={t("memo.delete-confirm-description")}
+        title={isTrashed ? "Delete note permanently?" : t("memo.delete-confirm")}
+        confirmLabel={isTrashed ? "Delete permanently" : t("common.delete")}
+        description={isTrashed ? "This permanently deletes the note and cannot be undone." : t("memo.delete-confirm-description")}
         cancelLabel={t("common.cancel")}
         onConfirm={confirmDeleteMemo}
         confirmVariant="destructive"

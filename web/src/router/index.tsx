@@ -28,6 +28,7 @@ const Setting = lazyWithReload(() => import("@/pages/Setting"));
 const MemoViews = lazyWithReload(() => import("@/pages/MemoViews"));
 const SignIn = lazyWithReload(() => import("@/pages/SignIn"));
 const SignUp = lazyWithReload(() => import("@/pages/SignUp"));
+const Trash = lazyWithReload(() => import("@/pages/Trash"));
 const UserProfile = lazyWithReload(() => import("@/pages/UserProfile"));
 
 // Backward compatibility alias.
@@ -89,6 +90,7 @@ export const routeConfig: RouteObject[] = [
                 element: <RequireAuthRoute />,
                 children: [
                   { path: Routes.ARCHIVED, element: <Archived /> },
+                  { path: Routes.TRASH, element: <Trash /> },
                   {
                     element: <RequireFullInitializationRoute />,
                     children: [{ path: Routes.VIEWS, element: <MemoViews /> }],
