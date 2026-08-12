@@ -77,10 +77,10 @@ const TagsSection = ({ tagCount, onSelect, navigationTarget, scope }: Props) => 
   // original sidebar only showed tags discovered in note content, which made an
   // empty/new label library invisible. Merge configured tag metadata with live
   // counts so GoreeCloud Labels are always discoverable.
-  const labels = useMemo(() => {
+  const labels = useMemo<[string, number][]>(() => {
     const names = new Set([...Object.keys(userTagsSetting?.tags ?? {}), ...Object.keys(tagCount)]);
     return Array.from(names)
-      .map((name) => [name, tagCount[name] ?? 0] as const)
+      .map((name): [string, number] => [name, tagCount[name] ?? 0])
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   }, [tagCount, userTagsSetting?.tags]);
 
