@@ -183,7 +183,7 @@ const PagedMemoList = (props: Props) => {
     onFetchNext: fetchNextPage,
   });
 
-  // Infinite scroll: fetch more when user scrolls near bottom
+  // Infinite scroll: fetch more content when user scrolls near bottom
   useEffect(() => {
     if (isDisplayPending || !hasNextPage) return;
 
@@ -290,13 +290,12 @@ const PagedMemoList = (props: Props) => {
                     {sectionLabel(t("common.pinned"))}
                     {renderGrid(pinnedMemoList)}
                   </section>
-                  <section
-                    aria-label={props.notesSectionLabel || t("common.memos")}
-                    className="w-full"
-                    style={{ marginTop: GRID_GAP }}
-                  >
+                  <section aria-label={props.notesSectionLabel || t("common.memos")} className="w-full" style={{ marginTop: GRID_GAP }}>
                     {sectionLabel(props.notesSectionLabel || t("common.memos"))}
-                    {renderGrid(regularMemoList, priorityKey && regularMemoList.some((memo) => memo.name === priorityKey) ? priorityKey : undefined)}
+                    {renderGrid(
+                      regularMemoList,
+                      priorityKey && regularMemoList.some((memo) => memo.name === priorityKey) ? priorityKey : undefined,
+                    )}
                   </section>
                 </>
               ) : (
