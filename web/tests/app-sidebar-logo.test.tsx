@@ -173,14 +173,19 @@ describe("GoreeCloud Notes sidebar shell", () => {
     expect(screen.getByRole("link", { name: "common.attachments" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("preserves the original sidebar on Settings", () => {
+  it("uses the GoreeCloud Notes settings shell on Settings", () => {
     render(
       <MemoryRouter initialEntries={["/setting"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { name: "common.basic", level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to Notes" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("navigation", { name: "Personal settings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My account" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Preferences" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Labels" })).toHaveAttribute("href", "/setting#tags");
+    expect(screen.queryByRole("heading", { name: "common.basic", level: 2 })).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Notes navigation" })).not.toBeInTheDocument();
   });
 
