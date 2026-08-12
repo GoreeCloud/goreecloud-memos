@@ -39,11 +39,14 @@ export const removeNoteLabel = (content: string, value: string): string => {
   if (!label) return content;
 
   const token = new RegExp(`(^|\\s)#${escapeRegExp(label)}(?=\\s|$)`, "gu");
-  const next = content.replace(token, (match, prefix: string) => (prefix.includes("\n") ? prefix : " "));
+  const next = content.replace(token, (_match, prefix: string) => (prefix.includes("\n") ? prefix : " "));
 
   return next
     .split("\n")
-    .map((line) => line.replace(/[ \t]{2,}/g, " ").trimEnd())
+    .map((line) => {
+      const normalized = line.replace(/[ \t]{2,}/g, " ").trimEnd();
+      return /^\s*#[^\s#]+(?:\s+#[^\s#]+)*$/u.test(normalized) ? normalized.trimStart() : normalized;
+    })
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trimEnd();
