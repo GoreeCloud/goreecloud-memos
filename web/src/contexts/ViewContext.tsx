@@ -30,9 +30,12 @@ interface ViewContextValue {
 
 const ViewContext = createContext<ViewContextValue | null>(null);
 
-const LOCAL_STORAGE_KEY = "memos-view-setting";
+// GoreeCloud Notes v2 intentionally uses a new preference key so installations
+// that previously cached Memos' single-column default receive the new Keep-style
+// responsive wall once. Preferences written after this migration remain stable.
+const LOCAL_STORAGE_KEY = "goreecloud-notes-view-setting-v2";
 
-const DEFAULT_VIEW_STATE: ViewState = { orderByTimeAsc: false, compactMode: false, linkPreview: true, maxColumns: 1 };
+const DEFAULT_VIEW_STATE: ViewState = { orderByTimeAsc: false, compactMode: false, linkPreview: true, maxColumns: 0 };
 
 export function ViewProvider({ children }: { children: ReactNode }) {
   const getInitialState = (): ViewState => {
