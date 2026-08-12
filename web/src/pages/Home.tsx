@@ -46,6 +46,8 @@ const Home = () => {
           orderBy={orderBy}
           filter={memoFilter}
           leadingFullWidth
+          groupPinned
+          notesSectionLabel="Notes"
           renderLeading={({ useGrid }) => {
             if (!isUserSettingsInitialized) return null;
 
