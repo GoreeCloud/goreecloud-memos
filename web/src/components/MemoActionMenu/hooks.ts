@@ -15,6 +15,7 @@ import { useTranslate } from "@/utils/i18n";
 import { checkAllTasks, uncheckAllTasks } from "@/utils/markdown-task-actions";
 import { type NoteColor, setNoteColor, stripNoteColorMetadata } from "@/utils/noteColor";
 import { downloadNoteMarkdown } from "@/utils/noteExport";
+import { setNoteLabelEnabled } from "@/utils/noteLabels";
 import { getNoteTrashOrigin, setNoteTrashed, stripNoteTrashMetadata } from "@/utils/noteTrash";
 
 interface UseMemoActionHandlersOptions {
@@ -76,6 +77,25 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
       }
     },
     [memo.content, memo.name, updateMemo],
+  );
+
+  const handleToggleLabel = useCallback(
+    async (label: string, enabled: boolean) => {
+      const nextContent = setNoteLabelEnabled(memo.content, label, enabled);
+      if (nextContent === memo.content) return;
+
+      try {
+        await updateMemo({
+          update: { name: memo.name, content: nextContent },
+          updateMask: ["content", "update_time"],
+        });
+        memoUpdatedCallback();
+        toast.success(enabled ? `Label “${label}” added` : `Label “${label}” removed`);
+      } catch (error: unknown) {
+        handleError(error, toast.error, { context: "Update note labels", fallbackMessage: "Unable to update labels" });
+      }
+    },
+    [memo.content, memo.name, memoUpdatedCallback, updateMemo],
   );
 
   const handleToggleMemoStatusClick = useCallback(async () => {
@@ -174,6 +194,7 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     handleTogglePinMemoBtnClick,
     handleEditMemoClick,
     handleSetNoteColor,
+    handleToggleLabel,
     handleToggleMemoStatusClick,
     handleMoveToTrash,
     handleRestoreFromTrash,
