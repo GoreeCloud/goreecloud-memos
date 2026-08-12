@@ -76,12 +76,7 @@ const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: s
       <div className="mx-4 border-t border-border/70" />
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]">
-        <TagsSection
-          tagCount={tagCount}
-          navigationTarget={ROUTES.HOME}
-          scope={currentUserName}
-          onSelect={() => setMobileOpen(false)}
-        />
+        <TagsSection tagCount={tagCount} navigationTarget={ROUTES.HOME} scope={currentUserName} onSelect={() => setMobileOpen(false)} />
       </div>
 
       <div className="mx-4 border-t border-border/70" />
