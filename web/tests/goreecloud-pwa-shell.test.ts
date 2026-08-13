@@ -10,8 +10,13 @@ describe("GoreeCloud Notes mobile PWA shell", () => {
     expect(indexHtml).toContain('content="width=device-width, initial-scale=1, viewport-fit=cover"');
     expect(indexHtml).not.toContain("user-scalable=no");
     expect(indexHtml).toContain('name="apple-mobile-web-app-title" content="GoreeCloud Notes"');
-    expect(indexHtml).toContain('name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)"');
-    expect(indexHtml).toContain('name="theme-color" content="#303236" media="(prefers-color-scheme: dark)"');
+  });
+
+  it("provides one app-controlled browser theme color", () => {
+    expect(indexHtml).toContain('name="theme-color" content="#faf9f5"');
+    expect(indexHtml.match(/name="theme-color"/g)).toHaveLength(1);
+    expect(indexHtml).not.toContain('name="theme-color" content="#faf9f5" media=');
+    expect(indexHtml).not.toContain('name="theme-color" content="#303236" media=');
   });
 
   it("keeps an explicit standalone GoreeCloud Notes app identity", () => {
