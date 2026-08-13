@@ -50,11 +50,10 @@ const removeLabelFromBody = (content: string, label: string): string => {
   return next
     .split("\n")
     .map((line) => {
-      const normalized = line.replace(/[ \t]{2,}/g, " ").trimEnd();
-      return /^\s*#[^\s#]+(?:\s+#[^\s#]+)*$/u.test(normalized) ? normalized.trimStart() : normalized;
+      if (!/^\s*#[^\s#]+(?:\s+#[^\s#]+)*\s*$/u.test(line)) return line;
+      return line.replace(/[ \t]{2,}/g, " ").trim();
     })
     .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
     .trimEnd();
 };
 
