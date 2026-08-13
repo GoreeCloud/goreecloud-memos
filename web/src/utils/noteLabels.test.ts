@@ -4,9 +4,11 @@ import { addNoteLabel, hasNoteLabel, normalizeNoteLabel, removeNoteLabel, setNot
 import { getNoteTrashOrigin, setNoteTrashed } from "./noteTrash";
 
 describe("GoreeCloud note labels", () => {
-  it("normalizes a user-facing label name", () => {
+  it("normalizes a user-facing label name against the canonical tag grammar", () => {
     expect(normalizeNoteLabel(" #validation ")).toBe("validation");
+    expect(normalizeNoteLabel("#work/notes")).toBe("work/notes");
     expect(normalizeNoteLabel("two words")).toBe("");
+    expect(normalizeNoteLabel("tag@fragment")).toBe("");
   });
 
   it("adds the first label as a trailing Markdown tag", () => {
@@ -23,8 +25,45 @@ describe("GoreeCloud note labels", () => {
     expect(hasNoteLabel(content, "validation")).toBe(true);
   });
 
+  it("does not treat tag-looking text in opaque Markdown contexts as a managed label", () => {
+    const content = [
+      "`#validation`",
+      "",
+      "```text",
+      "#validation",
+      "```",
+      "",
+      "[jump](#validation)",
+      "",
+      "![alt](image#validation.png)",
+      "",
+      "<https://example.com/#validation>",
+      "",
+      '<a href="#validation">link</a>',
+    ].join("\n");
+
+    expect(hasNoteLabel(content, "validation")).toBe(false);
+
+    const labeled = addNoteLabel(content, "validation");
+    expect(hasNoteLabel(labeled, "validation")).toBe(true);
+    expect(removeNoteLabel(labeled, "validation")).toBe(content);
+  });
+
+  it("places a new managed label before an unclosed fenced code block", () => {
+    const content = "```text\n#literal";
+    const labeled = addNoteLabel(content, "validation");
+
+    expect(labeled).toBe("#validation\n\n```text\n#literal");
+    expect(hasNoteLabel(labeled, "validation")).toBe(true);
+  });
+
   it("removes only the selected label token", () => {
     expect(removeNoteLabel("Release candidate note.\n\n#validation #family", "validation")).toBe("Release candidate note.\n\n#family");
+  });
+
+  it("preserves opaque copies of a label while removing the recognized tag", () => {
+    const content = "`#validation`\n\n[jump](#validation)\n\n#validation";
+    expect(removeNoteLabel(content, "validation")).toBe("`#validation`\n\n[jump](#validation)");
   });
 
   it("preserves unrelated spacing and blank lines when removing a label", () => {
