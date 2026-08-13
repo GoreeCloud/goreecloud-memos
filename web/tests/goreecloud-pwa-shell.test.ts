@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const indexHtml = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const manifest = JSON.parse(readFileSync(new URL("../public/site.webmanifest", import.meta.url), "utf8")) as Record<string, unknown>;
+const indexHtml = readFileSync(join(process.cwd(), "index.html"), "utf8");
+const manifest = JSON.parse(readFileSync(join(process.cwd(), "public/site.webmanifest"), "utf8")) as Record<string, unknown>;
 
 describe("GoreeCloud Notes mobile PWA shell", () => {
   it("keeps browser zoom available and opts into display safe areas", () => {
