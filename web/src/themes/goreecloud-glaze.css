@@ -33,6 +33,8 @@ body {
   background: transparent;
 }
 
+.gc-app-shell aside,
+.gc-app-shell > main > header,
 .gc-sidebar,
 .gc-topbar {
   background: var(--gc-glaze-surface);
@@ -40,18 +42,20 @@ body {
   backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.14);
 }
 
+.gc-app-shell aside,
 .gc-sidebar {
-  box-shadow:
-    inset -1px 0 0 var(--gc-glaze-highlight),
-    10px 0 36px rgb(18 31 45 / 3%);
+  box-shadow: inset -1px 0 0 var(--gc-glaze-highlight), 10px 0 36px rgb(18 31 45 / 3%);
 }
 
+.gc-app-shell > main > header,
 .gc-topbar {
-  box-shadow:
-    0 1px 0 var(--gc-glaze-highlight),
-    0 12px 34px rgb(18 31 45 / 4%);
+  box-shadow: 0 1px 0 var(--gc-glaze-highlight), 0 12px 34px rgb(18 31 45 / 4%);
 }
 
+.gc-app-shell > main > header .rounded-2xl,
+.gc-app-shell section[aria-label="Create note"] > button,
+.gc-app-shell section[aria-label="Create note"] > .group,
+.gc-app-shell div.rounded-2xl.backdrop-blur-xl,
 .gc-search-surface,
 .gc-control-surface,
 .gc-composer-collapsed,
@@ -59,12 +63,14 @@ body {
 .gc-settings-panel {
   background: var(--gc-glaze-surface-strong);
   border-color: var(--gc-glaze-border);
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
   backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.1);
 }
 
+.gc-app-shell section[aria-label="Create note"] > button,
+.gc-app-shell section[aria-label="Create note"] > .group,
+.gc-app-shell article.group,
+.gc-app-shell div.rounded-2xl.backdrop-blur-xl,
 .gc-search-surface,
 .gc-composer-collapsed,
 .gc-editor-surface,
@@ -73,33 +79,26 @@ body {
   border-radius: var(--gc-glaze-radius);
 }
 
-.gc-search-surface:focus-within,
-.gc-editor-surface:focus-within {
-  border-color: color-mix(in oklch, var(--ring) 40%, var(--gc-glaze-border));
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    0 0 0 3px color-mix(in oklch, var(--ring) 10%, transparent),
-    var(--gc-glaze-shadow-raised);
-}
-
+.gc-app-shell section[aria-label="Create note"] > button:hover,
+.gc-app-shell article.group:hover,
+.gc-app-shell article.group:focus-within,
 .gc-composer-collapsed:hover,
 .gc-note-card:hover,
 .gc-note-card:focus-within {
   border-color: color-mix(in oklch, var(--primary) 20%, var(--gc-glaze-border));
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow-raised);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow-raised);
   transform: translateY(-1px);
 }
 
+.gc-app-shell article.group,
 .gc-note-card {
   border-color: var(--gc-glaze-border);
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .gc-app-shell section[aria-label="Create note"] > button,
+  .gc-app-shell article.group,
   .gc-search-surface,
   .gc-composer-collapsed,
   .gc-note-card {
