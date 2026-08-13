@@ -34,7 +34,7 @@ Desktop acceptance does not imply Android/PWA acceptance.
 
 ## Stable-Candidate Branch
 
-After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile/PWA readiness, automated persistence validation, and label-data-integrity hardening.
+After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile/PWA readiness, automated persistence validation, label-data-integrity hardening, and state-view integrity hardening.
 
 The branch now includes:
 
@@ -49,8 +49,9 @@ The branch now includes:
 - fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
 - small-screen Glaze background behavior tuned for mobile rendering;
 - automated regression coverage for the PWA shell and high-frequency mobile note actions;
-- an isolated authenticated API smoke that proves a private note survives an actual GoreeCloud Notes container restart against the persistent SQLite bind mount; and
-- Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer.
+- an isolated authenticated API smoke that proves a private note survives an actual GoreeCloud Notes container restart against the persistent SQLite bind mount;
+- Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer; and
+- Archive/Trash state-view guards that keep hidden GoreeCloud state markers out of rendered top-level content and require restore before generic double-click editing.
 
 Source-level Android/PWA review found and corrected conflicting media-scoped theme-color tags, undersized mobile navigation controls, undersized direct note-card actions, a 16 px overflow-menu trigger, and a pinned-note interaction attached to a non-focusable element. These corrections improve code readiness but do not replace real-device acceptance.
 
@@ -73,16 +74,26 @@ Removal changes only source candidates proven to contribute a recognized Markdow
 
 Regression coverage includes opaque-context examples, invalid complete-label grammar, unclosed fenced code, preservation of literal copies during removal, and spacing/data-integrity cases.
 
+## Archive and Trash State-View Integrity
+
+GoreeCloud note color and recoverable Trash state are intentionally stored as hidden Markdown metadata rather than new database fields.
+
+Top-level display content now removes the GoreeCloud color and Trash implementation markers before Markdown rendering. Stored memo content is not rewritten by this presentation change. This protects the user-facing display when malformed or unclosed Markdown would otherwise make a trailing implementation marker visible as ordinary source content.
+
+Archive and Trash also now share a consistent editing boundary. Their explicit action menus already withheld ordinary Edit behavior; the generic double-click path now follows the same model. Archived and trashed top-level notes must be restored before that generic edit path can modify them.
+
+`web/tests/goreecloud-trash-integrity.test.ts` guards both the hidden-marker display rule and the restore-before-edit state boundary.
+
 ## Current Automated Validation
 
 The latest validated application-code head is:
 
-`8a0d807a6060857e5a9663492e968addde0ae370`
+`7bcaf7416abbdd39011a4e2bc6aca9169a5672e8`
 
 Validation on that application-code head:
 
-- Frontend Tests run `31749969786` — passed, including lint, the full frontend unit suite with the label-integrity regressions, and the production frontend build.
-- GoreeCloud Container run `31749969796` — passed.
+- Frontend Tests run `31751659555` — passed, including lint, the full frontend unit suite with state-view integrity coverage, and the production frontend build.
+- GoreeCloud Container run `31751659553` — passed.
 - Container validation successfully built the release assets and validation image, rendered Compose, started an isolated instance, and passed the initial application health check.
 - The authenticated persistence step bootstrapped an ephemeral administrator, signed in through the real authentication API, created and read a private memo through the real memo API, verified the SQLite database from the application container context, restarted only GoreeCloud Notes, waited for health to recover, signed in again, and verified the same memo content survived the restart.
 - The workflow completed logs and teardown successfully after the persistence smoke.
@@ -112,4 +123,4 @@ The remaining first-release gates are defined separately so automated readiness 
 - a real isolated restore test proving the restored application is usable; and
 - final pull-request review of the stable-candidate branch state.
 
-RC3 desktop acceptance, mobile/PWA source readiness, Markdown-aware label hardening, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
+RC3 desktop acceptance, mobile/PWA source readiness, Markdown-aware label hardening, state-view integrity hardening, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
