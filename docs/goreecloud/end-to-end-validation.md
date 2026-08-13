@@ -2,9 +2,9 @@
 
 ## Status
 
-The GoreeCloud Notes repository has broad automated unit, component, build, and isolated-container coverage, but the **first-release end-to-end acceptance gate is not yet complete**.
+The GoreeCloud Notes repository now has broad automated unit, component, build, isolated-container, authenticated API, and restart-persistence smoke coverage, but the **first-release deployed end-to-end acceptance gate is not yet complete**.
 
-The stable-release gate requires validation of the deployed stable-candidate application as a complete system. Existing frontend tests and container health checks are supporting evidence; they do not replace authenticated user-workflow, restart-persistence, attachment, export, and recovery acceptance on the deployed application.
+The stable-release gate still requires validation of the deployed stable-candidate application as a complete user-facing system. Existing frontend tests, container health checks, and the isolated authenticated persistence smoke are strong supporting evidence; they do not replace browser-driven validation of the full GoreeCloud Notes workflow, attachments, export, private publication path, or real-device behavior on the deployed application.
 
 ## Existing Automated Evidence
 
@@ -22,15 +22,45 @@ The current frontend suite covers major pieces of the GoreeCloud Notes experienc
 - Authentication page, redirect, initialization, and password-sign-in components.
 - Autosave and editor-cache behavior.
 - GoreeCloud Settings-shell behavior.
-- Mobile/PWA manifest and viewport regression requirements.
+- Mobile/PWA manifest, viewport, touch-target, and note-action regression requirements.
 
 The GoreeCloud Container workflow separately validates that the real application image can be built, rendered through the GoreeCloud Compose package, started with isolated temporary storage, and become healthy through the actual `/healthz` endpoint.
+
+### Automated isolated authenticated persistence smoke
+
+The stable-candidate container workflow also performs a dependency-free authenticated API smoke against the actual running GoreeCloud Notes container. It does not publish a backend host port or introduce a browser-testing framework.
+
+On validation head `628be9c90a12fbb01267fdfab8850c32b56cd0e7`, GoreeCloud Container run `31745910673` successfully:
+
+- bootstrapped an ephemeral first administrator in the otherwise empty isolated instance;
+- authenticated through the real `/api/v1/auth/signin` endpoint and verified the current authenticated user;
+- created a uniquely marked private note through the real `/api/v1/memos` endpoint;
+- read that note back through the authenticated API and verified its content;
+- verified the SQLite database exists at `/var/opt/memos/memos_prod.db` from the application container context;
+- restarted only the GoreeCloud Notes container while retaining the same isolated persistent-data bind mount;
+- waited for the actual container health check and `/healthz` endpoint to return ready again;
+- authenticated again after restart; and
+- read the same memo back and verified the unique content marker survived the restart.
+
+The smoke is implemented in `scripts/goreecloud-notes-ci-smoke.sh` and invoked by `.github/workflows/goreecloud-container.yml` after initial health validation.
+
+Frontend Tests run `31745910683` also passed on the same validation head, including lint, the frontend unit suite, and the production frontend build.
 
 ## What Automated Coverage Does Not Prove
 
 The repository does not currently use a full browser-driven end-to-end framework such as Playwright or Cypress for the GoreeCloud Notes release gate.
 
-The current automated suite therefore does not by itself prove that a real authenticated user can complete the entire first-release workflow against a running stable-candidate deployment, nor does it prove that every GoreeCloud-specific state survives an actual service restart.
+The authenticated API restart smoke proves considerably more than a health-only container check, but it still does not prove that a real authenticated user can complete the entire first-release workflow through the browser against the deployed private service. In particular, it does not by itself validate:
+
+- the complete browser sign-in and navigation experience;
+- editor/composer interaction as rendered to a user;
+- labels, checklist controls, pin/color controls, Archive, or Trash through the browser;
+- attachment upload/open/download through the deployed UI;
+- individual or full-library export through the deployed UI;
+- desktop search and mobile Quick Find as rendered interactions;
+- the Caddy, private DNS, and NetBird publication path for the stable candidate;
+- real-device Android/PWA presentation or touch behavior; or
+- the full deployed application state after an operational restart of the actual private service.
 
 ## Deployed End-to-End Acceptance Checklist
 
@@ -114,10 +144,12 @@ The following checks must be completed against the deployed stable-candidate app
 
 ### Restart persistence
 
+The isolated authenticated smoke now proves a basic private note survives a real container restart against the application SQLite bind mount. The deployed gate still requires the broader user-visible state below.
+
 After the validation data above exists:
 
 - Record the validation note identities and expected state.
-- Restart only the GoreeCloud Notes application service using the approved operational procedure.
+- Restart only the deployed GoreeCloud Notes application service using the approved operational procedure.
 - Wait for the application health check to return ready.
 - Sign in again if required.
 - Verify notes, titles, Markdown content, checklist state, labels, pinning, colors, attachments, Archive/Trash state, and searchability remain intact.
@@ -137,6 +169,8 @@ The stable release still requires integration with the approved long-term backup
 
 ## Acceptance Rule
 
-The end-to-end gate may be recorded as passed only after the applicable deployed checks above have been completed successfully against the stable-candidate application and the result has been documented.
+The deployed end-to-end gate may be recorded as passed only after the applicable browser/user-facing checks above have been completed successfully against the stable-candidate private deployment and the result has been documented.
 
-Do not merge PR #1 or create `goreecloud-v0.1.0` solely because unit tests, frontend builds, or container health checks pass.
+The automated authenticated persistence smoke is a required supporting check but is not sufficient by itself to close the deployed E2E gate.
+
+Do not merge PR #1 or create `goreecloud-v0.1.0` solely because unit tests, frontend builds, container health checks, or the isolated authenticated API smoke pass.
