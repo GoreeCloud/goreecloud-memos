@@ -62,12 +62,12 @@ const LazyImportPlugin: BackendModule = {
     const matchedLanguage = findNearestMatchedLanguage(language);
     import(`./locales/${matchedLanguage}.json`)
       .then((translationModule: Record<string, unknown>) => {
-        callback(null, translationModule.default);
+        callback(null, (translationModule.default as Record<string, unknown>) ?? translationModule);
       })
       .catch(() => {
         import("./locales/en.json")
           .then((translationModule: Record<string, unknown>) => {
-            callback(null, translationModule.default);
+            callback(null, (translationModule.default as Record<string, unknown>) ?? translationModule);
           })
           .catch((error: unknown) => {
             callback(error as Error, false);
