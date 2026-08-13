@@ -36,10 +36,10 @@ Automated evidence on that mobile-specific head:
 - Frontend Tests run `31744796653` — passed.
 - GoreeCloud Container run `31744796705` — passed.
 
-The later stable-candidate application-code head `8a0d807a6060857e5a9663492e968addde0ae370` retains the same mobile/PWA implementation while adding persistence-validation and Markdown-aware label-integrity work. It also passed the complete frontend and container validation paths:
+The later validated stable-candidate application-code head `7bcaf7416abbdd39011a4e2bc6aca9169a5672e8` retains the same mobile/PWA implementation while adding persistence validation, Markdown-aware label integrity, and Archive/Trash state-view hardening. It also passed the complete frontend and container validation paths:
 
-- Frontend Tests run `31749969786` — passed.
-- GoreeCloud Container run `31749969796` — passed, including the authenticated restart-persistence smoke.
+- Frontend Tests run `31751659555` — passed.
+- GoreeCloud Container run `31751659553` — passed, including the authenticated restart-persistence smoke.
 
 Readiness review identified source-level Android/PWA issues before device acceptance, including conflicting media-scoped theme-color tags, desktop-sized controls reused in the mobile slide-out navigation, undersized high-frequency note-card controls, a 16 px note overflow trigger, and a non-focusable pinned-note unpin interaction. These source-level issues were corrected and regression coverage was expanded accordingly.
 
