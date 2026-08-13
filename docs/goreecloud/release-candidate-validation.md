@@ -2,116 +2,78 @@
 
 ## RC1
 
-Release candidate `goreecloud-v0.1.0-rc.1` was built from the GoreeCloud fork, published to GHCR, deployed on the temporary GoreeCloud VPS validation host, and successfully validated for container health and private HTTPS publication.
+Release candidate `goreecloud-v0.1.0-rc.1` validated the GoreeCloud private deployment architecture, SQLite persistence, non-root container execution, Docker `proxy` networking, private DNS, Caddy HTTPS routing, `/healthz`, and initial note creation.
 
-Validated infrastructure behavior included:
-
-- Immutable GHCR image deployment.
-- SQLite persistence under the GoreeCloud Notes application-data path.
-- Non-root container execution.
-- No backend host-port publication.
-- Docker `proxy` network connectivity.
-- AdGuard Home private resolution for `notes.goreecloud.com`.
-- Caddy HTTPS routing to `goreecloud-notes:5230`.
-- Successful `/healthz` response.
-- Successful authenticated application startup and note creation.
-
-RC1 did **not** pass user-interface acceptance. The deployed interface remained too close to upstream Memos and did not meet the intended Google Keep-style GoreeCloud Notes experience. Specific acceptance failures included the activity-calendar-heavy sidebar, oversized single-column presentation, poor label discoverability, upstream-oriented navigation, and insufficient GoreeCloud product identity.
-
-RC1 remains a validation artifact and must not be promoted to stable.
+RC1 did **not** pass user-interface acceptance. The interface remained too close to upstream Memos and did not meet the intended GoreeCloud Notes experience. RC1 remains a validation artifact.
 
 ## RC2
 
-Release candidate `goreecloud-v0.1.0-rc.2` implemented the first substantial GoreeCloud Notes workspace redesign and was published and deployed to the same private validation environment without replacing the existing SQLite data.
+Release candidate `goreecloud-v0.1.0-rc.2` delivered the first substantial Notes workspace redesign, responsive card wall, first-class Labels workflow, and preserved application state through an in-place private validation upgrade.
 
-RC2 validation confirmed:
+RC2 passed core workspace and Labels functional acceptance, but visual/product acceptance remained partial because terminology, Settings presentation, label display, search behavior, composer behavior, and card actions still needed product polish.
 
-- Dedicated GoreeCloud Notes navigation for Notes, Archive, Trash, Labels, Attachments, and Inbox.
-- Removal of the activity calendar and Views/Tasks clutter from the primary Notes workspace.
-- Responsive multi-column card-wall behavior.
-- A first-class Labels manager backed by the upstream tag/index model.
-- Label creation, label color, label assignment/removal, usage counts, card display, and sidebar filtering.
-- Existing title, checklist, pin, note color, Archive, Trash, restore, authentication, and persistent-data behavior.
-- Exact immutable image deployment with no backend host-port publication.
-- Private AdGuard Home resolution, Caddy HTTPS publication, and successful application health checks.
-
-RC2 passed the functional acceptance gate for the redesigned Notes workspace and Labels workflow, but visual/product acceptance remained **partial**. Remaining issues included upstream Memos terminology and administration surfaces in Settings, `#`-prefixed label presentation, modal-style Quick Find instead of direct workspace filtering, an always-expanded composer, and card actions that remained too dependent on the overflow menu.
-
-RC2 therefore remains a release candidate rather than the stable first release.
-
-## RC3 Product Polish Gate
+## RC3
 
 Release candidate `goreecloud-v0.1.0-rc.3` was published on August 12, 2026 at 6:09 PM CDT from validated commit `eaa7bcd71937aa2025c91d0d4f838f901448a01e`.
-
-The tag-triggered GoreeCloud Container workflow, run `31649812690`, completed successfully. The release job built and published the exact tag for both `linux/amd64` and `linux/arm64`.
 
 Published immutable image:
 
 `ghcr.io/goreecloud/memos@sha256:73613691c167b1ec261685168404b781edf844be04ed27e7bb59ebc78cdf0347`
 
-RC3 focuses on product polish rather than infrastructure changes. The implementation includes:
+Tag-triggered GoreeCloud Container run `31649812690` passed and published the release for `linux/amd64` and `linux/arm64`.
 
-- Clean user-facing label chips that display the configured label name without exposing the Markdown `#` token.
-- Direct desktop `Search notes` filtering through the existing `contentSearch` filter model instead of opening a second Quick Find dialog.
-- A collapsed `Take a note…` capture surface that expands into the full editor only when the user begins composing.
-- Direct card actions for pin/unpin, color, labels, Archive/restore, with Trash restore surfaced directly where applicable; the overflow menu remains for secondary actions.
-- Removal of reactions from the primary Notes card workflow, consistent with the initial GoreeCloud Notes MVP scope.
-- A dedicated GoreeCloud Notes Settings navigation shell using GoreeCloud terminology.
-- User-facing Settings reduced to My account, Preferences, and Labels.
-- Administrator Settings reduced to Members, System, Notes, Storage, and Notifications for the initial product surface.
-- Upstream Webhooks, SSO, AI, Resources, and Access Tokens hidden from the GoreeCloud Notes Settings experience for the initial MVP instead of defining the visible product interface.
-- The former Memo administration page presented as Notes with note-oriented terminology, while reaction configuration is removed from that page.
-- Softer rounded card geometry, restrained elevation, hover movement, translucent workspace surfaces, and other refinements aligned with GoreeCloud Glaze UI.
-
-The upstream implementation remains available in source where removing it would create unnecessary divergence. RC3 changes the GoreeCloud product surface and does not change the SQLite data model, persistent storage paths, private DNS architecture, Caddy route, or backend network-exposure model.
+RC3 implemented the primary product-polish corrections from RC2, including clean label presentation, direct desktop search, collapsed quick capture, direct card actions, GoreeCloud Notes Settings terminology, and stronger Glaze UI treatment.
 
 ## RC3 Desktop Acceptance
 
-RC3 desktop visual/product acceptance passed on the private GoreeCloud Notes validation instance. The accepted desktop product surface includes:
+RC3 desktop visual/product acceptance passed on the private GoreeCloud Notes validation instance.
 
-- GoreeCloud Notes workspace hierarchy and Glaze UI direction.
-- Collapsed and expanded composer behavior.
-- Direct inline search and clearing behavior.
-- Responsive card layout and direct card actions.
-- Labels creation, assignment, clean chip presentation, counts, and filtering.
-- Notes, Archive, and Trash workflows.
-- GoreeCloud Settings navigation and note-oriented terminology.
-- Removal of ordinary user-facing Memos branding and irrelevant upstream administration from the intended Notes workflow.
-- Light and dark appearance behavior within the reviewed desktop surface.
+Desktop acceptance covered the Notes workspace hierarchy, Glaze UI direction, composer behavior, direct search, responsive cards/actions, Labels, Notes/Archive/Trash workflows, Settings terminology, removal of ordinary user-facing Memos branding from the intended Notes workflow, and reviewed light/dark appearance behavior.
 
-Desktop acceptance closes the RC3 desktop visual/product gate. Mobile/PWA validation remains a separate first-release requirement and is not implied by this desktop result.
+Desktop acceptance does not imply Android/PWA acceptance.
 
-## Post-RC3 Glaze UI Branch Polish
+## Stable-Candidate Branch
 
-After the published RC3 image, the development branch received an additional Glaze UI refinement intended for the stable release rather than a new published prerelease.
+After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile, and PWA readiness work.
 
-The post-RC3 branch polish adds or strengthens:
+The branch now includes:
 
-- Shared layered-surface tokens for blur, radius, borders, highlights, and restrained elevation.
-- Selective translucency across the sidebar, sticky header, search, quick composer, editor, note cards, and Settings panels.
-- Ambient background gradients and softer workspace depth.
-- Light/dark theme-aware Glaze treatment.
-- Hover and focus feedback for interactive cards and capture surfaces.
-- Reduced-motion behavior.
-- Additional English Settings terminology cleanup including **Note defaults** and **Default note visibility**.
+- shared Glaze surface tokens, selective translucency, softened depth, rounded geometry, focus feedback, and reduced-motion behavior;
+- additional note-oriented Settings terminology;
+- mobile safe-area handling for the header, slide-out navigation, and bottom navigation/gesture area;
+- browser zoom support and `viewport-fit=cover`;
+- light/dark mobile browser and installed-app theme colors;
+- explicit installed-app manifest identity;
+- larger mobile header, navigation, and search touch targets;
+- fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
+- small-screen Glaze background behavior tuned for mobile rendering;
+- automated regression coverage for the PWA viewport and manifest requirements.
 
-Current post-RC3 branch validation head: `eba17578eb80df565e48fde1207c7a08ea563d0a`.
+Current stable-candidate validation head: `883598f67627e40441aa83c410be579696ce3cec`.
 
 Validation on that head:
 
-- Frontend Tests run `31718902784` — passed.
-- GoreeCloud Container run `31718902812` — passed.
+- Frontend Tests run `31739773391` — passed.
+- GoreeCloud Container run `31739773303` — passed.
 
-This branch-level polish does not change the SQLite data model, persistent storage paths, private DNS architecture, Caddy route, or backend network-exposure model.
+An earlier revision of the new PWA regression test used an incompatible fixture-path resolution method under Vitest. The test path handling was corrected; the current head passes both required workflows.
+
+## Remaining Gate Records
+
+The remaining first-release gates are now defined separately so automated readiness is not confused with real-world acceptance:
+
+- `docs/goreecloud/android-pwa-validation.md` — source readiness is implemented; real-device Android/PWA acceptance remains open.
+- `docs/goreecloud/end-to-end-validation.md` — deployed end-to-end and restart-persistence acceptance remains open.
+- `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
 
 ## Stable Promotion Rule
 
 `goreecloud-v0.1.0` must not be created until all remaining applicable first-release gates pass:
 
-- Android/PWA visual and functional acceptance.
-- End-to-end validation for notes, titles, checklists, labels, colors, pinning, attachments, Archive, Trash, restore, search, export, authentication, and restart persistence.
-- Kopia integration or the approved long-term application-backup path.
-- A real isolated restore test proving the application data can be recovered.
-- Final pull-request review of the stable candidate branch state.
+- real-device Android/PWA visual and functional acceptance;
+- deployed end-to-end application and restart-persistence validation;
+- confirmed application-data protection through the approved long-term backup path;
+- a real isolated restore test proving the restored application is usable;
+- final pull-request review of the stable-candidate branch state.
 
-The RC3 automated validation and desktop visual/product acceptance gates are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
+RC3 desktop acceptance and current stable-candidate automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
