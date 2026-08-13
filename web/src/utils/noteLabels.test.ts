@@ -27,6 +27,13 @@ describe("GoreeCloud note labels", () => {
     expect(removeNoteLabel("Release candidate note.\n\n#validation #family", "validation")).toBe("Release candidate note.\n\n#family");
   });
 
+  it("preserves unrelated spacing and blank lines when removing a label", () => {
+    const content = "Paragraph  with   deliberate spacing.\n\n\n    indented\t\tcontent\n\n#validation #family";
+    expect(removeNoteLabel(content, "validation")).toBe(
+      "Paragraph  with   deliberate spacing.\n\n\n    indented\t\tcontent\n\n#family",
+    );
+  });
+
   it("toggles labels through one helper", () => {
     const labeled = setNoteLabelEnabled("Body", "validation", true);
     expect(hasNoteLabel(labeled, "validation")).toBe(true);
