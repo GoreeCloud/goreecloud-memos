@@ -106,6 +106,18 @@ body {
     var(--gc-glaze-shadow);
 }
 
+@media (max-width: 767px) {
+  .gc-app-shell > main > header:not(.hidden) {
+    min-height: calc(3.5rem + env(safe-area-inset-top));
+    height: calc(3.5rem + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .gc-app-shell > main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gc-app-shell section[aria-label="Create note"] > button,
   .gc-app-shell article.group,
