@@ -104,15 +104,11 @@ const PreferencesSection = () => {
         </SettingList>
       </SettingGroup>
 
-      <SettingGroup
-        title={t("setting.preference.memo-defaults-title")}
-        description={t("setting.preference.memo-defaults-description")}
-        showSeparator
-      >
+      <SettingGroup title="Note defaults" description="Set the defaults used when creating new notes." showSeparator>
         <SettingList>
           <SettingListItem
-            label={t("setting.preference.default-memo-visibility")}
-            description={t("setting.preference.default-memo-visibility-description")}
+            label="Default note visibility"
+            description="Visibility applied to newly created notes unless changed in the editor."
           >
             <Select
               value={setting.memoVisibility || "PRIVATE"}
