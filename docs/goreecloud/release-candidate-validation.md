@@ -34,7 +34,7 @@ Desktop acceptance does not imply Android/PWA acceptance.
 
 ## Stable-Candidate Branch
 
-After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile, and PWA readiness work.
+After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile, PWA readiness, and automated persistence-validation work.
 
 The branch now includes:
 
@@ -48,26 +48,33 @@ The branch now includes:
 - a focusable, accessible pinned-note unpin control;
 - fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
 - small-screen Glaze background behavior tuned for mobile rendering;
-- automated regression coverage for the PWA shell and high-frequency mobile note actions.
+- automated regression coverage for the PWA shell and high-frequency mobile note actions; and
+- an isolated authenticated API smoke that proves a private note survives an actual GoreeCloud Notes container restart against the persistent SQLite bind mount.
 
 Source-level Android/PWA review found and corrected conflicting media-scoped theme-color tags, undersized mobile navigation controls, undersized direct note-card actions, a 16 px overflow-menu trigger, and a pinned-note interaction attached to a non-focusable element. These corrections improve code readiness but do not replace real-device acceptance.
 
-Current stable-candidate application-code validation head: `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`.
+The latest high-frequency mobile UI regression head was `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`. The later stable-candidate validation head `628be9c90a12fbb01267fdfab8850c32b56cd0e7` adds the isolated authenticated persistence smoke and executes the full application/container validation against that exact tree.
 
-Validation on that head:
+Validation on `628be9c90a12fbb01267fdfab8850c32b56cd0e7`:
 
-- Frontend Tests run `31744796653` — passed.
-- GoreeCloud Container run `31744796705` — passed.
-- Container validation successfully built the image, rendered Compose, started an isolated instance, passed the application health check, and completed cleanup.
+- Frontend Tests run `31745910683` — passed, including lint, unit tests, and the production frontend build.
+- GoreeCloud Container run `31745910673` — passed.
+- Container validation successfully built the validation image, rendered Compose, started an isolated instance, and passed the initial application health check.
+- The new authenticated persistence step then bootstrapped an ephemeral administrator, signed in through the real authentication API, created and read a private memo through the real memo API, verified the SQLite database from the application container context, restarted only GoreeCloud Notes, waited for health to recover, signed in again, and verified the same memo content survived the restart.
+- The workflow completed logs and teardown successfully after the persistence smoke.
 
-Earlier during PWA-readiness work, a regression test used an incompatible fixture-path resolution method under Vitest. The path handling was corrected before the validated head above. Subsequent source-level mobile issues were also fixed and covered by `web/tests/goreecloud-pwa-shell.test.ts` and `web/tests/goreecloud-mobile-actions.test.ts`.
+The authenticated restart smoke is implemented in `scripts/goreecloud-notes-ci-smoke.sh` and invoked from `.github/workflows/goreecloud-container.yml`. It introduces no host backend port and no browser-testing framework.
+
+This automated smoke materially strengthens restart-persistence evidence, but it does not close the deployed browser/user-workflow acceptance gate. Browser interaction, attachments, exports, the private Caddy/DNS/NetBird publication path, full GoreeCloud-specific state, and Android/PWA behavior still require their respective deployed acceptance checks.
+
+Earlier during PWA-readiness work, a regression test used an incompatible fixture-path resolution method under Vitest. The path handling was corrected before the later validated heads. Subsequent source-level mobile issues were also fixed and covered by `web/tests/goreecloud-pwa-shell.test.ts` and `web/tests/goreecloud-mobile-actions.test.ts`.
 
 ## Remaining Gate Records
 
 The remaining first-release gates are defined separately so automated readiness is not confused with real-world acceptance:
 
 - `docs/goreecloud/android-pwa-validation.md` — source/code readiness is implemented and automated validation passes; real-device Android/PWA acceptance remains open.
-- `docs/goreecloud/end-to-end-validation.md` — deployed end-to-end and restart-persistence acceptance remains open.
+- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated note/restart persistence is automated and passing; deployed browser/user-workflow and full-state restart acceptance remain open.
 - `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
 
 ## Stable Promotion Rule
@@ -75,9 +82,9 @@ The remaining first-release gates are defined separately so automated readiness 
 `goreecloud-v0.1.0` must not be created until all remaining applicable first-release gates pass:
 
 - real-device Android/PWA visual and functional acceptance;
-- deployed end-to-end application and restart-persistence validation;
+- deployed browser/user-workflow end-to-end validation and full-state restart-persistence acceptance;
 - confirmed application-data protection through the approved long-term backup path;
 - a real isolated restore test proving the restored application is usable;
 - final pull-request review of the stable-candidate branch state.
 
-RC3 desktop acceptance and current stable-candidate automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
+RC3 desktop acceptance, mobile/PWA source readiness, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
