@@ -113,6 +113,20 @@ body {
     padding-top: env(safe-area-inset-top);
   }
 
+  .gc-app-shell > main > header:not(.hidden) button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  [data-slot="sheet-content"] {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  aside nav[aria-label="Notes utilities"] a {
+    min-height: 2.75rem;
+  }
+
   .gc-app-shell > main {
     padding-bottom: env(safe-area-inset-bottom);
   }
