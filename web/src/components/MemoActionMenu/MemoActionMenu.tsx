@@ -86,7 +86,9 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="size-4" />}>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" className="size-11 md:size-4" aria-label="More note actions" />}
+      >
         <MoreVerticalIcon className="text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={2}>
