@@ -19,7 +19,7 @@ import { useMemoViewContext } from "../MemoViewContext";
 const isAssignableLabel = (label: string) => normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
 
 const ACTION_BUTTON_CLASS =
-  "size-8 rounded-full text-muted-foreground transition-[background-color,color,transform] hover:-translate-y-px hover:bg-background/75 hover:text-foreground";
+  "size-11 rounded-full text-muted-foreground transition-[background-color,color,transform] hover:-translate-y-px hover:bg-background/75 hover:text-foreground md:size-8";
 
 const GoreeCloudCardActions = () => {
   const { memo, readonly, isArchived } = useMemoViewContext();
@@ -45,7 +45,13 @@ const GoreeCloudCardActions = () => {
   if (trashed) {
     return (
       <div className="mt-1 flex w-full justify-end border-t border-border/45 pt-2">
-        <Button type="button" variant="ghost" size="sm" className="rounded-full px-3 text-xs" onClick={() => void handleRestoreFromTrash()}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="min-h-11 rounded-full px-3 text-xs md:min-h-8"
+          onClick={() => void handleRestoreFromTrash()}
+        >
           <ArchiveRestoreIcon className="size-4" strokeWidth={1.8} />
           Restore
         </Button>
@@ -56,7 +62,7 @@ const GoreeCloudCardActions = () => {
   return (
     <div
       className={cn(
-        "-mx-1 mt-1 flex min-h-9 w-[calc(100%+0.5rem)] items-center justify-end gap-0.5 border-t border-border/35 px-1 pt-2",
+        "-mx-1 mt-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center justify-end gap-0.5 border-t border-border/35 px-1 pt-2 md:min-h-9",
         "opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100",
         (colorOpen || labelsOpen) && "opacity-100",
       )}
