@@ -83,8 +83,17 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
         {showPinned && memo.pinned && (
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger render={<span className="cursor-pointer" />}>
-                <BookmarkIcon className="h-auto w-4 text-primary" onClick={unpinMemo} />
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    className="flex size-11 items-center justify-center rounded-md text-primary transition-colors hover:bg-background/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:size-6"
+                    aria-label={t("common.unpin")}
+                    onClick={unpinMemo}
+                  />
+                }
+              >
+                <BookmarkIcon className="h-auto w-4" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{t("common.unpin")}</p>
