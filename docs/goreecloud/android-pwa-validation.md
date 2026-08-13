@@ -12,26 +12,28 @@ The stable-candidate branch includes the following Android/PWA readiness work:
 
 - The mobile viewport permits user zoom instead of disabling pinch zoom.
 - `viewport-fit=cover` is enabled so installed-app layouts can use device safe-area insets.
-- Light and dark mobile browser/PWA chrome colors are declared separately.
+- The page exposes one app-controlled `theme-color` value so the existing GoreeCloud Notes theme loader can keep browser/PWA chrome synchronized with the selected Light, Dark, or Paper appearance.
 - The Apple installed-app title is explicitly set to **GoreeCloud Notes**.
 - The web app manifest has an explicit application `id`, language, text direction, and productivity/utility categories.
 - Mobile sticky headers account for the top safe area.
 - Mobile sheet navigation accounts for top and bottom safe areas.
 - The mobile application shell accounts for the bottom gesture/navigation safe area.
-- Header controls and Notes utility links use larger touch targets on small screens.
+- Mobile header controls use larger touch targets.
+- Mobile slide-out navigation rows, links, section actions, and labeled icon controls use a minimum 44 px touch target while the compact desktop sidebar remains unchanged.
 - The mobile Quick Find submit control uses a larger touch target.
 - Glaze hover elevation is limited to fine-pointer devices so touch browsers do not retain desktop-style hover elevation after taps.
 - The ambient Glaze background uses scrolling rather than fixed attachment on small screens to reduce mobile rendering jank.
-- `web/tests/goreecloud-pwa-shell.test.ts` guards the mobile viewport and manifest identity requirements against regression.
+- `web/tests/goreecloud-pwa-shell.test.ts` guards the viewport, manifest identity, single app-controlled theme color, and mobile navigation touch-target requirements against regression.
 
-Stable-candidate application-code validation head: `883598f67627e40441aa83c410be579696ce3cec`.
+Stable-candidate application-code validation head: `f71e0aa1aa886365afc378c5f95e0316b2d7e7c1`.
 
 Automated evidence on that head:
 
-- Frontend Tests run `31739773391` — passed.
-- GoreeCloud Container run `31739773303` — passed.
+- Frontend Tests run `31744311689` — passed.
+- GoreeCloud Container run `31744311771` — passed.
+- The container workflow built the validation image, rendered the GoreeCloud Compose configuration, started an isolated validation instance, and passed the application health check.
 
-An earlier version of the PWA regression test used fixture resolution that was incompatible with the Vitest transform environment. The test path handling was corrected, and the stable-candidate application-code head passes both required workflows.
+Earlier readiness review found two source-level issues before device acceptance: conflicting media-scoped theme-color tags and desktop-sized controls reused in the mobile slide-out navigation. Both were corrected before the validation head above, and regression coverage was expanded accordingly.
 
 ## Real-Device Acceptance Checklist
 
@@ -82,8 +84,7 @@ The stable-release Android/PWA gate requires validation of the deployed private 
 
 - Verify Notes, Archive, Trash, Labels, Attachments, Inbox, and Settings navigation.
 - Verify the GoreeCloud Notes Settings shell and terminology.
-- Verify light appearance.
-- Verify dark appearance.
+- Verify Light, Dark, and Paper appearances update application/browser chrome appropriately where supported.
 - Verify Glaze surfaces remain readable and do not create excessive blur, contrast loss, or visual obstruction on the device.
 
 ### Persistence
