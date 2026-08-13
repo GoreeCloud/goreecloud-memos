@@ -21,19 +21,23 @@ The stable-candidate branch includes the following Android/PWA readiness work:
 - Mobile header controls use larger touch targets.
 - Mobile slide-out navigation rows, links, section actions, and labeled icon controls use a minimum 44 px touch target while the compact desktop sidebar remains unchanged.
 - The mobile Quick Find submit control uses a larger touch target.
+- High-frequency note-card actions use 44 px mobile targets while retaining compact desktop sizing.
+- The note overflow-menu trigger uses a 44 px mobile target.
+- The pinned-note unpin action is a real focusable button with an accessible label instead of an icon click attached to a non-focusable element.
 - Glaze hover elevation is limited to fine-pointer devices so touch browsers do not retain desktop-style hover elevation after taps.
 - The ambient Glaze background uses scrolling rather than fixed attachment on small screens to reduce mobile rendering jank.
 - `web/tests/goreecloud-pwa-shell.test.ts` guards the viewport, manifest identity, single app-controlled theme color, and mobile navigation touch-target requirements against regression.
+- `web/tests/goreecloud-mobile-actions.test.ts` guards the mobile note-card action sizing, overflow-menu trigger sizing, and pinned-note button semantics.
 
-Stable-candidate application-code validation head: `f71e0aa1aa886365afc378c5f95e0316b2d7e7c1`.
+Stable-candidate application-code validation head: `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`.
 
 Automated evidence on that head:
 
-- Frontend Tests run `31744311689` — passed.
-- GoreeCloud Container run `31744311771` — passed.
-- The container workflow built the validation image, rendered the GoreeCloud Compose configuration, started an isolated validation instance, and passed the application health check.
+- Frontend Tests run `31744796653` — passed.
+- GoreeCloud Container run `31744796705` — passed.
+- The container workflow built the validation image, rendered the GoreeCloud Compose configuration, started an isolated validation instance, passed the application health check, and completed cleanup successfully.
 
-Earlier readiness review found two source-level issues before device acceptance: conflicting media-scoped theme-color tags and desktop-sized controls reused in the mobile slide-out navigation. Both were corrected before the validation head above, and regression coverage was expanded accordingly.
+Readiness review identified source-level Android/PWA issues before device acceptance, including conflicting media-scoped theme-color tags, desktop-sized controls reused in the mobile slide-out navigation, undersized high-frequency note-card controls, a 16 px note overflow trigger, and a non-focusable pinned-note unpin interaction. These source-level issues were corrected before the validation head above, and regression coverage was expanded accordingly.
 
 ## Real-Device Acceptance Checklist
 
@@ -60,8 +64,8 @@ The stable-release Android/PWA gate requires validation of the deployed private 
 
 - Confirm pinch zoom works.
 - Confirm text remains readable after zooming.
-- Confirm header, navigation, search, and note actions are comfortable touch targets.
-- Confirm keyboard focus remains visible when a hardware keyboard or accessibility navigation is used.
+- Confirm header, navigation, search, direct card actions, pinned-note controls, and overflow-menu controls are comfortable touch targets.
+- Confirm keyboard focus remains visible and the pinned-note unpin control is reachable when a hardware keyboard or accessibility navigation is used.
 - Confirm touch interactions do not leave note cards or controls visually stuck in a desktop hover state.
 - Confirm reduced-motion behavior when the operating system requests reduced motion.
 
