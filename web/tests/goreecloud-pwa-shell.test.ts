@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const indexHtml = readFileSync(join(process.cwd(), "index.html"), "utf8");
 const manifest = JSON.parse(readFileSync(join(process.cwd(), "public/site.webmanifest"), "utf8")) as Record<string, unknown>;
+const glazeCss = readFileSync(join(process.cwd(), "src/themes/goreecloud-glaze.css"), "utf8");
 
 describe("GoreeCloud Notes mobile PWA shell", () => {
   it("keeps browser zoom available and opts into display safe areas", () => {
@@ -17,6 +18,14 @@ describe("GoreeCloud Notes mobile PWA shell", () => {
     expect(indexHtml.match(/name="theme-color"/g)).toHaveLength(1);
     expect(indexHtml).not.toContain('name="theme-color" content="#faf9f5" media=');
     expect(indexHtml).not.toContain('name="theme-color" content="#303236" media=');
+  });
+
+  it("keeps mobile navigation touch targets at least 44px high", () => {
+    expect(glazeCss).toContain('[data-slot="sheet-content"] aside button,');
+    expect(glazeCss).toContain('[data-slot="sheet-content"] aside [role="button"]');
+    expect(glazeCss).toContain('[data-slot="sheet-content"] aside [role="button"][aria-label]');
+    expect(glazeCss).toContain("min-height: 2.75rem;");
+    expect(glazeCss).toContain("min-width: 2.75rem;");
   });
 
   it("keeps an explicit standalone GoreeCloud Notes app identity", () => {
