@@ -65,31 +65,53 @@ RC3 focuses on product polish rather than infrastructure changes. The implementa
 
 The upstream implementation remains available in source where removing it would create unnecessary divergence. RC3 changes the GoreeCloud product surface and does not change the SQLite data model, persistent storage paths, private DNS architecture, Caddy route, or backend network-exposure model.
 
-## RC3 Acceptance Requirements
+## RC3 Desktop Acceptance
 
-Before RC3 can be considered visually accepted, the deployed private instance must be reviewed for:
+RC3 desktop visual/product acceptance passed on the private GoreeCloud Notes validation instance. The accepted desktop product surface includes:
 
-- Notes workspace visual hierarchy and Glaze UI consistency.
+- GoreeCloud Notes workspace hierarchy and Glaze UI direction.
 - Collapsed and expanded composer behavior.
 - Direct inline search and clearing behavior.
 - Responsive card layout and direct card actions.
 - Labels creation, assignment, clean chip presentation, counts, and filtering.
 - Notes, Archive, and Trash workflows.
-- GoreeCloud Settings navigation and terminology.
-- Absence of ordinary user-facing Memos branding or irrelevant upstream administration in the intended Notes workflow.
-- Light and dark appearance behavior.
-- Desktop and supported mobile/PWA layouts.
+- GoreeCloud Settings navigation and note-oriented terminology.
+- Removal of ordinary user-facing Memos branding and irrelevant upstream administration from the intended Notes workflow.
+- Light and dark appearance behavior within the reviewed desktop surface.
+
+Desktop acceptance closes the RC3 desktop visual/product gate. Mobile/PWA validation remains a separate first-release requirement and is not implied by this desktop result.
+
+## Post-RC3 Glaze UI Branch Polish
+
+After the published RC3 image, the development branch received an additional Glaze UI refinement intended for the stable release rather than a new published prerelease.
+
+The post-RC3 branch polish adds or strengthens:
+
+- Shared layered-surface tokens for blur, radius, borders, highlights, and restrained elevation.
+- Selective translucency across the sidebar, sticky header, search, quick composer, editor, note cards, and Settings panels.
+- Ambient background gradients and softer workspace depth.
+- Light/dark theme-aware Glaze treatment.
+- Hover and focus feedback for interactive cards and capture surfaces.
+- Reduced-motion behavior.
+- Additional English Settings terminology cleanup including **Note defaults** and **Default note visibility**.
+
+Current post-RC3 branch validation head: `eba17578eb80df565e48fde1207c7a08ea563d0a`.
+
+Validation on that head:
+
+- Frontend Tests run `31718902784` — passed.
+- GoreeCloud Container run `31718902812` — passed.
+
+This branch-level polish does not change the SQLite data model, persistent storage paths, private DNS architecture, Caddy route, or backend network-exposure model.
 
 ## Stable Promotion Rule
 
-`goreecloud-v0.1.0` must not be created until all applicable first-release gates pass:
+`goreecloud-v0.1.0` must not be created until all remaining applicable first-release gates pass:
 
-- RC3 automated frontend and container validation.
-- RC3 desktop visual/product acceptance.
 - Android/PWA visual and functional acceptance.
 - End-to-end validation for notes, titles, checklists, labels, colors, pinning, attachments, Archive, Trash, restore, search, export, authentication, and restart persistence.
 - Kopia integration or the approved long-term application-backup path.
 - A real isolated restore test proving the application data can be recovered.
-- Final pull-request review.
+- Final pull-request review of the stable candidate branch state.
 
-PR #1 remains draft and unmerged until those gates are complete.
+The RC3 automated validation and desktop visual/product acceptance gates are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
