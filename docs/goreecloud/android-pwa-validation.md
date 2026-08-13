@@ -29,15 +29,19 @@ The stable-candidate branch includes the following Android/PWA readiness work:
 - `web/tests/goreecloud-pwa-shell.test.ts` guards the viewport, manifest identity, single app-controlled theme color, and mobile navigation touch-target requirements against regression.
 - `web/tests/goreecloud-mobile-actions.test.ts` guards the mobile note-card action sizing, overflow-menu trigger sizing, and pinned-note button semantics.
 
-Stable-candidate application-code validation head: `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`.
+The final mobile-specific application head for these UI corrections was `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`.
 
-Automated evidence on that head:
+Automated evidence on that mobile-specific head:
 
 - Frontend Tests run `31744796653` — passed.
 - GoreeCloud Container run `31744796705` — passed.
-- The container workflow built the validation image, rendered the GoreeCloud Compose configuration, started an isolated validation instance, passed the application health check, and completed cleanup successfully.
 
-Readiness review identified source-level Android/PWA issues before device acceptance, including conflicting media-scoped theme-color tags, desktop-sized controls reused in the mobile slide-out navigation, undersized high-frequency note-card controls, a 16 px note overflow trigger, and a non-focusable pinned-note unpin interaction. These source-level issues were corrected before the validation head above, and regression coverage was expanded accordingly.
+The later stable-candidate application-code head `8a0d807a6060857e5a9663492e968addde0ae370` retains the same mobile/PWA implementation while adding persistence-validation and Markdown-aware label-integrity work. It also passed the complete frontend and container validation paths:
+
+- Frontend Tests run `31749969786` — passed.
+- GoreeCloud Container run `31749969796` — passed, including the authenticated restart-persistence smoke.
+
+Readiness review identified source-level Android/PWA issues before device acceptance, including conflicting media-scoped theme-color tags, desktop-sized controls reused in the mobile slide-out navigation, undersized high-frequency note-card controls, a 16 px note overflow trigger, and a non-focusable pinned-note unpin interaction. These source-level issues were corrected and regression coverage was expanded accordingly.
 
 ## Real-Device Acceptance Checklist
 
