@@ -55,6 +55,29 @@ const fallbacks = {
   zh: ["zh-Hans", "en"],
 } as FallbackLngObjList;
 
+const applyGoreeCloudEnglishTerminology = (language: string, translation: Record<string, unknown>): Record<string, unknown> => {
+  if (language !== "en" && language !== "en-GB") {
+    return translation;
+  }
+
+  const setting = (translation.setting ?? {}) as Record<string, unknown>;
+  const preference = (setting.preference ?? {}) as Record<string, unknown>;
+
+  return {
+    ...translation,
+    setting: {
+      ...setting,
+      preference: {
+        ...preference,
+        "memo-defaults-title": "Note defaults",
+        "memo-defaults-description": "Set the defaults used when creating new notes.",
+        "default-memo-visibility": "Default note visibility",
+        "default-memo-visibility-description": "Visibility applied to newly created notes unless changed in the editor.",
+      },
+    },
+  };
+};
+
 const LazyImportPlugin: BackendModule = {
   type: "backend",
   init: function () {},
@@ -62,12 +85,14 @@ const LazyImportPlugin: BackendModule = {
     const matchedLanguage = findNearestMatchedLanguage(language);
     import(`./locales/${matchedLanguage}.json`)
       .then((translationModule: Record<string, unknown>) => {
-        callback(null, (translationModule.default as Record<string, unknown>) ?? translationModule);
+        const translation = (translationModule.default as Record<string, unknown>) ?? translationModule;
+        callback(null, applyGoreeCloudEnglishTerminology(matchedLanguage, translation));
       })
       .catch(() => {
         import("./locales/en.json")
           .then((translationModule: Record<string, unknown>) => {
-            callback(null, (translationModule.default as Record<string, unknown>) ?? translationModule);
+            const translation = (translationModule.default as Record<string, unknown>) ?? translationModule;
+            callback(null, applyGoreeCloudEnglishTerminology("en", translation));
           })
           .catch((error: unknown) => {
             callback(error as Error, false);
