@@ -1,7 +1,7 @@
-import { findTagMatches, scanTagAt, type TagMatch } from "./tag-grammar";
 import { extractMarkdownTagValues } from "./markdownTags";
 import { getNoteColor, setNoteColor, stripNoteColorMetadata } from "./noteColor";
 import { getNoteTrashOrigin, setNoteTrashed, stripNoteTrashMetadata } from "./noteTrash";
+import { findTagMatches, scanTagAt, type TagMatch } from "./tag-grammar";
 
 /**
  * GoreeCloud Labels intentionally reuse Memos' Markdown tag model so labels
