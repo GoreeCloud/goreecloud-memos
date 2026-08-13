@@ -69,15 +69,23 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children: _childr
     <span
       className={cn(
         tagStyles.base,
-        "cursor-pointer rounded-full px-2 py-0.5 text-xs font-medium transition-[opacity,transform] hover:-translate-y-px hover:opacity-80",
+        "min-h-11 cursor-pointer touch-manipulation rounded-full px-3 py-1.5 text-xs font-medium transition-[opacity,transform] hover:-translate-y-px hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:min-h-0 sm:px-2 sm:py-0.5",
         !bgHex && tagStyles.defaultColor,
         className,
       )}
       style={tagStyle}
       data-tag={tag}
       aria-label={`Label ${tag}`}
+      role="button"
+      tabIndex={0}
       {...props}
       onClick={handleTagClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
     >
       {tag}
     </span>
