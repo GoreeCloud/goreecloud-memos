@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTranslate } from "@/utils/i18n";
 import { filterInlineManagedAttachments } from "@/utils/managed-attachment";
+import { stripNoteColorMetadata } from "@/utils/noteColor";
+import { isNoteTrashed, stripNoteTrashMetadata } from "@/utils/noteTrash";
 import MemoContent from "../../MemoContent";
 import { MemoReactionListView } from "../../MemoReactionListView";
 import { useMemoHandlers } from "../hooks";
@@ -33,8 +35,18 @@ const BlurOverlay: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
 
 const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
   const { memo, parentPage, showBlurredContent, blurred, readonly, openEditor, openPreview, toggleBlurVisibility } = useMemoViewContext();
+  const trashed = !memo.parent && isNoteTrashed(memo.content);
+  const editingDisabled = readonly || trashed;
+  const displayContent = memo.parent ? memo.content : stripNoteTrashMetadata(stripNoteColorMetadata(memo.content));
 
-  const { handleMemoContentClick, handleMemoContentDoubleClick } = useMemoHandlers({ readonly, openEditor, openPreview });
+  // Trash is a recovery surface. A trashed note must be restored before the
+  // generic double-click edit path can modify it, matching the explicit action
+  // menu which exposes Restore/Delete permanently rather than Edit in Trash.
+  const { handleMemoContentClick, handleMemoContentDoubleClick } = useMemoHandlers({
+    readonly: editingDisabled,
+    openEditor,
+    openPreview,
+  });
 
   const referencedMemos = memo.relations.filter(isReferenceRelation);
   // Memoized so AttachmentListView's own useMemo chain keeps its cache across body renders.
@@ -56,7 +68,7 @@ const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
         <ClampedSection enabled={Boolean(compact)}>
           <MemoContent
             memoName={memo.name}
-            content={memo.content}
+            content={displayContent}
             attachments={memo.attachments}
             onClick={handleMemoContentClick}
             onDoubleClick={handleMemoContentDoubleClick}
