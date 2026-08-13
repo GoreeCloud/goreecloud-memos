@@ -70,12 +70,7 @@ interface SettingPanelProps {
 
 export const SettingPanel = ({ children, className, header, footer }: SettingPanelProps) => {
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-2xl border border-border/60 bg-background/78 shadow-sm backdrop-blur-xl",
-        className,
-      )}
-    >
+    <div className={cn("overflow-hidden rounded-2xl border border-border/60 bg-background/78 shadow-sm backdrop-blur-xl", className)}>
       {header && <div className="border-b border-border/70 bg-muted/10 px-4 py-3">{header}</div>}
       {children}
       {footer && <div className="border-t border-border/70 bg-muted/15 px-4 py-3">{footer}</div>}
