@@ -108,7 +108,9 @@ const PreferencesSection = () => {
       <SettingGroup
         title={useGoreeCloudEnglishTerminology ? "Note defaults" : t("setting.preference.memo-defaults-title")}
         description={
-          useGoreeCloudEnglishTerminology ? "Set the defaults used when creating new notes." : t("setting.preference.memo-defaults-description")
+          useGoreeCloudEnglishTerminology
+            ? "Set the defaults used when creating new notes."
+            : t("setting.preference.memo-defaults-description")
         }
         showSeparator
       >
