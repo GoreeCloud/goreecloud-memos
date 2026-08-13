@@ -124,6 +124,9 @@ jobs:
           echo "Timed out waiting for GoreeCloud Notes health check" >&2
           exit 1
 
+      - name: Validate authenticated restart persistence
+        run: sh scripts/goreecloud-notes-ci-smoke.sh
+
       - name: Show validation logs
         if: always()
         run: docker logs goreecloud-notes || true
