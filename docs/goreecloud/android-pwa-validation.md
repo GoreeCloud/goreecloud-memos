@@ -8,7 +8,7 @@ A repository/source review is not a substitute for installed-app testing on an a
 
 ## Automated Readiness Improvements
 
-The post-RC3 branch now includes the following Android/PWA readiness work:
+The stable-candidate branch includes the following Android/PWA readiness work:
 
 - The mobile viewport permits user zoom instead of disabling pinch zoom.
 - `viewport-fit=cover` is enabled so installed-app layouts can use device safe-area insets.
@@ -23,6 +23,15 @@ The post-RC3 branch now includes the following Android/PWA readiness work:
 - Glaze hover elevation is limited to fine-pointer devices so touch browsers do not retain desktop-style hover elevation after taps.
 - The ambient Glaze background uses scrolling rather than fixed attachment on small screens to reduce mobile rendering jank.
 - `web/tests/goreecloud-pwa-shell.test.ts` guards the mobile viewport and manifest identity requirements against regression.
+
+Stable-candidate application-code validation head: `883598f67627e40441aa83c410be579696ce3cec`.
+
+Automated evidence on that head:
+
+- Frontend Tests run `31739773391` — passed.
+- GoreeCloud Container run `31739773303` — passed.
+
+An earlier version of the PWA regression test used fixture resolution that was incompatible with the Vitest transform environment. The test path handling was corrected, and the stable-candidate application-code head passes both required workflows.
 
 ## Real-Device Acceptance Checklist
 
