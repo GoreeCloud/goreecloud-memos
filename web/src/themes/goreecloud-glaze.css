@@ -136,6 +136,17 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  [data-slot="sheet-content"] aside button,
+  [data-slot="sheet-content"] aside a,
+  [data-slot="sheet-content"] aside [role="button"] {
+    min-height: 2.75rem;
+  }
+
+  [data-slot="sheet-content"] aside button[aria-label],
+  [data-slot="sheet-content"] aside [role="button"][aria-label] {
+    min-width: 2.75rem;
+  }
+
   aside nav[aria-label="Notes utilities"] a {
     min-height: 2.75rem;
   }
