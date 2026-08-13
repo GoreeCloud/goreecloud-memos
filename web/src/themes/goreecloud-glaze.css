@@ -1,4 +1,96 @@
+:root {
+  --gc-glaze-blur: 20px;
+  --gc-glaze-radius: 1.125rem;
+  --gc-glaze-surface: color-mix(in oklch, var(--background) 76%, transparent);
+  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 88%, transparent);
+  --gc-glaze-border: color-mix(in oklch, var(--border) 72%, transparent);
+  --gc-glaze-highlight: color-mix(in oklch, white 58%, transparent);
+  --gc-glaze-shadow: 0 1px 2px rgb(18 31 45 / 6%), 0 12px 34px rgb(18 31 45 / 7%);
+  --gc-glaze-shadow-raised: 0 2px 5px rgb(18 31 45 / 8%), 0 20px 48px rgb(18 31 45 / 10%);
+}
+
+html[data-theme="default-dark"] {
+  --gc-glaze-surface: color-mix(in oklch, var(--background) 78%, transparent);
+  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 84%, transparent);
+  --gc-glaze-border: color-mix(in oklch, var(--border) 80%, transparent);
+  --gc-glaze-highlight: color-mix(in oklch, white 11%, transparent);
+  --gc-glaze-shadow: 0 1px 3px rgb(0 0 0 / 20%), 0 14px 38px rgb(0 0 0 / 18%);
+  --gc-glaze-shadow-raised: 0 3px 8px rgb(0 0 0 / 26%), 0 24px 58px rgb(0 0 0 / 24%);
+}
+
 body {
-  background-image: radial-gradient(circle at 50% -8rem, rgb(73 117 157 / 8%), transparent 34rem);
+  background-image:
+    radial-gradient(circle at 52% -10rem, color-mix(in oklch, var(--primary) 14%, transparent), transparent 34rem),
+    radial-gradient(circle at 92% 14rem, color-mix(in oklch, var(--primary) 5%, transparent), transparent 26rem);
   background-attachment: fixed;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+.gc-app-shell {
+  background: transparent;
+}
+
+.gc-sidebar,
+.gc-topbar {
+  background: var(--gc-glaze-surface);
+  border-color: var(--gc-glaze-border);
+  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.14);
+}
+
+.gc-sidebar {
+  box-shadow: inset -1px 0 0 var(--gc-glaze-highlight), 10px 0 36px rgb(18 31 45 / 3%);
+}
+
+.gc-topbar {
+  box-shadow: 0 1px 0 var(--gc-glaze-highlight), 0 12px 34px rgb(18 31 45 / 4%);
+}
+
+.gc-search-surface,
+.gc-control-surface,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-settings-panel {
+  background: var(--gc-glaze-surface-strong);
+  border-color: var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.1);
+}
+
+.gc-search-surface,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-note-card,
+.gc-settings-panel {
+  border-radius: var(--gc-glaze-radius);
+}
+
+.gc-search-surface:focus-within,
+.gc-editor-surface:focus-within {
+  border-color: color-mix(in oklch, var(--ring) 40%, var(--gc-glaze-border));
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), 0 0 0 3px color-mix(in oklch, var(--ring) 10%, transparent), var(--gc-glaze-shadow-raised);
+}
+
+.gc-composer-collapsed:hover,
+.gc-note-card:hover,
+.gc-note-card:focus-within {
+  border-color: color-mix(in oklch, var(--primary) 20%, var(--gc-glaze-border));
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow-raised);
+  transform: translateY(-1px);
+}
+
+.gc-note-card {
+  border-color: var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-search-surface,
+  .gc-composer-collapsed,
+  .gc-note-card {
+    transform: none !important;
+    transition-duration: 0.01ms !important;
+  }
 }
