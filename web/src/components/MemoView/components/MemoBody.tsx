@@ -5,6 +5,7 @@ import { AttachmentListView, LocationDisplayView, RelationListView } from "@/com
 import { isReferenceRelation } from "@/components/MemoMetadata/Relation/relationHelpers";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { State } from "@/types/proto/api/v1/common_pb";
 import { useTranslate } from "@/utils/i18n";
 import { filterInlineManagedAttachments } from "@/utils/managed-attachment";
 import { stripNoteColorMetadata } from "@/utils/noteColor";
@@ -35,13 +36,14 @@ const BlurOverlay: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
 
 const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
   const { memo, parentPage, showBlurredContent, blurred, readonly, openEditor, openPreview, toggleBlurVisibility } = useMemoViewContext();
+  const archived = memo.state === State.ARCHIVED;
   const trashed = !memo.parent && isNoteTrashed(memo.content);
-  const editingDisabled = readonly || trashed;
+  const editingDisabled = readonly || archived || trashed;
   const displayContent = memo.parent ? memo.content : stripNoteTrashMetadata(stripNoteColorMetadata(memo.content));
 
-  // Trash is a recovery surface. A trashed note must be restored before the
-  // generic double-click edit path can modify it, matching the explicit action
-  // menu which exposes Restore/Delete permanently rather than Edit in Trash.
+  // Archive and Trash are state-management surfaces. A top-level note must be
+  // restored before the generic double-click edit path can modify it, matching
+  // the explicit action menus which intentionally hide Edit in those views.
   const { handleMemoContentClick, handleMemoContentDoubleClick } = useMemoHandlers({
     readonly: editingDisabled,
     openEditor,
