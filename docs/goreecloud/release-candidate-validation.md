@@ -49,7 +49,7 @@ The branch now includes:
 - fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
 - small-screen Glaze background behavior tuned for mobile rendering;
 - automated regression coverage for the PWA shell and high-frequency mobile note actions;
-- an isolated authenticated API smoke that proves a private note survives an actual GoreeCloud Notes container restart against the persistent SQLite bind mount;
+- isolated authenticated API smokes that prove basic private-note persistence plus exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, and Trash restore-intent metadata through actual Notes container restarts against the persistent SQLite bind mount;
 - Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer; and
 - Archive/Trash state-view guards that keep hidden GoreeCloud state markers out of rendered top-level content and require restore before generic double-click editing.
 
@@ -94,22 +94,30 @@ Validation on that application-code head:
 
 - Frontend Tests run `31751659555` — passed, including lint, the full frontend unit suite with state-view integrity coverage, and the production frontend build.
 - GoreeCloud Container run `31751659553` — passed.
-- Container validation successfully built the release assets and validation image, rendered Compose, started an isolated instance, and passed the initial application health check.
-- The authenticated persistence step bootstrapped an ephemeral administrator, signed in through the real authentication API, created and read a private memo through the real memo API, verified the SQLite database from the application container context, restarted only GoreeCloud Notes, waited for health to recover, signed in again, and verified the same memo content survived the restart.
-- The workflow completed logs and teardown successfully after the persistence smoke.
 
-The authenticated restart smoke is implemented in `scripts/goreecloud-notes-ci-smoke.sh` and invoked from `.github/workflows/goreecloud-container.yml`. It introduces no host backend port and no browser-testing framework.
+The later validation-harness head is:
 
-This automated smoke materially strengthens restart-persistence evidence, but it does not close the deployed browser/user-workflow acceptance gate. Browser interaction, attachments, exports, the private Caddy/DNS/NetBird publication path, full GoreeCloud-specific state, and Android/PWA behavior still require their respective deployed acceptance checks.
+`19e7513cff79f3c9d24efbe921706025d167780b`
 
-Documentation-only reconciliation commits may be newer than the application-code validation head above. Those commits must not be interpreted as a new application runtime unless application code changes again.
+That head changes the CI persistence scripts/workflow rather than application runtime source. Validation on that exact harness head:
+
+- Frontend Tests run `31753450214` — passed.
+- GoreeCloud Container run `31753450232` — passed the release-asset build, validation-image build, Compose rendering, isolated startup/health, both authenticated restart-persistence smokes, logs, and cleanup.
+
+The first smoke in `scripts/goreecloud-notes-ci-smoke.sh` bootstraps an ephemeral administrator, signs in through the real authentication API, creates and reads a private memo through the real memo API, verifies the SQLite database from the application container context, restarts only GoreeCloud Notes, waits for health to recover, signs in again, and verifies the same memo content survived the restart.
+
+The supplemental `scripts/goreecloud-notes-state-persistence-smoke.sh` reuses that isolated identity, creates richer private note fixtures, verifies exact Markdown/checklist content and the source-derived `ci-label`, verifies persisted GoreeCloud color and archived Trash restore-intent metadata as part of exact note content, performs a second actual Notes restart, reauthenticates, and verifies those fixtures remain intact. The SQLite database remains present after the second restart.
+
+These smokes introduce no host backend port and no browser-testing framework. They materially strengthen restart-persistence evidence, but they do not close the deployed browser/user-workflow acceptance gate. Browser interaction, actual pin/archive mutations, attachment binary workflows, exports, the private Caddy/DNS/NetBird publication path, complete deployed state, and Android/PWA behavior still require their respective acceptance checks.
+
+Documentation and validation-harness commits may be newer than the application-code validation head above. Those commits must not be interpreted as a new application runtime unless application code changes again.
 
 ## Remaining Gate Records
 
 The remaining first-release gates are defined separately so automated readiness is not confused with real-world acceptance:
 
 - `docs/goreecloud/android-pwa-validation.md` — source/code readiness is implemented and automated validation passes; real-device Android/PWA acceptance remains open.
-- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated note/restart persistence is automated and passing; deployed browser/user-workflow and full-state restart acceptance remain open.
+- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated restart persistence now covers basic note persistence plus Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, and Trash restore intent; deployed browser/user-workflow and complete full-state acceptance remain open.
 - `docs/goreecloud/backup-live-preflight.md` — defines a read-only live-source inspection; it does not prove that Notes is already in the active Kopia source scope.
 - `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
 
