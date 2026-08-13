@@ -114,10 +114,10 @@ const QuickFindDialog = () => {
             type="submit"
             variant="ghost"
             size="icon-sm"
-            className="size-7 shrink-0 rounded-md text-muted-foreground"
+            className="size-10 shrink-0 rounded-lg text-muted-foreground sm:size-8"
             aria-label={t("common.search")}
           >
-            <CornerDownLeftIcon className="size-3.5" />
+            <CornerDownLeftIcon className="size-4" />
           </Button>
         </form>
       </DialogContent>
