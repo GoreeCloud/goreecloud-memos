@@ -1,3 +1,4 @@
+/* biome-ignore-all format: GoreeCloud Glaze compatibility layer uses intentional formatting. */
 :root {
   --gc-glaze-shadow-soft: 0 1px 2px rgb(0 0 0 / 4%), 0 10px 30px -24px rgb(0 0 0 / 28%);
   --gc-glaze-shadow-raised: 0 2px 8px rgb(0 0 0 / 6%), 0 18px 48px -28px rgb(0 0 0 / 34%);
