@@ -1,0 +1,56 @@
+name: GoreeCloud Notes Format
+
+on:
+  push:
+    branches:
+      - feature/goreecloud-foundation
+    paths:
+      - "web/src/**"
+      - ".github/workflows/goreecloud-notes-format.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: feature/goreecloud-foundation
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4.2.0
+        with:
+          version: 11.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply repository formatter
+        working-directory: web
+        run: pnpm lint:fix
+
+      - name: Commit formatter output
+        run: |
+          if git diff --quiet; then
+            echo "No formatter changes required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/src
+          git commit -m "style(notes): apply repository formatter"
+          git push origin HEAD:feature/goreecloud-foundation
