@@ -80,7 +80,7 @@ memo_response="$(get_json "/api/v1/$memo_name" "$auth_header")"
 memo_content="$(printf '%s' "$memo_response" | json_field content)"
 [ "$memo_content" = "$MARKER" ]
 
-test -f /tmp/goreecloud-notes-data/memos_prod.db
+docker exec "$CONTAINER_NAME" test -f /var/opt/memos/memos_prod.db
 
 docker restart "$CONTAINER_NAME" >/dev/null
 wait_healthy
