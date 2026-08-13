@@ -11,7 +11,7 @@
   --gc-glaze-radius-control: 0.875rem;
 }
 
-.gc-glaze-shell {
+body {
   background:
     radial-gradient(
       72rem 34rem at 52% -12rem,
@@ -23,6 +23,37 @@
       color-mix(in oklch, var(--background) 97%, var(--primary) 3%) 0%,
       var(--background) 34rem
     );
+  background-attachment: fixed;
+}
+
+aside {
+  border-color: var(--gc-glaze-border);
+  box-shadow: inset -1px 0 color-mix(in oklch, var(--card) 58%, transparent);
+}
+
+header.sticky {
+  border-color: var(--gc-glaze-border);
+  box-shadow: 0 1px color-mix(in oklch, var(--card) 58%, transparent);
+}
+
+article {
+  border-color: color-mix(in oklch, var(--border) 78%, transparent);
+  box-shadow: var(--gc-glaze-shadow-soft);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+article:hover,
+article:focus-within {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  box-shadow: var(--gc-glaze-shadow-raised);
+}
+
+.gc-glaze-shell {
+  background: transparent;
 }
 
 .gc-glaze-sidebar {
@@ -77,17 +108,6 @@
 .gc-glaze-note-card {
   border-color: color-mix(in oklch, var(--border) 78%, transparent);
   box-shadow: var(--gc-glaze-shadow-soft);
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
-}
-
-.gc-glaze-note-card:hover,
-.gc-glaze-note-card:focus-within {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
-  box-shadow: var(--gc-glaze-shadow-raised);
 }
 
 .gc-glaze-settings-section > div:first-child {
@@ -113,38 +133,47 @@
   background: color-mix(in oklch, var(--muted) 28%, transparent);
 }
 
-.gc-glaze-settings-page input,
-.gc-glaze-settings-page textarea,
-.gc-glaze-settings-page button,
-.gc-glaze-settings-page [role="combobox"] {
-  border-radius: var(--gc-glaze-radius-control);
+button,
+input,
+textarea,
+[role="combobox"] {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
-.gc-glaze-sidebar a,
-.gc-glaze-sidebar button,
-.gc-glaze-header button,
-.gc-glaze-composer,
-.gc-glaze-note-card,
-.gc-glaze-setting-list,
-.gc-glaze-setting-panel {
-  -webkit-tap-highlight-color: transparent;
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="combobox"]:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 14%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gc-glaze-note-card,
+  article,
+  button,
+  input,
+  textarea,
+  [role="combobox"],
   .gc-glaze-composer,
   .gc-glaze-setting-item {
     transition: none;
   }
 
-  .gc-glaze-note-card:hover,
-  .gc-glaze-note-card:focus-within,
+  article:hover,
+  article:focus-within,
   .gc-glaze-composer:hover {
     transform: none;
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  body {
+    background: var(--background);
+  }
+
   .gc-glaze-sidebar,
   .gc-glaze-header,
   .gc-glaze-composer,
