@@ -1,7 +1,11 @@
 {
+  "id": "/",
   "name": "GoreeCloud Notes",
   "short_name": "GC Notes",
   "description": "Private, self-hosted quick notes for GoreeCloud, maintained as a GoreeCloud fork of Memos.",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
