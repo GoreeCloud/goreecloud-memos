@@ -1,1 +1,4 @@
-/* GoreeCloud Glaze UI foundation. Visual rules are added only after repository validation. */
+body {
+  background-image: radial-gradient(circle at 50% -8rem, rgb(73 117 157 / 8%), transparent 34rem);
+  background-attachment: fixed;
+}
