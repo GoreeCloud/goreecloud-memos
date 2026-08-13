@@ -42,27 +42,31 @@ The branch now includes:
 - additional note-oriented Settings terminology;
 - mobile safe-area handling for the header, slide-out navigation, and bottom navigation/gesture area;
 - browser zoom support and `viewport-fit=cover`;
-- light/dark mobile browser and installed-app theme colors;
+- one app-controlled mobile browser/PWA theme color synchronized by the existing Notes theme loader;
 - explicit installed-app manifest identity;
-- larger mobile header, navigation, and search touch targets;
+- larger mobile header, slide-out navigation, search, note-card action, overflow-menu, and restore touch targets;
+- a focusable, accessible pinned-note unpin control;
 - fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
 - small-screen Glaze background behavior tuned for mobile rendering;
-- automated regression coverage for the PWA viewport and manifest requirements.
+- automated regression coverage for the PWA shell and high-frequency mobile note actions.
 
-Current stable-candidate validation head: `883598f67627e40441aa83c410be579696ce3cec`.
+Source-level Android/PWA review found and corrected conflicting media-scoped theme-color tags, undersized mobile navigation controls, undersized direct note-card actions, a 16 px overflow-menu trigger, and a pinned-note interaction attached to a non-focusable element. These corrections improve code readiness but do not replace real-device acceptance.
+
+Current stable-candidate application-code validation head: `7762d32bbfd4e8c73bb8c99130bce3e77c1bc446`.
 
 Validation on that head:
 
-- Frontend Tests run `31739773391` — passed.
-- GoreeCloud Container run `31739773303` — passed.
+- Frontend Tests run `31744796653` — passed.
+- GoreeCloud Container run `31744796705` — passed.
+- Container validation successfully built the image, rendered Compose, started an isolated instance, passed the application health check, and completed cleanup.
 
-An earlier revision of the new PWA regression test used an incompatible fixture-path resolution method under Vitest. The test path handling was corrected; the current head passes both required workflows.
+Earlier during PWA-readiness work, a regression test used an incompatible fixture-path resolution method under Vitest. The path handling was corrected before the validated head above. Subsequent source-level mobile issues were also fixed and covered by `web/tests/goreecloud-pwa-shell.test.ts` and `web/tests/goreecloud-mobile-actions.test.ts`.
 
 ## Remaining Gate Records
 
-The remaining first-release gates are now defined separately so automated readiness is not confused with real-world acceptance:
+The remaining first-release gates are defined separately so automated readiness is not confused with real-world acceptance:
 
-- `docs/goreecloud/android-pwa-validation.md` — source readiness is implemented; real-device Android/PWA acceptance remains open.
+- `docs/goreecloud/android-pwa-validation.md` — source/code readiness is implemented and automated validation passes; real-device Android/PWA acceptance remains open.
 - `docs/goreecloud/end-to-end-validation.md` — deployed end-to-end and restart-persistence acceptance remains open.
 - `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
 
