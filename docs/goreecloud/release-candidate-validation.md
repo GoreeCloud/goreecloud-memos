@@ -34,7 +34,7 @@ Desktop acceptance does not imply Android/PWA acceptance.
 
 ## Stable-Candidate Branch
 
-After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile/PWA readiness, automated persistence validation, label-data-integrity hardening, and state-view integrity hardening.
+After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile/PWA readiness, automated persistence validation, label-data-integrity hardening, state-view integrity hardening, and export-portability hardening.
 
 The branch now includes:
 
@@ -49,9 +49,10 @@ The branch now includes:
 - fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
 - small-screen Glaze background behavior tuned for mobile rendering;
 - automated regression coverage for the PWA shell and high-frequency mobile note actions;
-- isolated authenticated API smokes that prove basic private-note persistence plus exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through actual Notes container restarts against the persistent SQLite bind mount;
-- Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer; and
-- Archive/Trash state-view guards that keep hidden GoreeCloud state markers out of rendered top-level content and require restore before generic double-click editing.
+- isolated authenticated API smokes that prove private-note persistence, attachment binary persistence through the canonical authenticated file route, exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through actual Notes container restarts against the persistent data bind mount;
+- Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer;
+- Archive/Trash state-view guards that keep hidden GoreeCloud state markers out of rendered top-level content and require restore before generic double-click editing; and
+- full-library JSON export that preserves the documented attachment metadata model, including normalized photo/video and motion-media metadata, while continuing to exclude attachment binary payloads intentionally.
 
 Source-level Android/PWA review found and corrected conflicting media-scoped theme-color tags, undersized mobile navigation controls, undersized direct note-card actions, a 16 px overflow-menu trigger, and a pinned-note interaction attached to a non-focusable element. These corrections improve code readiness but do not replace real-device acceptance.
 
@@ -88,29 +89,33 @@ Archive and Trash also now share a consistent editing boundary. Their explicit a
 
 The latest validated application-code head is:
 
-`7bcaf7416abbdd39011a4e2bc6aca9169a5672e8`
+`5b3f266d443c98ebca08035ebf5c018f6c5e869d`
 
 Validation on that application-code head:
 
-- Frontend Tests run `31751659555` — passed, including lint, the full frontend unit suite with state-view integrity coverage, and the production frontend build.
-- GoreeCloud Container run `31751659553` — passed.
+- Frontend Tests run `31787838500` — passed, including lint, the full frontend unit suite with attachment-export metadata regressions, and the production frontend build.
+- GoreeCloud Container run `31787838506` — passed.
+
+That application head extends the GoreeCloud Notes JSON portability export so attachment records retain the normalized metadata already carried by the API, including motion-media family/role/group/presentation data, display dimensions, photo capture/location/camera/exposure fields, and video duration. Attachment binary content remains intentionally excluded from the JSON export.
 
 The later validation-harness head is:
 
-`988d1c2ed286b6cce73d594a62f9d948bdbcd7bf`
+`5aa3fdd05cbc6c110f19009829ec728783106953`
 
-That head changes the CI persistence scripts/workflow rather than application runtime source. Validation on that exact harness head:
+That head changes the isolated persistence smoke rather than application runtime source. Validation on that exact harness head:
 
-- Frontend Tests run `31785960610` — passed.
-- GoreeCloud Container run `31785960604` — passed the release-asset build, validation-image build, Compose rendering, isolated startup/health, both authenticated restart-persistence smokes, logs, and cleanup.
+- Frontend Tests run `31789535244` — passed.
+- GoreeCloud Container run `31789535238` — passed the release-asset build, validation-image build, Compose rendering, isolated startup/health, both authenticated restart-persistence smokes, logs, and cleanup.
 
-The first smoke in `scripts/goreecloud-notes-ci-smoke.sh` bootstraps an ephemeral administrator, signs in through the real authentication API, creates and reads a private memo through the real memo API, verifies the SQLite database from the application container context, restarts only GoreeCloud Notes, waits for health to recover, signs in again, and verifies the same memo content survived the restart.
+The first smoke in `scripts/goreecloud-notes-ci-smoke.sh` bootstraps an ephemeral administrator, signs in through the real authentication API, creates and reads a private memo through the real memo API, creates a deterministic linked text attachment through the real attachment API, reads its exact bytes through the canonical authenticated `/file/attachments/...` route, verifies the SQLite database from the application container context, restarts only GoreeCloud Notes, waits for health to recover, signs in again, and verifies both the memo content and the attachment bytes survived the restart.
+
+The attachment check does not inspect or compare a storage file directly. It exercises the same file-serving route used by GoreeCloud Notes for locally stored attachments, so it proves isolated authenticated attachment-binary persistence across a real container restart for the tested database-backed validation configuration.
 
 The supplemental `scripts/goreecloud-notes-state-persistence-smoke.sh` reuses that isolated identity, creates richer private note fixtures, verifies exact Markdown/checklist content and the source-derived `ci-label`, verifies persisted GoreeCloud color metadata, then exercises the same `UpdateMemo` REST mutation model used by the application for pinning and state changes. It pins the note using the `pinned` update mask, archives it using the `state` update mask, moves a second note into Archive, and transitions that second note through the GoreeCloud Archive-to-Trash mutation shape using `content`, `state`, and `update_time`. After a second actual Notes restart, the smoke reauthenticates and proves the first note remains pinned and archived while the second retains the GoreeCloud Trash restore marker with its underlying memo state returned to `NORMAL`. The SQLite database remains present after the second restart.
 
 The runner sends PATCH requests directly to the isolated container's Docker-network address. No backend host port is published, and no curl package or other validation dependency is added to the production Notes image.
 
-These smokes materially strengthen restart-persistence evidence, but they do not close the deployed browser/user-workflow acceptance gate. Browser interaction, attachment binary workflows, exports, the private Caddy/DNS/NetBird publication path, complete deployed state, Trash restore through the user interface, and Android/PWA behavior still require their respective acceptance checks.
+These smokes materially strengthen restart-persistence evidence, including attachment binary persistence through the canonical authenticated file route, but they do not close the deployed browser/user-workflow acceptance gate. Browser interaction, attachment upload/open/download through the deployed user interface and private publication path, exports initiated and inspected through the deployed interface, the private Caddy/DNS/NetBird publication path itself, complete deployed state, Trash restore through the user interface, and Android/PWA behavior still require their respective acceptance checks.
 
 Documentation and validation-harness commits may be newer than the application-code validation head above. Those commits must not be interpreted as a new application runtime unless application code changes again.
 
@@ -119,7 +124,7 @@ Documentation and validation-harness commits may be newer than the application-c
 The remaining first-release gates are defined separately so automated readiness is not confused with real-world acceptance:
 
 - `docs/goreecloud/android-pwa-validation.md` — source/code readiness is implemented and automated validation passes; real-device Android/PWA acceptance remains open.
-- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated restart persistence now covers basic note persistence, Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinning, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state; deployed browser/user-workflow and complete full-state acceptance remain open.
+- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated restart persistence now covers note content/state plus attachment binary persistence through the canonical file route; deployed browser/user-workflow and complete full-state acceptance remain open.
 - `docs/goreecloud/backup-live-preflight.md` — defines a read-only live-source inspection; it does not prove that Notes is already in the active Kopia source scope.
 - `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
 
@@ -133,4 +138,4 @@ The remaining first-release gates are defined separately so automated readiness 
 - a real isolated restore test proving the restored application is usable; and
 - final pull-request review of the stable-candidate branch state.
 
-RC3 desktop acceptance, mobile/PWA source readiness, Markdown-aware label hardening, state-view integrity hardening, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
+RC3 desktop acceptance, mobile/PWA source readiness, Markdown-aware label hardening, state-view integrity hardening, export attachment-metadata preservation, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
