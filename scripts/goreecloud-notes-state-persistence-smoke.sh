@@ -18,9 +18,10 @@ $MARKER
 #ci-label
 
 <!-- goreecloud-note-color: blue -->"
-TRASH_CONTENT="GoreeCloud CI Trash persistence
+TRASH_BASE_CONTENT="GoreeCloud CI Trash persistence
 
-$MARKER-trash
+$MARKER-trash"
+TRASH_CONTENT="$TRASH_BASE_CONTENT
 
 <!-- goreecloud-note-trash: archived -->"
 
@@ -39,6 +40,31 @@ get_json() {
   path="$1"
   shift
   docker exec "$CONTAINER_NAME" wget -q -O - "$@" "$BASE_URL$path"
+}
+
+patch_json() {
+  path="$1"
+  body="$2"
+  content_length="$(printf '%s' "$body" | wc -c | tr -d ' ')"
+  response="$({
+    printf 'PATCH %s HTTP/1.1\r\n' "$path"
+    printf 'Host: 127.0.0.1:5230\r\n'
+    printf 'Authorization: Bearer %s\r\n' "$access_token"
+    printf 'Content-Type: application/json\r\n'
+    printf 'Content-Length: %s\r\n' "$content_length"
+    printf 'Connection: close\r\n\r\n'
+    printf '%s' "$body"
+  } | docker exec -i "$CONTAINER_NAME" nc 127.0.0.1 5230)"
+
+  status_line="$(printf '%s' "$response" | sed -n '1{s/\r$//;p;}')"
+  case "$status_line" in
+    "HTTP/1.1 200 "* | "HTTP/1.0 200 "*) ;;
+    *)
+      printf '%s\n' "$response" >&2
+      echo "GoreeCloud Notes PATCH failed: $status_line" >&2
+      return 1
+      ;;
+  esac
 }
 
 json_field() {
@@ -74,6 +100,23 @@ memo_body() {
   node -e 'process.stdout.write(JSON.stringify({ content: process.argv[1], visibility: "PRIVATE" }));' "$content"
 }
 
+memo_pin_patch_body() {
+  name="$1"
+  node -e 'process.stdout.write(JSON.stringify({ name: process.argv[1], pinned: true }));' "$name"
+}
+
+memo_state_patch_body() {
+  name="$1"
+  state="$2"
+  node -e 'process.stdout.write(JSON.stringify({ name: process.argv[1], state: process.argv[2] }));' "$name" "$state"
+}
+
+memo_trash_patch_body() {
+  name="$1"
+  content="$2"
+  node -e 'process.stdout.write(JSON.stringify({ name: process.argv[1], content: process.argv[2], state: "NORMAL" }));' "$name" "$content"
+}
+
 wait_healthy() {
   for attempt in $(seq 1 30); do
     status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$CONTAINER_NAME")"
@@ -101,7 +144,7 @@ auth_header="--header=Authorization: Bearer $access_token"
 
 rich_response="$(post_json "/api/v1/memos" "$(memo_body "$RICH_CONTENT")" "$auth_header")"
 rich_name="$(printf '%s' "$rich_response" | json_field name)"
-trash_response="$(post_json "/api/v1/memos" "$(memo_body "$TRASH_CONTENT")" "$auth_header")"
+trash_response="$(post_json "/api/v1/memos" "$(memo_body "$TRASH_BASE_CONTENT")" "$auth_header")"
 trash_name="$(printf '%s' "$trash_response" | json_field name)"
 [ -n "$rich_name" ]
 [ -n "$trash_name" ]
@@ -110,7 +153,23 @@ trash_name="$(printf '%s' "$trash_response" | json_field name)"
 rich_response="$(get_json "/api/v1/$rich_name" "$auth_header")"
 [ "$(printf '%s' "$rich_response" | json_field content)" = "$RICH_CONTENT" ]
 printf '%s' "$rich_response" | json_array_contains tags "ci-label"
+
+patch_json "/api/v1/$rich_name?updateMask=pinned" "$(memo_pin_patch_body "$rich_name")"
+patch_json "/api/v1/$rich_name?updateMask=state" "$(memo_state_patch_body "$rich_name" ARCHIVED)"
+rich_response="$(get_json "/api/v1/$rich_name" "$auth_header")"
+[ "$(printf '%s' "$rich_response" | json_field pinned)" = "true" ]
+[ "$(printf '%s' "$rich_response" | json_field state)" = "ARCHIVED" ]
+[ "$(printf '%s' "$rich_response" | json_field content)" = "$RICH_CONTENT" ]
+printf '%s' "$rich_response" | json_array_contains tags "ci-label"
+
+patch_json "/api/v1/$trash_name?updateMask=state" "$(memo_state_patch_body "$trash_name" ARCHIVED)"
 trash_response="$(get_json "/api/v1/$trash_name" "$auth_header")"
+[ "$(printf '%s' "$trash_response" | json_field state)" = "ARCHIVED" ]
+[ "$(printf '%s' "$trash_response" | json_field content)" = "$TRASH_BASE_CONTENT" ]
+
+patch_json "/api/v1/$trash_name?updateMask=content,state,update_time" "$(memo_trash_patch_body "$trash_name" "$TRASH_CONTENT")"
+trash_response="$(get_json "/api/v1/$trash_name" "$auth_header")"
+[ "$(printf '%s' "$trash_response" | json_field state)" = "NORMAL" ]
 [ "$(printf '%s' "$trash_response" | json_field content)" = "$TRASH_CONTENT" ]
 
 docker restart "$CONTAINER_NAME" >/dev/null
@@ -124,9 +183,12 @@ auth_header="--header=Authorization: Bearer $access_token"
 rich_response="$(get_json "/api/v1/$rich_name" "$auth_header")"
 [ "$(printf '%s' "$rich_response" | json_field content)" = "$RICH_CONTENT" ]
 printf '%s' "$rich_response" | json_array_contains tags "ci-label"
+[ "$(printf '%s' "$rich_response" | json_field pinned)" = "true" ]
+[ "$(printf '%s' "$rich_response" | json_field state)" = "ARCHIVED" ]
 trash_response="$(get_json "/api/v1/$trash_name" "$auth_header")"
 [ "$(printf '%s' "$trash_response" | json_field content)" = "$TRASH_CONTENT" ]
+[ "$(printf '%s' "$trash_response" | json_field state)" = "NORMAL" ]
 
 docker exec "$CONTAINER_NAME" test -f /var/opt/memos/memos_prod.db
 
-echo "GoreeCloud Markdown, checklist syntax, label derivation, color metadata, and Trash restore intent survived restart."
+echo "GoreeCloud Markdown, checklist syntax, label derivation, pinned/Archive state, color metadata, and Trash workflow state survived restart."
