@@ -27,8 +27,7 @@ const relationTypeName = (type: number): string => {
   return "TYPE_UNSPECIFIED";
 };
 
-const motionMediaFamilyName = (family: MotionMediaFamily): string =>
-  MotionMediaFamily[family] ?? "MOTION_MEDIA_FAMILY_UNSPECIFIED";
+const motionMediaFamilyName = (family: MotionMediaFamily): string => MotionMediaFamily[family] ?? "MOTION_MEDIA_FAMILY_UNSPECIFIED";
 
 const motionMediaRoleName = (role: MotionMediaRole): string => MotionMediaRole[role] ?? "MOTION_MEDIA_ROLE_UNSPECIFIED";
 
