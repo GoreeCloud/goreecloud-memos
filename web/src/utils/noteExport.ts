@@ -3,6 +3,8 @@ import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { splitNoteTitle } from "@/components/MemoEditor/utils/noteTitle";
 import { memoServiceClient } from "@/connect";
 import { buildMemoCreatorFilter, extractMemoIdFromName } from "@/lib/resource-names";
+import type { Attachment, MediaMetadata } from "@/types/proto/api/v1/attachment_service_pb";
+import { MotionMediaFamily, MotionMediaRole } from "@/types/proto/api/v1/attachment_service_pb";
 import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { ListMemosRequestSchema, Visibility } from "@/types/proto/api/v1/memo_service_pb";
@@ -24,6 +26,75 @@ const relationTypeName = (type: number): string => {
   if (type === 2) return "COMMENT";
   return "TYPE_UNSPECIFIED";
 };
+
+const motionMediaFamilyName = (family: MotionMediaFamily): string =>
+  MotionMediaFamily[family] ?? "MOTION_MEDIA_FAMILY_UNSPECIFIED";
+
+const motionMediaRoleName = (role: MotionMediaRole): string => MotionMediaRole[role] ?? "MOTION_MEDIA_ROLE_UNSPECIFIED";
+
+const serializeMediaMetadata = (metadata: MediaMetadata | undefined) => {
+  if (!metadata) return null;
+
+  let details = null;
+  if (metadata.details.case === "photo") {
+    const photo = metadata.details.value;
+    details = {
+      type: "photo" as const,
+      captureTime: photo.captureTime
+        ? {
+            localDateTime: photo.captureTime.localDateTime || null,
+            utcOffset: photo.captureTime.utcOffset ?? null,
+          }
+        : null,
+      location: photo.location
+        ? {
+            latitude: photo.location.latitude ?? null,
+            longitude: photo.location.longitude ?? null,
+            altitudeMeters: photo.location.altitudeMeters ?? null,
+          }
+        : null,
+      sourceExifOrientation: photo.sourceExifOrientation ?? null,
+      cameraMake: photo.cameraMake || null,
+      cameraModel: photo.cameraModel || null,
+      lensModel: photo.lensModel || null,
+      fNumber: photo.fNumber ?? null,
+      exposureTimeSeconds: photo.exposureTimeSeconds ?? null,
+      iso: photo.iso ?? null,
+      focalLengthMm: photo.focalLengthMm ?? null,
+    };
+  } else if (metadata.details.case === "video") {
+    details = {
+      type: "video" as const,
+      durationSeconds: metadata.details.value.durationSeconds ?? null,
+    };
+  }
+
+  return {
+    width: metadata.width ?? null,
+    height: metadata.height ?? null,
+    details,
+  };
+};
+
+const serializeAttachmentForExport = (attachment: Attachment, memoName: string) => ({
+  name: attachment.name,
+  filename: attachment.filename,
+  externalLink: attachment.externalLink || null,
+  mimeType: attachment.type,
+  sizeBytes: String(attachment.size),
+  createTime: attachment.createTime ? timestampDate(attachment.createTime).toISOString() : null,
+  memo: attachment.memo ?? memoName,
+  motionMedia: attachment.motionMedia
+    ? {
+        family: motionMediaFamilyName(attachment.motionMedia.family),
+        role: motionMediaRoleName(attachment.motionMedia.role),
+        groupId: attachment.motionMedia.groupId || null,
+        presentationTimestampUs: String(attachment.motionMedia.presentationTimestampUs),
+        hasEmbeddedVideo: attachment.motionMedia.hasEmbeddedVideo,
+      }
+    : null,
+  mediaMetadata: serializeMediaMetadata(attachment.mediaMetadata),
+});
 
 const getExportState = (memo: Memo): { state: "normal" | "archived" | "trash"; restoreTarget?: "normal" | "archived" } => {
   const trashOrigin = getNoteTrashOrigin(memo.content);
@@ -58,15 +129,7 @@ export const serializeNoteForExport = (memo: Memo) => {
           longitude: memo.location.longitude,
         }
       : null,
-    attachments: memo.attachments.map((attachment) => ({
-      name: attachment.name,
-      filename: attachment.filename,
-      externalLink: attachment.externalLink || null,
-      mimeType: attachment.type,
-      sizeBytes: String(attachment.size),
-      createTime: attachment.createTime ? timestampDate(attachment.createTime).toISOString() : null,
-      memo: attachment.memo ?? memo.name,
-    })),
+    attachments: memo.attachments.map((attachment) => serializeAttachmentForExport(attachment, memo.name)),
     relations: memo.relations.map((relation) => ({
       memo: relation.memo?.name ?? memo.name,
       relatedMemo: relation.relatedMemo?.name ?? null,
