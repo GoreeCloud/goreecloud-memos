@@ -8,6 +8,8 @@ RUN_ATTEMPT="${GITHUB_RUN_ATTEMPT:-1}"
 CI_USERNAME="gc-ci-${RUN_ID}-${RUN_ATTEMPT}"
 CI_PASSWORD="gc-ci-password-${RUN_ID}-${RUN_ATTEMPT}"
 MARKER="goreecloud-ci-persistence-${RUN_ID}-${RUN_ATTEMPT}"
+ATTACHMENT_FILENAME="goreecloud-ci-persistence.txt"
+ATTACHMENT_MARKER="goreecloud-ci-attachment-${RUN_ID}-${RUN_ATTEMPT}"
 
 post_json() {
   path="$1"
@@ -80,6 +82,15 @@ memo_response="$(get_json "/api/v1/$memo_name" "$auth_header")"
 memo_content="$(printf '%s' "$memo_response" | json_field content)"
 [ "$memo_content" = "$MARKER" ]
 
+attachment_content="$(printf '%s' "$ATTACHMENT_MARKER" | base64 | tr -d '\n')"
+create_attachment_body="{\"filename\":\"$ATTACHMENT_FILENAME\",\"type\":\"text/plain\",\"content\":\"$attachment_content\",\"memo\":\"$memo_name\"}"
+create_attachment_response="$(post_json "/api/v1/attachments" "$create_attachment_body" "$auth_header")"
+attachment_name="$(printf '%s' "$create_attachment_response" | json_field name)"
+[ -n "$attachment_name" ]
+
+attachment_response="$(get_json "/file/$attachment_name/$ATTACHMENT_FILENAME" "$auth_header")"
+[ "$attachment_response" = "$ATTACHMENT_MARKER" ]
+
 docker exec "$CONTAINER_NAME" test -f /var/opt/memos/memos_prod.db
 
 docker restart "$CONTAINER_NAME" >/dev/null
@@ -94,4 +105,7 @@ memo_response="$(get_json "/api/v1/$memo_name" "$auth_header")"
 memo_content="$(printf '%s' "$memo_response" | json_field content)"
 [ "$memo_content" = "$MARKER" ]
 
-echo "Authenticated note persistence survived the GoreeCloud Notes restart."
+attachment_response="$(get_json "/file/$attachment_name/$ATTACHMENT_FILENAME" "$auth_header")"
+[ "$attachment_response" = "$ATTACHMENT_MARKER" ]
+
+echo "Authenticated note and attachment persistence survived the GoreeCloud Notes restart."
