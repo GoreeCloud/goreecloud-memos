@@ -39,10 +39,10 @@ That application-code head passed:
 - Frontend Tests run `31751659555`; and
 - GoreeCloud Container run `31751659553`.
 
-The later **validation-harness head** `19e7513cff79f3c9d24efbe921706025d167780b` changes the CI persistence scripts/workflow rather than the application runtime. On that exact head:
+The later **validation-harness head** `988d1c2ed286b6cce73d594a62f9d948bdbcd7bf` changes the CI persistence scripts/workflow rather than the application runtime. On that exact head:
 
-- Frontend Tests run `31753450214` passed; and
-- GoreeCloud Container run `31753450232` passed the complete isolated container path, including both restart-persistence smokes.
+- Frontend Tests run `31785960610` passed; and
+- GoreeCloud Container run `31785960604` passed the complete isolated container path, including both restart-persistence smokes and the mutation-backed state assertions below.
 
 The original smoke in `scripts/goreecloud-notes-ci-smoke.sh` successfully:
 
@@ -62,21 +62,25 @@ The supplemental smoke in `scripts/goreecloud-notes-state-persistence-smoke.sh` 
 - incomplete and completed Markdown checklist syntax remain intact;
 - the source-derived `ci-label` tag remains recognized by the API;
 - the hidden GoreeCloud note-color metadata marker remains intact as part of the persisted note content;
-- a second private note retains the hidden Trash metadata marker with an `archived` restore target; and
+- the note is actually pinned through the authenticated `UpdateMemo` REST mutation using the `pinned` update mask and remains pinned after restart;
+- the same note is actually moved into upstream `ARCHIVED` state through the authenticated `UpdateMemo` REST mutation using the `state` update mask and remains archived after restart;
+- a second note is first moved into upstream `ARCHIVED` state and then transitioned through the GoreeCloud Archive-to-Trash mutation shape using `content`, `state`, and `update_time`, preserving the `archived` Trash restore target while returning the underlying memo state to `NORMAL`;
+- the second note retains that Trash workflow content/state combination after restart; and
 - the SQLite database remains present after the second restart.
 
-This is stronger evidence than a health-only or one-note content check, but it is intentionally scoped. The supplemental smoke does not claim that browser controls were exercised, that a note was actually pinned or moved into the upstream archived state through its mutation API, or that an attachment binary was uploaded and restored.
+The PATCH mutations are sent by the GitHub runner directly to the isolated container's Docker-network address. This does not publish a backend host port and does not add curl or another validation dependency to the production Notes image.
+
+This is stronger evidence than a health-only or source-metadata check, but it is intentionally scoped. The supplemental smoke does not claim that browser controls were exercised, that Trash restore was completed through the deployed user interface, or that an attachment binary was uploaded and restored.
 
 ## What Automated Coverage Does Not Prove
 
 The repository does not currently use a full browser-driven end-to-end framework such as Playwright or Cypress for the GoreeCloud Notes release gate.
 
-The authenticated API restart smokes prove considerably more than a health-only container check, including exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, and Trash restore-intent metadata through restart. They still do not prove that a real authenticated user can complete the entire first-release workflow through the browser against the deployed private service. In particular, they do not by themselves validate:
+The authenticated API restart smokes now prove considerably more than a health-only container check, including exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinning, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through restart. They still do not prove that a real authenticated user can complete the entire first-release workflow through the browser against the deployed private service. In particular, they do not by themselves validate:
 
 - the complete browser sign-in and navigation experience;
 - editor/composer interaction as rendered to a user;
-- label assignment/removal, checklist toggling, pin/color controls, Archive, or Trash actions through the browser;
-- actual pinned state or upstream archived state across a deployed operational restart;
+- label assignment/removal, checklist toggling, pin/color controls, Archive, Trash, or restore actions through the deployed browser interface;
 - attachment upload/open/download and binary persistence through the deployed UI;
 - individual or full-library export through the deployed UI;
 - desktop search and mobile Quick Find as rendered interactions;
@@ -166,7 +170,7 @@ The following checks must be completed against the deployed stable-candidate app
 
 ### Restart persistence
 
-The isolated authenticated smokes now prove that private note content, exact Markdown checklist syntax, source-derived label recognition, GoreeCloud color metadata, and Trash restore-intent metadata survive actual container restarts against the persistent SQLite bind mount. The deployed gate still requires the broader user-visible and mutation-backed state below.
+The isolated authenticated smokes now prove that private note content, exact Markdown checklist syntax, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash state transition survive actual container restarts against the persistent SQLite bind mount. The deployed gate still requires the broader user-visible and attachment-backed state below.
 
 After the validation data above exists:
 
