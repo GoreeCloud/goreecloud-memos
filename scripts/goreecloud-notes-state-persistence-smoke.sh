@@ -45,26 +45,22 @@ get_json() {
 patch_json() {
   path="$1"
   body="$2"
-  content_length="$(printf '%s' "$body" | wc -c | tr -d ' ')"
-  response="$({
-    printf 'PATCH %s HTTP/1.1\r\n' "$path"
-    printf 'Host: 127.0.0.1:5230\r\n'
-    printf 'Authorization: Bearer %s\r\n' "$access_token"
-    printf 'Content-Type: application/json\r\n'
-    printf 'Content-Length: %s\r\n' "$content_length"
-    printf 'Connection: close\r\n\r\n'
-    printf '%s' "$body"
-  } | docker exec -i "$CONTAINER_NAME" nc 127.0.0.1 5230)"
+  container_ip="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME")"
+  [ -n "$container_ip" ]
 
-  status_line="$(printf '%s' "$response" | sed -n '1{s/\r$//;p;}')"
-  case "$status_line" in
-    "HTTP/1.1 200 "* | "HTTP/1.0 200 "*) ;;
-    *)
-      printf '%s\n' "$response" >&2
-      echo "GoreeCloud Notes PATCH failed: $status_line" >&2
-      return 1
-      ;;
-  esac
+  response_file="$(mktemp)"
+  if ! curl --fail-with-body --silent --show-error \
+    --request PATCH \
+    --header="Authorization: Bearer $access_token" \
+    --header="Content-Type: application/json" \
+    --data-binary "$body" \
+    --output "$response_file" \
+    "http://$container_ip:5230$path"; then
+    cat "$response_file" >&2
+    rm -f "$response_file"
+    return 1
+  fi
+  rm -f "$response_file"
 }
 
 json_field() {
