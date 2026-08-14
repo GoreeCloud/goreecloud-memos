@@ -50,11 +50,11 @@ patch_json() {
 
   response_file="$(mktemp)"
   if ! curl --fail-with-body --silent --show-error \
-    --request PATCH \
-    --header="Authorization: Bearer $access_token" \
-    --header="Content-Type: application/json" \
+    -X PATCH \
+    -H "Authorization: Bearer $access_token" \
+    -H "Content-Type: application/json" \
     --data-binary "$body" \
-    --output "$response_file" \
+    -o "$response_file" \
     "http://$container_ip:5230$path"; then
     cat "$response_file" >&2
     rm -f "$response_file"
