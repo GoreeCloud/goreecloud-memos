@@ -58,12 +58,16 @@ The current published prerelease is:
 
 RC3 passed desktop visual and product acceptance on the private GoreeCloud Notes validation instance.
 
-The development branch contains additional post-RC3 stable-candidate work. The latest validated application-code head is `8a0d807a6060857e5a9663492e968addde0ae370`.
+The development branch contains additional post-RC3 stable-candidate work. The latest validated **application-code/runtime head** is `7bcaf7416abbdd39011a4e2bc6aca9169a5672e8`.
 
 Validation on that application-code head:
 
-- Frontend Tests run `31749969786` passed lint, the full frontend unit suite, and the production frontend build.
-- GoreeCloud Container run `31749969796` passed release-asset build, validation-image build, Compose rendering, isolated startup and health, authenticated private-note creation/readback, SQLite verification, Notes restart, health recovery, reauthentication, persistence verification, logs, and cleanup.
+- Frontend Tests run `31751659555` passed lint, the full frontend unit suite, and the production frontend build.
+- GoreeCloud Container run `31751659553` passed release-asset build, validation-image build, Compose rendering, isolated startup and health, authenticated private-note creation/readback, SQLite verification, Notes restart, health recovery, reauthentication, persistence verification, logs, and cleanup.
+
+A later **validation-harness head**, `988d1c2ed286b6cce73d594a62f9d948bdbcd7bf`, changes CI persistence scripts rather than application runtime source. Frontend Tests run `31785960610` and GoreeCloud Container run `31785960604` both passed on that exact harness head. The container run includes the original authenticated restart smoke plus mutation-backed state validation for actual pinning, upstream Archive state, and the GoreeCloud Archive-to-Trash transition through restart.
+
+Documentation and validation-harness commits newer than `7bcaf741…` are not newer application-runtime claims unless application source changes again.
 
 PR #1 remains draft and unmerged. Stable `goreecloud-v0.1.0` has not been created.
 
@@ -90,7 +94,7 @@ The stable candidate includes:
 - Focusable and accessible mobile note controls, including the pinned-note unpin action and overflow menu.
 - A hardened Docker Compose deployment package with non-root execution, dropped Linux capabilities, `no-new-privileges`, bounded logging, persistent SQLite storage, protected file-backed configuration, and no backend host-port publication.
 - GoreeCloud-specific GitHub Actions validation and tagged multi-architecture image publication under the `goreecloud-v*` namespace.
-- An isolated authenticated API smoke that creates a private note, verifies SQLite persistence, restarts the Notes container, reauthenticates, and verifies the same note survives.
+- Isolated authenticated API restart smokes that prove basic private-note/SQLite survival plus exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through real Notes container restarts.
 
 ## Data and Portability Model
 
@@ -123,11 +127,11 @@ See `docs/goreecloud/android-pwa-validation.md`.
 
 ## End-to-End Validation
 
-The repository has broad unit, component, build, container, authenticated API, and basic restart-persistence evidence.
+The repository has broad unit, component, build, container, authenticated API, and restart-persistence evidence.
 
-The isolated authenticated smoke proves that the real application can bootstrap an ephemeral administrator, authenticate, create/read a private note, persist SQLite data across an actual Notes container restart, recover health, reauthenticate, and read the same note again.
+The isolated authenticated smokes prove that the real application can bootstrap an ephemeral administrator, authenticate, create/read private notes, persist SQLite data across actual Notes container restarts, recover health, reauthenticate, and preserve exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state.
 
-That evidence does not replace deployed browser acceptance. Browser/user-workflow validation for the complete Notes experience, attachments, export, private publication path, and full-state restart behavior remains open.
+That evidence does not replace deployed browser acceptance. Browser/user-workflow validation for the complete Notes experience, attachment binary workflows, export, private publication path, Trash restore through the deployed interface, and complete deployed full-state restart behavior remains open.
 
 See `docs/goreecloud/end-to-end-validation.md`.
 
@@ -149,7 +153,7 @@ Reusable secrets remain outside ordinary filesystem backup scope unless an appro
 Before I create `goreecloud-v0.1.0` or merge PR #1, I still require:
 
 1. Real-device Android/PWA visual and functional acceptance.
-2. Deployed browser/user-workflow and full-state end-to-end acceptance.
+2. Deployed browser/user-workflow and complete attachment, export, private-publication-path, and full-state restart acceptance.
 3. Confirmation that GoreeCloud Notes application data is protected through the approved long-term backup path using an application-consistent method.
 4. A real isolated restore test proving that Notes can be reconstructed and used from protected data and required configuration.
 5. Final pull-request review of the stable-candidate branch state.
