@@ -59,6 +59,15 @@ jobs:
           fi
           exit "$status"
 
+      - name: Upload lint diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-lint-diagnostics
+          path: /tmp/frontend-lint.log
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Run unit tests
         working-directory: web
         run: pnpm test
