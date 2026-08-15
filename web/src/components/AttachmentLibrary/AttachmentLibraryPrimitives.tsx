@@ -74,6 +74,7 @@ export const AttachmentOpenButton = ({ className, href }: AttachmentOpenButtonPr
   return (
     <Button
       render={<a href={href} target="_blank" rel="noreferrer" />}
+      nativeButton={false}
       variant="ghost"
       size="icon"
       className={cn("size-7 shrink-0 rounded-full text-muted-foreground hover:text-foreground", className)}
