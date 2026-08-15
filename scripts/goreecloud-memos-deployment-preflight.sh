@@ -6,6 +6,8 @@ set -eu
 # Read-only validation for the intended private production deployment. This script
 # does not create, modify, restart, or remove Docker resources, DNS records, Caddy
 # configuration, application data, backups, or certificates.
+#
+# Source validation: `sh -n scripts/goreecloud-memos-deployment-preflight.sh`.
 
 HOSTNAME="${GOREECLOUD_MEMOS_HOSTNAME:-memos.goreecloud.com}"
 CONTAINER="${GOREECLOUD_MEMOS_CONTAINER:-goreecloud-memos}"
