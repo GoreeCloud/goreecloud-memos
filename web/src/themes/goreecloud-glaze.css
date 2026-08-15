@@ -355,7 +355,7 @@ body {
   }
 
   .gc-main-shell::before {
-    inset-left: 0;
+    inset: 0;
   }
 
   .gc-mobile-topbar {
