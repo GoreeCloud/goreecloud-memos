@@ -58,14 +58,14 @@ type NestedKeyOf<T, K = keyof T> = K extends keyof T & (string | number)
 // Represents the keys of nested translation objects.
 export type Translations = NestedKeyOf<typeof enTranslation>;
 
-// GoreeCloud Notes intentionally changes a small set of English product terms without
+// GoreeCloud Memos intentionally changes a small set of English product terms without
 // rewriting upstream locale files. Non-English locales continue to use upstream translations
 // until GoreeCloud-specific translations are deliberately reviewed.
 const GOREECLOUD_ENGLISH_OVERRIDES: Partial<Record<Translations, string>> = {
   "common.home": "Notes",
   "common.memo": "Note",
   "common.memos": "Notes",
-  "common.sign-in-to-memos": "Sign in to GoreeCloud Notes",
+  "common.sign-in-to-memos": "Sign in to GoreeCloud Memos",
   "memo.no-memos": "No notes.",
   "memo.no-archived-memos": "No archived notes.",
   "memo.search-placeholder": "Search notes...",
