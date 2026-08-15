@@ -144,10 +144,17 @@ jobs:
           GOREECLOUD_MEMOS_TZ: America/Chicago
         run: docker compose -f deploy/goreecloud/compose.yaml down || true
 
+  tagged-upgrade-gate:
+    name: Validate tagged release upgrade path
+    if: startsWith(github.ref, 'refs/tags/goreecloud-v')
+    uses: ./.github/workflows/upgrade-smoke.yml
+
   publish:
     name: Publish tagged GoreeCloud image
     if: startsWith(github.ref, 'refs/tags/goreecloud-v')
-    needs: validate
+    needs:
+      - validate
+      - tagged-upgrade-gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
