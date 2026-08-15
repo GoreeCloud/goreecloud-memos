@@ -115,7 +115,8 @@ const About = () => {
             <LinkRow label="MIT License" note="License preserved with this source" href={LICENSE_URL} />
           </div>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            {t("about.powered-by")}. GoreeCloud branding does not remove or replace required upstream copyright, license, or source attribution.
+            {t("about.powered-by")}. GoreeCloud branding does not remove or replace required upstream copyright, license, or source
+            attribution.
           </p>
         </section>
       </div>
