@@ -33,7 +33,7 @@ const buildMemo = (content: string, state = State.NORMAL, attachments: Attachmen
     updateTime: timestampFromDate(new Date("2026-08-12T08:05:00.000Z")),
   });
 
-describe("GoreeCloud Notes export", () => {
+describe("GoreeCloud Memos export", () => {
   it("exports clean Markdown while preserving GoreeCloud metadata structurally", () => {
     const content = setNoteTrashed(setNoteColor("# Grocery List\n\nMilk", "yellow"), "archived");
     const exported = serializeNoteForExport(buildMemo(content));
@@ -169,17 +169,18 @@ describe("GoreeCloud Notes export", () => {
     const content = setNoteTrashed(setNoteColor("# Note\n\nBody", "blue"), "normal");
     const markdown = buildLibraryMarkdown([buildMemo(content)], "2026-08-12T08:10:00.000Z");
 
-    expect(markdown).toContain("# GoreeCloud Notes Export");
+    expect(markdown).toContain("# GoreeCloud Memos Export");
     expect(markdown).toContain("# Note\n\nBody");
     expect(markdown).not.toContain("goreecloud-note-color");
     expect(markdown).not.toContain("goreecloud-note-trash");
   });
 
-  it("builds JSON with stable export metadata and clean note content", () => {
+  it("builds JSON with stable Memos export metadata and clean note content", () => {
     const json = JSON.parse(buildLibraryJSON([buildMemo("Body", State.ARCHIVED)], "2026-08-12T08:10:00.000Z"));
 
-    expect(json.format).toBe("goreecloud-notes");
+    expect(json.format).toBe("goreecloud-memos");
     expect(json.schemaVersion).toBe(1);
+    expect(json.source.application).toBe("GoreeCloud Memos");
     expect(json.notes).toHaveLength(1);
     expect(json.notes[0].state).toBe("archived");
     expect(json.notes[0].markdown).toBe("Body");
