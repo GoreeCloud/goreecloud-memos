@@ -158,7 +158,7 @@ export const buildNoteMarkdownFilename = (memo: Memo): string => {
 export const buildLibraryMarkdown = (memos: Memo[], exportedAt: string): string => {
   const notes = memos.map(serializeNoteForExport);
   const header = [
-    "# GoreeCloud Notes Export",
+    "# GoreeCloud Memos Export",
     "",
     `Exported: ${exportedAt}`,
     `Notes: ${notes.length}`,
@@ -177,11 +177,11 @@ export const buildLibraryMarkdown = (memos: Memo[], exportedAt: string): string 
 export const buildLibraryJSON = (memos: Memo[], exportedAt: string): string =>
   JSON.stringify(
     {
-      format: "goreecloud-notes",
+      format: "goreecloud-memos",
       schemaVersion: 1,
       exportedAt,
       source: {
-        application: "GoreeCloud Notes",
+        application: "GoreeCloud Memos",
         upstream: "Memos",
       },
       scope: {
@@ -249,9 +249,9 @@ export const downloadLibraryExport = async (creatorName: string, format: NoteExp
   const date = exportedAt.slice(0, 10);
 
   if (format === "markdown") {
-    downloadTextFile(`goreecloud-notes-${date}.md`, buildLibraryMarkdown(memos, exportedAt), "text/markdown;charset=utf-8");
+    downloadTextFile(`goreecloud-memos-${date}.md`, buildLibraryMarkdown(memos, exportedAt), "text/markdown;charset=utf-8");
   } else {
-    downloadTextFile(`goreecloud-notes-${date}.json`, buildLibraryJSON(memos, exportedAt), "application/json;charset=utf-8");
+    downloadTextFile(`goreecloud-memos-${date}.json`, buildLibraryJSON(memos, exportedAt), "application/json;charset=utf-8");
   }
 
   return memos.length;
