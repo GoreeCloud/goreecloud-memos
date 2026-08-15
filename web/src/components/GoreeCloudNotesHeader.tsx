@@ -67,11 +67,11 @@ const GoreeCloudNotesHeader = () => {
   return (
     <header className="gc-topbar sticky top-0 z-20 hidden h-[4.5rem] w-full shrink-0 items-center px-6 md:flex">
       <div className="mx-auto flex w-full max-w-[92rem] items-center gap-5">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[8.5rem] flex-1 xl:min-w-[13rem]">
           <div className="gc-topbar-eyebrow truncate">{meta.eyebrow}</div>
           <div className="flex min-w-0 items-baseline gap-2">
-            <h1 className="truncate text-[1.05rem] font-semibold tracking-[-0.02em] text-foreground">{meta.title}</h1>
-            <span className="hidden truncate text-xs text-muted-foreground xl:inline">{meta.subtitle}</span>
+            <h1 className="shrink-0 whitespace-nowrap text-[1.05rem] font-semibold tracking-[-0.02em] text-foreground">{meta.title}</h1>
+            <span className="hidden min-w-0 truncate text-xs text-muted-foreground 2xl:inline">{meta.subtitle}</span>
           </div>
         </div>
 

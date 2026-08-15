@@ -1,6 +1,6 @@
 import { useInstance } from "@/contexts/InstanceContext";
 import { cn } from "@/lib/utils";
-import UserAvatar from "./UserAvatar";
+import GoreeCloudNotesMark from "./GoreeCloudNotesMark";
 
 interface Props {
   className?: string;
@@ -12,17 +12,14 @@ function MemosLogo(props: Props) {
   const { collapsed, compact } = props;
   const { generalSetting: instanceGeneralSetting } = useInstance();
   const title = instanceGeneralSetting.customProfile?.title || "GoreeCloud Notes";
-  const avatarUrl = instanceGeneralSetting.customProfile?.logoUrl || "/full-logo.webp";
+  const logoUrl = instanceGeneralSetting.customProfile?.logoUrl;
 
   return (
     <div className={cn("relative h-auto w-full shrink-0", props.className)}>
       <div
         className={cn("flex w-auto flex-row items-center justify-start text-foreground", compact ? "px-0" : collapsed ? "px-1" : "px-3")}
       >
-        <UserAvatar
-          className={cn("gc-brand-mark shrink-0 border border-border/60 shadow-sm", compact ? "size-8 rounded-xl" : "size-9 rounded-xl")}
-          avatarUrl={avatarUrl}
-        />
+        <GoreeCloudNotesMark className={cn(compact ? "size-8" : "size-9")} logoUrl={logoUrl} />
         {!collapsed && (
           <div className={cn("min-w-0", compact ? "ml-2" : "ml-2.5")}>
             <span
