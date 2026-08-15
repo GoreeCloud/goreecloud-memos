@@ -11,16 +11,26 @@ import { ROUTES } from "@/router/routes";
 const SEARCH_ROUTES = new Set<string>([ROUTES.HOME, ROUTES.ARCHIVED, ROUTES.TRASH]);
 
 const getRouteMeta = (pathname: string) => {
-  if (pathname === ROUTES.HOME) return { eyebrow: "Quick Notes", title: "Capture space", subtitle: "Fast private notes, always within reach." };
-  if (pathname === ROUTES.ARCHIVED) return { eyebrow: "Library", title: "Archive", subtitle: "Notes kept out of the way, not out of reach." };
-  if (pathname === ROUTES.TRASH) return { eyebrow: "Recovery", title: "Trash", subtitle: "Recover recently removed notes before they are gone." };
-  if (pathname === ROUTES.ATTACHMENTS) return { eyebrow: "Library", title: "Attachments", subtitle: "Files and media connected to your notes." };
-  if (pathname === ROUTES.INBOX) return { eyebrow: "Activity", title: "Inbox", subtitle: "Updates and notifications from your private workspace." };
-  if (pathname === ROUTES.SETTING) return { eyebrow: "Control", title: "Settings", subtitle: "Shape GoreeCloud Notes around the way you work." };
-  if (pathname === ROUTES.VIEWS) return { eyebrow: "Organization", title: "Views", subtitle: "Saved ways to return to the notes that matter." };
-  if (pathname === ROUTES.ABOUT) return { eyebrow: "GoreeCloud", title: "About Notes", subtitle: "Product, version, and source information." };
-  if (pathname === ROUTES.EXPLORE) return { eyebrow: "Workspace", title: "Explore", subtitle: "Browse the notes available in this instance." };
-  if (pathname.startsWith("/memos/")) return { eyebrow: "Focused view", title: "Note", subtitle: "Read and work with one note without distraction." };
+  if (pathname === ROUTES.HOME)
+    return { eyebrow: "Quick Notes", title: "Capture space", subtitle: "Fast private notes, always within reach." };
+  if (pathname === ROUTES.ARCHIVED)
+    return { eyebrow: "Library", title: "Archive", subtitle: "Notes kept out of the way, not out of reach." };
+  if (pathname === ROUTES.TRASH)
+    return { eyebrow: "Recovery", title: "Trash", subtitle: "Recover recently removed notes before they are gone." };
+  if (pathname === ROUTES.ATTACHMENTS)
+    return { eyebrow: "Library", title: "Attachments", subtitle: "Files and media connected to your notes." };
+  if (pathname === ROUTES.INBOX)
+    return { eyebrow: "Activity", title: "Inbox", subtitle: "Updates and notifications from your private workspace." };
+  if (pathname === ROUTES.SETTING)
+    return { eyebrow: "Control", title: "Settings", subtitle: "Shape GoreeCloud Notes around the way you work." };
+  if (pathname === ROUTES.VIEWS)
+    return { eyebrow: "Organization", title: "Views", subtitle: "Saved ways to return to the notes that matter." };
+  if (pathname === ROUTES.ABOUT)
+    return { eyebrow: "GoreeCloud", title: "About Notes", subtitle: "Product, version, and source information." };
+  if (pathname === ROUTES.EXPLORE)
+    return { eyebrow: "Workspace", title: "Explore", subtitle: "Browse the notes available in this instance." };
+  if (pathname.startsWith("/memos/"))
+    return { eyebrow: "Focused view", title: "Note", subtitle: "Read and work with one note without distraction." };
   if (pathname.startsWith("/u/")) return { eyebrow: "Workspace", title: "Profile", subtitle: "Notes and activity for this account." };
   return { eyebrow: "GoreeCloud Notes", title: "Workspace", subtitle: "Private notes with a focused GoreeCloud experience." };
 };

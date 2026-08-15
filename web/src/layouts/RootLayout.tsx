@@ -65,11 +65,7 @@ const RootLayoutContent = () => {
 
   return (
     <AppSidebarProvider>
-      <div
-        ref={shellRef}
-        className="gc-app-shell min-h-full w-full"
-        style={{ [SIDEBAR_WIDTH_VAR]: `${sidebarWidth}px` } as CSSProperties}
-      >
+      <div ref={shellRef} className="gc-app-shell min-h-full w-full" style={{ [SIDEBAR_WIDTH_VAR]: `${sidebarWidth}px` } as CSSProperties}>
         {md && (
           <div className="gc-desktop-sidebar-frame fixed inset-y-0 left-0 z-30 w-(--app-sidebar-width)">
             <AppSidebar />

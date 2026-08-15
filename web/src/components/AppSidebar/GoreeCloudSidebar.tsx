@@ -72,8 +72,7 @@ const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: s
   const { data: tagCount = {} } = useTagCounts(true);
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((notification) => notification.status === UserNotification_Status.UNREAD).length;
-  const notesActive =
-    location.pathname === ROUTES.HOME || location.pathname.startsWith("/memos/") || location.pathname.startsWith("/u/");
+  const notesActive = location.pathname === ROUTES.HOME || location.pathname.startsWith("/memos/") || location.pathname.startsWith("/u/");
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -287,11 +286,23 @@ export const GoreeCloudMobileAppHeader = () => {
   if (location.pathname === ROUTES.SETTING) {
     return (
       <header className="gc-mobile-topbar sticky top-0 z-20 flex h-14 w-full items-center gap-2 px-2 md:hidden">
-        <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" onClick={() => setMobileOpen(true)} aria-label="Open settings navigation">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="gc-icon-button size-10 rounded-xl"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open settings navigation"
+        >
           <MenuIcon className="size-5" />
         </Button>
         <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.01em]">GoreeCloud Notes Settings</span>
-        <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" render={<Link to={ROUTES.HOME} />} aria-label="Back to Notes">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="gc-icon-button size-10 rounded-xl"
+          render={<Link to={ROUTES.HOME} />}
+          aria-label="Back to Notes"
+        >
           <ArrowLeftIcon className="size-5" />
         </Button>
       </header>
@@ -300,7 +311,13 @@ export const GoreeCloudMobileAppHeader = () => {
 
   return (
     <header className="gc-mobile-topbar sticky top-0 z-20 flex h-14 w-full items-center gap-2 px-2 md:hidden">
-      <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="gc-icon-button size-10 rounded-xl"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open navigation"
+      >
         <MenuIcon className="size-5" />
       </Button>
       <Link
