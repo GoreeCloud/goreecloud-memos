@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Black-box smoke test for a Memos release image.
+# Black-box smoke test for a GoreeCloud Memos release image.
 #
 # By default, the script builds the current worktree as a local Docker image.
 # Pass --candidate-image to test an image that has already been built.
@@ -13,31 +13,36 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 candidate_image="${MEMOS_SMOKE_CANDIDATE_IMAGE:-}"
 previous_image="${MEMOS_SMOKE_PREVIOUS_IMAGE:-}"
 keep_resources="${MEMOS_SMOKE_KEEP_RESOURCES:-0}"
+release_image="${MEMOS_SMOKE_RELEASE_IMAGE:-ghcr.io/goreecloud/memos}"
 
 usage() {
   cat <<'EOF'
 Usage: ./scripts/release_smoke_test.sh [options]
 
-Runs fresh-install and previous-stable upgrade smoke tests against a Memos
-Docker image. With no options, the current worktree is built and tested.
+Runs fresh-install and previous-release upgrade smoke tests against a
+GoreeCloud Memos Docker image. With no options, the current worktree is built
+and tested.
 
 Options:
   --candidate-image IMAGE  Test an existing image instead of building locally.
   --previous-image IMAGE   Image used to seed the upgrade test. By default, the
-                           latest stable Git tag before HEAD is used.
+                           latest prior stable GoreeCloud release tag is used;
+                           if no stable release exists yet, the latest prior
+                           GoreeCloud prerelease is used as the bootstrap base.
   --keep-resources         Keep containers and volumes after the test for debugging.
   -h, --help               Show this help text.
 
 Environment equivalents:
   MEMOS_SMOKE_CANDIDATE_IMAGE
   MEMOS_SMOKE_PREVIOUS_IMAGE
+  MEMOS_SMOKE_RELEASE_IMAGE=ghcr.io/goreecloud/memos
   MEMOS_SMOKE_KEEP_RESOURCES=1
 
 Examples:
   ./scripts/release_smoke_test.sh
   ./scripts/release_smoke_test.sh \
     --candidate-image memos-smoke:local \
-    --previous-image neosmemo/memos:0.29.1
+    --previous-image ghcr.io/goreecloud/memos:goreecloud-v0.1.0-rc.3
 EOF
 }
 
@@ -141,26 +146,48 @@ cleanup() {
 }
 trap cleanup EXIT
 
-detect_previous_image() {
-  local head_sha tag tag_sha
-  head_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+is_prior_tag() {
+  local tag="$1"
+  local head_sha tag_sha
 
+  head_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  tag_sha="$(git -C "$REPO_ROOT" rev-list -n 1 "$tag")"
+
+  [[ "$tag_sha" != "$head_sha" ]] && git -C "$REPO_ROOT" merge-base --is-ancestor "$tag" HEAD
+}
+
+detect_previous_image() {
+  local tag
+
+  # Prefer the latest prior stable GoreeCloud release. Stable tags deliberately
+  # exclude release-candidate suffixes so normal upgrades test stable-to-stable.
   while IFS= read -r tag; do
+    [[ -n "$tag" ]] || continue
     case "$tag" in
       *-rc.*) continue ;;
     esac
-
-    tag_sha="$(git -C "$REPO_ROOT" rev-list -n 1 "$tag")"
-    if [[ "$tag_sha" == "$head_sha" ]]; then
-      continue
-    fi
-    if git -C "$REPO_ROOT" merge-base --is-ancestor "$tag" HEAD; then
-      printf 'neosmemo/memos:%s\n' "${tag#v}"
+    if is_prior_tag "$tag"; then
+      printf '%s:%s\n' "$release_image" "$tag"
       return
     fi
-  done < <(git -C "$REPO_ROOT" tag --list 'v[0-9]*' --sort=-version:refname)
+  done < <(git -C "$REPO_ROOT" tag --list 'goreecloud-v[0-9]*' --sort=-version:refname)
 
-  die "could not detect a previous stable release; pass --previous-image"
+  # The first GoreeCloud stable release has no stable predecessor. In that one
+  # bootstrap case, validate the real supported transition from the most recent
+  # GoreeCloud prerelease rather than an unrelated upstream image.
+  while IFS= read -r tag; do
+    [[ -n "$tag" ]] || continue
+    case "$tag" in
+      *-rc.*)
+        if is_prior_tag "$tag"; then
+          printf '%s:%s\n' "$release_image" "$tag"
+          return
+        fi
+        ;;
+    esac
+  done < <(git -C "$REPO_ROOT" tag --list 'goreecloud-v[0-9]*-rc.*' --sort=-version:refname)
+
+  die "could not detect a prior GoreeCloud release; pass --previous-image"
 }
 
 build_local_candidate() {
@@ -242,7 +269,7 @@ start_container() {
 
   docker run --detach \
     --name "$container_name" \
-    --label "org.usememos.release-smoke=$run_id" \
+    --label "org.goreecloud.release-smoke=$run_id" \
     --publish "127.0.0.1::5230" \
     --env MEMOS_MODE=prod \
     --env MEMOS_INSTANCE_URL=http://localhost \
