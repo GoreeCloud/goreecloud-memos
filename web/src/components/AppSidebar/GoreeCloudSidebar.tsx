@@ -66,7 +66,7 @@ const NotesNavRow = ({
   </Link>
 );
 
-const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: string }) => {
+const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: string }) => {
   const location = useLocation();
   const { setMobileOpen, setQuickFindOpen } = useAppSidebar();
   const { data: tagCount = {} } = useTagCounts(true);
@@ -270,7 +270,7 @@ const GoreeCloudWorkspaceSidebar = () => {
     return <GoreeCloudSettingsSidebarContent />;
   }
 
-  return <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />;
+  return <GoreeCloudMemosSidebarContent currentUserName={currentUser.name} />;
 };
 
 export const GoreeCloudMobileAppHeader = () => {
@@ -294,7 +294,7 @@ export const GoreeCloudMobileAppHeader = () => {
         >
           <MenuIcon className="size-5" />
         </Button>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.01em]">GoreeCloud Notes Settings</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.01em]">GoreeCloud Memos Settings</span>
         <Button
           variant="ghost"
           size="icon-sm"
@@ -351,12 +351,12 @@ export const GoreeCloudMobileAppSidebar = () => {
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
       <SheetContent side="left" className="w-[min(19rem,calc(100vw-1.5rem))] gap-0 border-border p-0 shadow-2xl [&>button]:hidden">
         <SheetTitle className="sr-only">
-          {location.pathname === ROUTES.SETTING ? "GoreeCloud Notes settings navigation" : "GoreeCloud Notes navigation"}
+          {location.pathname === ROUTES.SETTING ? "GoreeCloud Memos settings navigation" : "GoreeCloud Memos navigation"}
         </SheetTitle>
         {location.pathname === ROUTES.SETTING ? (
           <GoreeCloudSettingsSidebarContent />
         ) : (
-          <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />
+          <GoreeCloudMemosSidebarContent currentUserName={currentUser.name} />
         )}
       </SheetContent>
     </Sheet>
