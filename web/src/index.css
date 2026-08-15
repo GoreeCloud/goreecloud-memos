@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./themes/default.css";
 @import "./themes/goreecloud-glaze.css";
+@import "./themes/goreecloud-glaze-polish.css";
 
 @layer base {
   * {

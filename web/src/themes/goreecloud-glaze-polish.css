@@ -1,0 +1,198 @@
+/*
+ * Transitional Glaze UI refinement layer.
+ *
+ * This file intentionally limits itself to presentation. The Memos-derived data model is a
+ * migration source, so visual improvements must not create new persistence or schema coupling.
+ */
+
+:root {
+  --gc-page-max-width: 76rem;
+  --gc-glaze-ambient: color-mix(in oklch, var(--primary) 9%, transparent);
+  --gc-glaze-ambient-soft: color-mix(in oklch, var(--primary) 4%, transparent);
+  --gc-glaze-page-border: color-mix(in oklch, var(--border) 58%, transparent);
+}
+
+.gc-workspace-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.gc-workspace-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 82% 4rem, var(--gc-glaze-ambient), transparent 25rem),
+    radial-gradient(circle at 22% 32rem, var(--gc-glaze-ambient-soft), transparent 30rem),
+    linear-gradient(180deg, color-mix(in oklch, var(--background) 94%, var(--primary) 1%), transparent 24rem);
+}
+
+.gc-route-page {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.gc-route-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gc-glaze-page-border);
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 7%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in oklch, var(--card) 90%, transparent), color-mix(in oklch, var(--background) 72%, transparent));
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    0 1px 2px rgb(18 31 45 / 4%),
+    0 18px 48px rgb(18 31 45 / 6%);
+  backdrop-filter: blur(calc(var(--gc-glaze-blur) + 2px)) saturate(1.12);
+  -webkit-backdrop-filter: blur(calc(var(--gc-glaze-blur) + 2px)) saturate(1.12);
+}
+
+.gc-route-hero::after {
+  content: "";
+  position: absolute;
+  width: 18rem;
+  height: 18rem;
+  top: -12rem;
+  right: -6rem;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in oklch, var(--primary) 13%, transparent), transparent 68%);
+}
+
+.gc-route-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gc-sidebar {
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--primary) 4%, transparent), transparent 22rem),
+    var(--gc-glaze-surface);
+}
+
+.gc-topbar,
+.gc-mobile-topbar {
+  background:
+    linear-gradient(110deg, color-mix(in oklch, var(--primary) 3%, transparent), transparent 42%),
+    var(--gc-glaze-surface);
+}
+
+.gc-nav-row {
+  min-height: 2.75rem;
+  border-radius: 1rem;
+  transition-property: background-color, border-color, color, box-shadow, transform;
+}
+
+.gc-nav-row[data-active="true"] {
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    0 8px 24px rgb(18 31 45 / 6%);
+}
+
+.gc-search-surface,
+.gc-context-surface,
+.gc-control-surface,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-settings-panel {
+  border-color: var(--gc-glaze-page-border);
+}
+
+.gc-composer-collapsed {
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 5%, transparent), transparent 44%),
+    var(--gc-glaze-surface-strong);
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    0 2px 5px rgb(18 31 45 / 5%),
+    0 18px 42px rgb(18 31 45 / 7%);
+}
+
+.gc-editor-surface {
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    var(--gc-glaze-shadow-raised);
+}
+
+/* Preserve note colors while giving every card the same Glaze depth and geometry. */
+.gc-app-shell article.group,
+.gc-note-card {
+  background-clip: padding-box;
+  border-color: var(--gc-glaze-page-border);
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    0 2px 5px rgb(18 31 45 / 5%),
+    0 16px 38px rgb(18 31 45 / 7%);
+}
+
+.gc-app-shell article.group [data-slot="button"],
+.gc-note-card [data-slot="button"] {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.gc-private-badge,
+.gc-privacy-badge {
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, transparent), transparent 60%),
+    var(--gc-glaze-surface-strong);
+}
+
+.gc-sidebar-footer {
+  background: linear-gradient(180deg, transparent, color-mix(in oklch, var(--background) 18%, transparent));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gc-app-shell article.group:hover,
+  .gc-note-card:hover {
+    box-shadow:
+      inset 0 1px 0 var(--gc-glaze-highlight),
+      0 4px 10px rgb(18 31 45 / 7%),
+      0 24px 54px rgb(18 31 45 / 10%);
+  }
+}
+
+@media (max-width: 767px) {
+  .gc-route-page {
+    padding-inline: 0.875rem;
+  }
+
+  .gc-route-hero {
+    border-radius: 1.1rem;
+  }
+
+  .gc-composer-collapsed {
+    min-height: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .gc-sidebar,
+  .gc-topbar,
+  .gc-mobile-topbar,
+  .gc-route-hero,
+  .gc-search-surface,
+  .gc-context-surface,
+  .gc-control-surface,
+  .gc-composer-collapsed,
+  .gc-editor-surface,
+  .gc-settings-panel,
+  .gc-app-shell [data-slot="dialog-content"],
+  .gc-app-shell [data-slot="sheet-content"],
+  .gc-app-shell [data-slot="popover-content"],
+  .gc-app-shell [data-slot="dropdown-menu-content"] {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-app-shell article.group [data-slot="button"],
+  .gc-note-card [data-slot="button"] {
+    transition-duration: 0.01ms !important;
+  }
+}

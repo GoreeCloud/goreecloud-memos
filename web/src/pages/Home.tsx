@@ -33,8 +33,8 @@ const Home = () => {
   });
 
   return (
-    <div className="gc-quick-notes-page min-h-full w-full px-4 pb-12 pt-5 text-foreground sm:px-6 lg:px-8">
-      <section className="gc-workspace-intro mx-auto mb-6 flex w-full max-w-6xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+    <div className="gc-route-page gc-quick-notes-page min-h-full w-full px-4 pb-12 pt-5 text-foreground sm:px-6 lg:px-8">
+      <section className="gc-route-hero gc-workspace-intro mx-auto mb-6 flex w-full max-w-6xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
         <div className="min-w-0">
           <div className="gc-eyebrow mb-1.5">Quick Notes</div>
           <h1 className="text-2xl font-semibold tracking-[-0.035em] sm:text-[1.75rem]">Capture what matters.</h1>

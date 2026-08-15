@@ -1,4 +1,4 @@
-name: GoreeCloud Notes Format
+name: GoreeCloud Notes Frontend Quality
 
 on:
   push:
@@ -6,31 +6,42 @@ on:
       - feature/goreecloud-foundation
     paths:
       - "web/src/**"
+      - "web/tests/**"
+      - "web/package.json"
+      - "web/pnpm-lock.yaml"
       - ".github/workflows/goreecloud-notes-format.yml"
+  workflow_dispatch:
 
+# This workflow validates the transitional frontend but never mutates the branch.
+# Keeping the token read-only avoids CI-generated commits and preserves reviewable history.
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "11.0.1"
 
 jobs:
-  format:
-    if: github.actor != 'github-actions[bot]'
+  quality:
+    name: Lint, test, and build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout code
         uses: actions/checkout@v6
-        with:
-          ref: feature/goreecloud-foundation
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.2.0
         with:
-          version: 11.0.1
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
 
@@ -38,19 +49,14 @@ jobs:
         working-directory: web
         run: pnpm install --frozen-lockfile
 
-      - name: Apply repository formatter
+      - name: Run frontend lint and type checks
         working-directory: web
-        run: pnpm lint:fix
+        run: pnpm lint
 
-      - name: Commit formatter output
-        run: |
-          if git diff --quiet; then
-            echo "No formatter changes required."
-            exit 0
-          fi
+      - name: Run frontend unit tests
+        working-directory: web
+        run: pnpm test
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/src
-          git commit -m "style(notes): apply repository formatter"
-          git push origin HEAD:feature/goreecloud-foundation
+      - name: Build production frontend
+        working-directory: web
+        run: pnpm build

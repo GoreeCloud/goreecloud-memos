@@ -1,3 +1,4 @@
+import { RotateCcwIcon, Trash2Icon } from "lucide-react";
 import MemoView from "@/components/MemoView";
 import PagedMemoList, { getMemoKey } from "@/components/PagedMemoList";
 import { useMemoFilters, useMemoSorting } from "@/hooks";
@@ -20,18 +21,33 @@ const Trash = () => {
   });
 
   return (
-    <div className="min-h-full w-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
-      <div className="mx-auto mb-6 max-w-6xl">
-        <h1 className="text-xl font-semibold tracking-tight">Trash</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Notes stay here until you restore them or choose Delete permanently.</p>
+    <div className="gc-route-page min-h-full w-full px-4 pb-12 pt-5 text-foreground sm:px-6 lg:px-8">
+      <section className="gc-route-hero mx-auto mb-6 flex w-full max-w-6xl flex-col gap-4 rounded-[1.25rem] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex min-w-0 items-start gap-4">
+          <span className="gc-context-icon flex size-10 shrink-0 items-center justify-center rounded-xl text-primary">
+            <Trash2Icon className="size-5" strokeWidth={1.8} />
+          </span>
+          <div className="min-w-0">
+            <div className="gc-eyebrow mb-1">Recovery</div>
+            <h1 className="text-xl font-semibold tracking-[-0.025em]">Trash</h1>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Notes remain recoverable until you explicitly choose permanent deletion.</p>
+          </div>
+        </div>
+        <div className="gc-privacy-badge flex w-fit shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
+          <RotateCcwIcon className="size-3.5" strokeWidth={1.8} />
+          Restore available
+        </div>
+      </section>
+
+      <div className="mx-auto w-full max-w-6xl">
+        <PagedMemoList
+          renderer={(memo: Memo, { compact }) => <MemoView key={getMemoKey(memo)} memo={memo} showVisibility compact={compact} />}
+          listSort={listSort}
+          state={State.NORMAL}
+          orderBy={orderBy}
+          filter={trashFilter}
+        />
       </div>
-      <PagedMemoList
-        renderer={(memo: Memo, { compact }) => <MemoView key={getMemoKey(memo)} memo={memo} showVisibility compact={compact} />}
-        listSort={listSort}
-        state={State.NORMAL}
-        orderBy={orderBy}
-        filter={trashFilter}
-      />
     </div>
   );
 };

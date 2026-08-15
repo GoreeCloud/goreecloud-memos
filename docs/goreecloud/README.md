@@ -1,204 +1,181 @@
-# GoreeCloud Notes Fork Record
+# GoreeCloud Memos Transitional Source Record
 
-## Role
+## Role and Current Status
 
-I maintain this repository as **GoreeCloud Notes**, the private, self-hosted quick-note application for GoreeCloud.
+I retain this repository as the **transitional Memos-derived source for GoreeCloud Notes** and as a historical engineering record while the long-term Notes product moves to original GoreeCloud-owned development in `GoreeCloud/goreecloud-notes`.
 
-This repository is a fork of [`usememos/memos`](https://github.com/usememos/memos). I preserve upstream attribution and the MIT license while maintaining GoreeCloud-specific product identity, user-experience changes, validation, deployment packaging, and recovery documentation.
+This repository is a fork of `usememos/memos`. I preserve upstream attribution and the MIT license while maintaining the GoreeCloud-specific behavior that is still required for safe operation, validation, recovery, and migration.
 
-## Development Model and Ancestry
+I no longer classify this repository as the long-term GoreeCloud Notes product. I will not expand it into a second competing Notes platform merely because the code is available.
 
-I minimize divergence from upstream. I keep upstream behavior when it already satisfies GoreeCloud requirements and add GoreeCloud-specific behavior only when it provides a material product, privacy, recovery, accessibility, or maintenance benefit.
+## Development Boundary
 
-The active development branch is:
+The active transitional branch is:
 
 - `feature/goreecloud-foundation`
 
-The branch was created from the fork's `main` branch at upstream commit:
+Draft PR #1 records the GoreeCloud Memos-derived implementation. I keep that work reviewable and unmerged while the remaining transitional requirements are evaluated.
+
+Permitted work in this repository includes changes that materially improve:
+
+- security;
+- stability and reliability;
+- accessibility;
+- Glaze UI consistency for the still-used transitional interface;
+- data integrity;
+- export and migration quality;
+- attachment portability;
+- backup and restore readiness;
+- deployment hardening;
+- test coverage;
+- upstream security compatibility; or
+- documentation needed to operate or retire the transitional implementation safely.
+
+New long-term product capabilities should normally be implemented in native GoreeCloud Notes instead.
+
+## Upstream Ancestry
+
+The GoreeCloud development branch originated from the fork's `main` branch at upstream commit:
 
 - `34e2a59a4a94176ad95cdb8ce0a93917f471795c`
-- Upstream commit date: August 11, 2026
+- upstream commit date: August 11, 2026
 
-The last stable upstream release reviewed before the fork was Memos `v0.30.0` at commit:
+The last stable upstream release reviewed at fork initialization was Memos `v0.30.0` at commit `2036c1ffc1b0a1e1fa6a473738c2a5ef520df67f`.
 
-- `2036c1ffc1b0a1e1fa6a473738c2a5ef520df67f`
+I preserve this ancestry separately from GoreeCloud release naming so that version labels do not imply an exact tagged derivation that the repository history does not support.
 
-At fork initialization, upstream `main` was 36 commits ahead of `v0.30.0`. I therefore record `v0.30.0` as the initially reviewed release rather than claiming that the GoreeCloud branch is an exact derivative of that tagged tree.
+## Historical GoreeCloud Release Evidence
 
-## Product Direction
-
-GoreeCloud Notes is a Google Keep-style notes workspace with:
-
-- fast note capture;
-- a responsive card-oriented workspace;
-- pinned notes;
-- Markdown-backed titles and note content;
-- checklists;
-- labels using the upstream tag model;
-- attachments and inline images;
-- search and filtering;
-- Archive and restore;
-- recoverable Trash with explicit permanent deletion;
-- private-by-default note creation;
-- individual user accounts;
-- portable Markdown and JSON export;
-- a GoreeCloud-native Settings experience;
-- Glaze UI presentation; and
-- documented deployment, validation, backup, and recovery requirements.
-
-Later work may add reminders through ntfy, improved offline behavior, Google Keep import, richer attachment-bundle export, and optional local-only AI integrations. Those are not first-release requirements unless separately approved.
-
-## Current Release State
-
-The current published prerelease is:
-
-- `goreecloud-v0.1.0-rc.3`
-- release commit `eaa7bcd71937aa2025c91d0d4f838f901448a01e`
-- immutable image `ghcr.io/goreecloud/memos@sha256:73613691c167b1ec261685168404b781edf844be04ed27e7bb59ebc78cdf0347`
-
-RC3 passed desktop visual and product acceptance on the private GoreeCloud Notes validation instance.
-
-The development branch contains additional post-RC3 stable-candidate work. The latest validated **application-code/runtime head** is `7bcaf7416abbdd39011a4e2bc6aca9169a5672e8`.
-
-Validation on that application-code head:
-
-- Frontend Tests run `31751659555` passed lint, the full frontend unit suite, and the production frontend build.
-- GoreeCloud Container run `31751659553` passed release-asset build, validation-image build, Compose rendering, isolated startup and health, authenticated private-note creation/readback, SQLite verification, Notes restart, health recovery, reauthentication, persistence verification, logs, and cleanup.
-
-A later **validation-harness head**, `988d1c2ed286b6cce73d594a62f9d948bdbcd7bf`, changes CI persistence scripts rather than application runtime source. Frontend Tests run `31785960610` and GoreeCloud Container run `31785960604` both passed on that exact harness head. The container run includes the original authenticated restart smoke plus mutation-backed state validation for actual pinning, upstream Archive state, and the GoreeCloud Archive-to-Trash transition through restart.
-
-Documentation and validation-harness commits newer than `7bcaf741…` are not newer application-runtime claims unless application source changes again.
-
-PR #1 remains draft and unmerged. Stable `goreecloud-v0.1.0` has not been created.
-
-## Implemented GoreeCloud Capabilities
-
-The stable candidate includes:
-
-- GoreeCloud Notes application and PWA identity.
-- A dedicated Notes/Archive/Trash workspace rather than the upstream activity-first shell.
-- A collapsed `Take a note…` quick composer.
-- Responsive multi-column note cards with separate Pinned and Notes presentation.
-- A user-facing title mapped to the leading Markdown H1 without adding a second title storage model.
-- Markdown task-list/checklist behavior.
-- Persistent note colors stored as portable GoreeCloud Markdown metadata rather than a database-schema fork.
-- Recoverable Trash with original Notes/Archive restore intent preserved in Markdown metadata.
-- First-class Labels backed by the upstream tag model, including configured zero-use labels, usage counts, colors, filtering, note assignment/removal, and hierarchical label presentation.
-- Markdown-aware label mutation that follows the same context-aware tag semantics used by rendering, preventing tag-looking text inside opaque Markdown contexts from being treated as a managed label.
-- Direct desktop search and mobile Quick Find behavior.
-- Direct high-frequency note-card actions for pinning, color, labels, Archive/restore, and Trash recovery.
-- Individual-note Markdown export and full-library Markdown/JSON export.
-- GoreeCloud Settings terminology and organization.
-- Glaze UI layered surfaces, softened depth, rounded geometry, theme-aware appearance, focus feedback, and reduced-motion handling.
-- Mobile safe-area handling, browser zoom, `viewport-fit=cover`, app-controlled PWA theme color, and larger mobile interaction targets.
-- Focusable and accessible mobile note controls, including the pinned-note unpin action and overflow menu.
-- A hardened Docker Compose deployment package with non-root execution, dropped Linux capabilities, `no-new-privileges`, bounded logging, persistent SQLite storage, protected file-backed configuration, and no backend host-port publication.
-- GoreeCloud-specific GitHub Actions validation and tagged multi-architecture image publication under the `goreecloud-v*` namespace.
-- Isolated authenticated API restart smokes that prove basic private-note/SQLite survival plus exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through real Notes container restarts.
-
-## Data and Portability Model
-
-I avoid unnecessary database divergence.
-
-GoreeCloud Notes reuses:
-
-- memo content for note content;
-- the first H1 for the user-facing title;
-- upstream pinned and archived state;
-- upstream tags for Labels;
-- tag metadata for label colors;
-- Markdown task lists for checklists;
-- upstream attachments; and
-- creator ownership for individual user separation.
-
-GoreeCloud-specific note color and Trash state are stored as hidden Markdown metadata. Label recognition and mutation use the canonical Markdown-aware tag grammar rather than independent regular-expression matching.
-
-The JSON export uses format `goreecloud-notes`, schema version 1. It preserves documented note metadata including state, Trash restore target, visibility, pin state, color, labels, timestamps, location, attachment metadata, and relations.
-
-The first export format does **not** bundle attachment binary content, comments, or reactions. Those exclusions are declared in the export so the artifact does not imply those data categories are included.
-
-## Mobile and PWA Readiness
-
-Source/code readiness is implemented and automated regressions protect the viewport, manifest identity, app-controlled theme color, mobile navigation targets, high-frequency note actions, overflow-menu sizing, and pinned-note button semantics.
-
-Real-device Android/PWA acceptance remains a separate release gate. I do not treat source review, responsive unit tests, or container validation as evidence that an installed application has passed physical-device acceptance.
-
-See `docs/goreecloud/android-pwa-validation.md`.
-
-## End-to-End Validation
-
-The repository has broad unit, component, build, container, authenticated API, and restart-persistence evidence.
-
-The isolated authenticated smokes prove that the real application can bootstrap an ephemeral administrator, authenticate, create/read private notes, persist SQLite data across actual Notes container restarts, recover health, reauthenticate, and preserve exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state.
-
-That evidence does not replace deployed browser acceptance. Browser/user-workflow validation for the complete Notes experience, attachment binary workflows, export, private publication path, Trash restore through the deployed interface, and complete deployed full-state restart behavior remains open.
-
-See `docs/goreecloud/end-to-end-validation.md`.
-
-## Backup and Recovery
-
-The application data path is expected at `/srv/docker/appdata/notes`, with SQLite at `/srv/docker/appdata/notes/memos_prod.db` in the current deployment model.
-
-I do not consider Notes protected merely because GoreeCloud has working Kopia and provider-level recovery layers. The live Notes source scope must be inspected, the selected backup method must be application-consistent for SQLite, and a real isolated restore must prove the restored application is usable.
-
-The repository contains:
-
-- `docs/goreecloud/backup-live-preflight.md` — read-only live backup-scope inspection procedure.
-- `docs/goreecloud/backup-restore-validation.md` — Notes-specific protection and isolated-restore acceptance requirements.
-
-Reusable secrets remain outside ordinary filesystem backup scope unless an approved sensitive-information recovery mechanism explicitly covers them.
-
-## Remaining First-Release Gates
-
-Before I create `goreecloud-v0.1.0` or merge PR #1, I still require:
-
-1. Real-device Android/PWA visual and functional acceptance.
-2. Deployed browser/user-workflow and complete attachment, export, private-publication-path, and full-state restart acceptance.
-3. Confirmation that GoreeCloud Notes application data is protected through the approved long-term backup path using an application-consistent method.
-4. A real isolated restore test proving that Notes can be reconstructed and used from protected data and required configuration.
-5. Final pull-request review of the stable-candidate branch state.
-
-RC3 desktop acceptance and current automated source/container validation do not waive these gates.
-
-## Deployment Boundary
-
-The Notes repository owns the application source, GoreeCloud-specific Compose package, application validation workflow, and Notes-specific recovery instructions. It does not own the authoritative production Caddyfile, AdGuard Home configuration, NetBird policy, host backup configuration, or production monitoring configuration.
-
-The current private validation address is `https://notes.goreecloud.com`. A current VPS validation deployment does not change the long-term architectural placement of GoreeCloud Notes on the Family Services VM.
-
-The application Compose package exposes port 5230 only within Docker networking and does not publish that backend port to the host.
-
-## Upstream Maintenance
-
-I use `main` as the stable GoreeCloud branch once reviewed changes are intentionally merged. Feature work uses `feature/*`, bug fixes use `fix/*`, security work uses `security/*`, and temporary upstream integration work uses `upstream-sync/*`.
-
-Before integrating upstream changes, I will:
-
-1. Review upstream release notes and commits.
-2. Compare upstream changes against GoreeCloud modifications.
-3. Review migrations, dependencies, authentication, storage, export, privacy, and user-interface changes.
-4. Integrate through an isolated `upstream-sync/*` branch when appropriate.
-5. Run the applicable upstream and GoreeCloud-specific tests.
-6. Validate data migration and recovery before production promotion.
-
-## Release Identification
-
-GoreeCloud Notes uses an independent GoreeCloud release sequence while preserving upstream ancestry separately.
-
-Published prereleases so far are:
+The Memos-derived line published three GoreeCloud release candidates:
 
 - `goreecloud-v0.1.0-rc.1`
 - `goreecloud-v0.1.0-rc.2`
 - `goreecloud-v0.1.0-rc.3`
 
-The intended first stable release is:
+RC3 is historical validation evidence for the transitional implementation. It is not evidence that this repository remains the intended long-term Notes product, and I do not treat creation of a stable `goreecloud-v0.1.0` as an automatic objective.
 
-- `goreecloud-v0.1.0`
+A future stable tag, merge, or production promotion requires an explicit decision based on the current migration and operational state.
 
-I do not use the previously considered `0.30.0-gc.1` identifier because it would imply an exact v0.30.0 derivation that the fork history does not support.
+## Implemented Transitional Capabilities
 
-Production deployment uses an immutable GHCR digest even when a human-readable release tag exists.
+The branch contains substantial GoreeCloud-specific work, including:
+
+- GoreeCloud Notes application and PWA identity;
+- a Notes/Archive/Trash workspace;
+- quick note capture;
+- Markdown-backed titles and checklists;
+- pinned notes;
+- persistent note colors without a dedicated GoreeCloud database-schema fork;
+- recoverable Trash state;
+- labels backed by the upstream tag model;
+- direct search and note actions;
+- Markdown and JSON export;
+- GoreeCloud Settings terminology;
+- responsive and accessibility improvements;
+- Glaze UI presentation;
+- hardened Compose packaging; and
+- authenticated restart-persistence validation.
+
+These capabilities remain useful because they describe the data and behavior that migration tooling may need to understand.
+
+## Glaze UI Boundary
+
+I use Glaze UI to keep the transitional application visually coherent with GoreeCloud while it remains in use. The visual layer may be substantially improved because the interface is not migration-critical in the same way as the data model.
+
+Glaze UI work should emphasize:
+
+- layered and selectively translucent surfaces;
+- rounded geometry;
+- restrained shadows and depth;
+- purposeful gradients;
+- clear typography and spacing;
+- consistent navigation and controls;
+- strong light and dark appearance behavior;
+- accessible focus and touch targets;
+- reduced-motion and reduced-transparency considerations; and
+- responsive behavior that changes appropriately by form factor.
+
+Visual polish must not introduce unnecessary backend divergence or obscure important privacy and recovery states.
+
+## Data and Migration Model
+
+I continue to minimize unnecessary database divergence. The transitional implementation reuses upstream Memos concepts where practical, including memo content, pinned and archived state, tags, attachments, creator ownership, and Markdown task lists.
+
+GoreeCloud-specific note color and Trash behavior are encoded in portable content metadata rather than through a large custom schema fork. Label recognition uses Markdown-aware semantics so migration does not need to infer labels from every token that resembles a tag.
+
+The JSON export identifies itself as `goreecloud-notes`, schema version 1, and preserves the documented note metadata exposed by the transitional application. Attachment binary payloads are not represented as included when they are not bundled.
+
+Migration to native GoreeCloud Notes must explicitly account for:
+
+- user ownership;
+- note content and titles;
+- timestamps;
+- pinned and archived state;
+- Trash restore intent;
+- labels and label colors;
+- note colors;
+- checklists;
+- attachments and attachment bytes;
+- location or media metadata when present;
+- export limitations; and
+- any behavior that cannot be represented natively without transformation.
+
+## Privacy and Security
+
+The transitional service must remain private by default. GoreeCloud changes should not introduce optional telemetry, public sharing, anonymous discovery, unnecessary external integrations, or broader network exposure.
+
+The deployment package is designed to avoid direct backend host-port publication and to run with hardened container settings. Live private-service controls still require verification against the current Caddy, NetBird, DNS, firewall, Docker, authentication, and host configuration before production decisions are made.
+
+Individual identity and owner separation remain required. Administrative capability does not imply unrestricted permission to inspect another user's private notes.
+
+## Validation
+
+I treat validation as evidence, not assumption. Depending on the change, evidence may include:
+
+- frontend lint and unit tests;
+- production frontend builds;
+- backend tests;
+- container builds and startup checks;
+- authentication checks;
+- API checks;
+- persistence across actual application restarts;
+- attachment-byte validation through the application route;
+- browser workflow acceptance;
+- real-device/PWA acceptance;
+- export validation;
+- backup-scope validation; and
+- an isolated restore test.
+
+A source-level or CI check does not automatically prove the corresponding deployed behavior.
+
+## Backup and Recovery
+
+Historical repository records reference a GoreeCloud application-data path under `/srv/docker/appdata/notes` and a SQLite database named `memos_prod.db`. I must inspect the live environment before treating those historical values as current operational facts.
+
+I do not consider the transitional service protected merely because other GoreeCloud systems have working backups. The application data, attachment bytes, required configuration, and secret dependencies must be included through an approved application-consistent method, and a real restore must be validated before backup readiness is claimed.
+
+Relevant repository records include:
+
+- `docs/goreecloud/backup-live-preflight.md`
+- `docs/goreecloud/backup-restore-validation.md`
+- `docs/goreecloud/end-to-end-validation.md`
+- `docs/goreecloud/android-pwa-validation.md`
+
+## Retirement and Replacement
+
+Before I retire the Memos-derived service, I will preserve the data, configuration, exports, migration records, recovery information, and relevant source history needed to protect the GoreeCloud Notes capability.
+
+The retirement decision should verify:
+
+1. native GoreeCloud Notes can represent or intentionally transform the required user data;
+2. migration tooling has been tested against realistic transitional data;
+3. attachment bytes and ownership survive the migration;
+4. backup and rollback paths exist for the migration event;
+5. the native application has passed the applicable production-readiness gates; and
+6. obsolete transitional credentials, routes, monitoring, backups, and deployment resources are removed only after rollback is no longer required.
 
 ## License and Attribution
 
-Memos is distributed under the MIT License. GoreeCloud modifications remain subject to the repository's license and required copyright notices. I preserve upstream attribution and do not represent upstream Memos work as original GoreeCloud authorship.
+Memos is distributed under the MIT License. I preserve the repository license, required copyright notices, upstream ancestry, and engineering attribution.
+
+GoreeCloud product identity and Glaze UI presentation do not convert upstream work into original GoreeCloud authorship. Required attribution remains available in source and legal records even when upstream branding is not the primary user-facing identity.

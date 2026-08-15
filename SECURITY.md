@@ -1,41 +1,59 @@
 # Security Policy
 
-## Supported Versions
+## Scope
 
-Memos is currently a `0.x` project. Security fixes are only provided for the latest release. Older releases are not supported for security updates, and fixes are not backported.
+This repository is the transitional Memos-derived implementation used as a migration source and historical service line for GoreeCloud Notes. Security work remains in scope while the transitional implementation is retained or deployed.
 
-If you run Memos in production, keep your instance updated to the latest release.
+The native long-term Notes product is developed separately in `GoreeCloud/goreecloud-notes`.
+
+## Supported Code
+
+Security fixes should target the currently maintained GoreeCloud transitional branch or the exact deployed GoreeCloud release that is still in service. Historical release candidates and arbitrary older commits are not automatically supported.
+
+Because this repository derives from Memos, relevant upstream Memos security fixes, dependency advisories, authentication changes, migrations, and container changes must continue to be reviewed until the transitional service is retired.
 
 ## Reporting a Vulnerability
 
-Please report security issues privately by email: `dev@usememos.com`
+Do **not** publish suspected vulnerabilities, credentials, private infrastructure details, exploit steps, or sensitive user information in a public issue or discussion.
 
-Do not open public GitHub issues, discussions, or pull requests for suspected vulnerabilities.
+Report the issue privately to the GoreeCloud repository owner through an established private GoreeCloud administrative channel. If GitHub private vulnerability reporting is enabled for this repository, that private reporting path is also appropriate.
 
-Please include:
+Include when available:
 
-- A clear description of the issue
-- Steps to reproduce
-- Affected version or commit
-- Deployment details that matter to reproduction
-- Your assessment of impact
+- a concise description of the issue;
+- affected commit, release, or deployment version;
+- steps required to reproduce it;
+- expected and observed behavior;
+- security impact and affected data or permissions;
+- whether the problem is inherited from upstream Memos or introduced by a GoreeCloud change; and
+- any safe mitigation already identified.
 
-We will review reports as time permits and fix valid issues in regular releases.
+Do not include reusable secrets in the report body unless the private reporting method is explicitly approved for that secret. Rotate exposed credentials independently of the software fix.
 
-## Disclosure and CVEs
+## Security Priorities
 
-Memos is self-hosted software and is still in the `0.x` stage. At this stage, we do not run a formal disclosure program, publish separate security advisories for every issue, or request CVE IDs.
+Transitional maintenance should prioritize:
 
-Security fixes may be shipped directly in normal releases or noted briefly in release notes and changelogs.
+- authentication and authorization integrity;
+- individual-user data separation;
+- private-by-default visibility and sharing behavior;
+- attachment and export authorization;
+- XSS, Markdown/rendering, upload, and content-sanitization risks;
+- dependency and container vulnerabilities;
+- database migration and data-integrity risks;
+- secret separation and least privilege;
+- removal of unnecessary network exposure;
+- backup/restore confidentiality and integrity; and
+- migration safety to native GoreeCloud Notes.
 
-## Self-Hosted Deployment Notes
+## Deployment Boundary
 
-The security posture of a Memos instance depends heavily on how it is deployed and operated. In particular:
+A login page alone is not considered sufficient private-service protection. GoreeCloud deployments should use the approved private networking, reverse-proxy, TLS, application-authentication, and no-unnecessary-host-port model documented for the current environment.
 
-- Keep Memos updated
-- Put it behind a properly configured reverse proxy when exposed to the internet
-- Require authentication for any non-public deployment
-- Use TLS in production
-- Limit access to trusted users and administrators
+Repository configuration does not prove that a live deployment is secure. Validate the deployed network path, access controls, secrets, logging, persistent storage, backup scope, and recovery process directly.
 
-Reports that depend entirely on intentionally unsafe deployment choices, unsupported local patches, or administrator actions may be treated as deployment issues rather than product vulnerabilities.
+## Disclosure and Remediation
+
+Security fixes should be validated before deployment and documented with enough detail to support future review without unnecessarily publishing exploit-enabling information before remediation is complete.
+
+When a vulnerability is inherited from upstream, preserve the upstream relationship and evaluate the upstream fix rather than creating unnecessary long-lived divergence.
