@@ -3,6 +3,7 @@ import {
   ArrowLeftIcon,
   BellIcon,
   HardDriveIcon,
+  InfoIcon,
   LightbulbIcon,
   MenuIcon,
   NotebookPenIcon,
@@ -15,6 +16,7 @@ import {
   UserIcon,
   UsersIcon,
 } from "lucide-react";
+import type { ComponentType } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -29,7 +31,7 @@ import UserMenu from "../UserMenu";
 import OriginalAppSidebar, { MobileAppHeader as OriginalMobileAppHeader, MobileAppSidebar as OriginalMobileAppSidebar } from "./AppSidebar";
 import TagsSection from "./TagsSection";
 
-const NOTES_WORKSPACE_ROUTES = new Set<string>([ROUTES.HOME, ROUTES.ARCHIVED, ROUTES.TRASH]);
+type NavIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
 const NotesNavRow = ({
   to,
@@ -37,26 +39,30 @@ const NotesNavRow = ({
   icon: Icon,
   active,
   onClick,
+  compact = false,
 }: {
   to: string;
   label: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: NavIcon;
   active?: boolean;
   onClick?: () => void;
+  compact?: boolean;
 }) => (
   <Link
     to={to}
     onClick={onClick}
     aria-current={active ? "page" : undefined}
+    data-active={active ? "true" : "false"}
     className={cn(
-      "flex h-11 items-center gap-4 rounded-2xl px-3 text-sm font-medium transition-[background-color,color,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-      active
-        ? "bg-primary/12 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border)/0.35)]"
-        : "text-muted-foreground hover:translate-x-0.5 hover:bg-sidebar-accent/70 hover:text-foreground",
+      "gc-nav-row flex items-center gap-3 font-medium text-muted-foreground transition-[background-color,color,transform,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+      compact ? "h-10 rounded-xl px-3 text-[13px]" : "h-11 rounded-2xl px-3 text-sm",
+      active ? "text-foreground" : "hover:text-foreground",
     )}
   >
-    <Icon className="size-5 shrink-0" strokeWidth={1.8} />
-    <span>{label}</span>
+    <span className={cn("gc-nav-icon flex shrink-0 items-center justify-center", compact ? "size-7 rounded-lg" : "size-8 rounded-xl")}>
+      <Icon className={compact ? "size-4" : "size-[18px]"} strokeWidth={1.8} />
+    </span>
+    <span className="min-w-0 flex-1 truncate">{label}</span>
   </Link>
 );
 
@@ -66,28 +72,26 @@ const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: s
   const { data: tagCount = {} } = useTagCounts(true);
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((notification) => notification.status === UserNotification_Status.UNREAD).length;
+  const notesActive =
+    location.pathname === ROUTES.HOME || location.pathname.startsWith("/memos/") || location.pathname.startsWith("/u/");
 
-  const primaryItems = [
-    { label: "Notes", path: ROUTES.HOME, icon: LightbulbIcon },
-    { label: "Archive", path: ROUTES.ARCHIVED, icon: ArchiveIcon },
-    { label: "Trash", path: ROUTES.TRASH, icon: Trash2Icon },
-  ];
+  const closeMobile = () => setMobileOpen(false);
 
   return (
-    <aside className="flex h-full w-full select-none flex-col bg-sidebar/92 text-sidebar-foreground backdrop-blur-xl">
-      <div className="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
+    <aside className="gc-sidebar flex h-full w-full select-none flex-col text-sidebar-foreground">
+      <div className="gc-sidebar-brand flex h-[4.5rem] shrink-0 items-center justify-between gap-2 px-4">
         <Link
           to={ROUTES.HOME}
-          className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="gc-brand-link min-w-0 flex-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <MemosLogo compact />
         </Link>
         <Button
           variant="ghost"
           size="icon-sm"
-          className="size-8 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+          className="gc-icon-button size-9 shrink-0 rounded-xl text-muted-foreground hover:text-foreground"
           onClick={() => {
-            setMobileOpen(false);
+            closeMobile();
             setQuickFindOpen(true);
           }}
           aria-label="Search notes"
@@ -96,52 +100,80 @@ const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: s
         </Button>
       </div>
 
-      <nav className="flex shrink-0 flex-col gap-1 px-2 pb-3" aria-label="Notes navigation">
-        {primaryItems.map((item) => (
+      <div className="px-3 pb-2">
+        <div className="gc-nav-kicker px-2 pb-2">Workspace</div>
+        <nav className="flex shrink-0 flex-col gap-1" aria-label="Notes navigation">
+          <NotesNavRow to={ROUTES.HOME} label="Notes" icon={LightbulbIcon} active={notesActive} onClick={closeMobile} />
           <NotesNavRow
-            key={item.path}
-            to={item.path}
-            label={item.label}
-            icon={item.icon}
-            active={location.pathname === item.path}
-            onClick={() => setMobileOpen(false)}
+            to={ROUTES.ARCHIVED}
+            label="Archive"
+            icon={ArchiveIcon}
+            active={location.pathname === ROUTES.ARCHIVED}
+            onClick={closeMobile}
           />
-        ))}
-      </nav>
-
-      <div className="mx-4 border-t border-border/60" />
-
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]">
-        <TagsSection tagCount={tagCount} navigationTarget={ROUTES.HOME} scope={currentUserName} onSelect={() => setMobileOpen(false)} />
+          <NotesNavRow
+            to={ROUTES.TRASH}
+            label="Trash"
+            icon={Trash2Icon}
+            active={location.pathname === ROUTES.TRASH}
+            onClick={closeMobile}
+          />
+        </nav>
       </div>
 
-      <div className="mx-4 border-t border-border/60" />
+      <div className="gc-sidebar-divider mx-4" />
 
-      <nav className="flex shrink-0 flex-col gap-1 px-2 py-3" aria-label="Notes utilities">
-        <Link
-          to={ROUTES.ATTACHMENTS}
-          onClick={() => setMobileOpen(false)}
-          className="flex h-9 items-center gap-3 rounded-xl px-3 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
-        >
-          <PaperclipIcon className="size-4" strokeWidth={1.8} />
-          <span>Attachments</span>
-        </Link>
-        <Link
-          to={ROUTES.INBOX}
-          onClick={() => setMobileOpen(false)}
-          className="relative flex h-9 items-center gap-3 rounded-xl px-3 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
-        >
-          <BellIcon className="size-4" strokeWidth={1.8} />
-          <span>Inbox</span>
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]">
+        <div className="gc-nav-kicker px-2 pb-2">Labels</div>
+        <TagsSection tagCount={tagCount} navigationTarget={ROUTES.HOME} scope={currentUserName} onSelect={closeMobile} />
+      </div>
+
+      <div className="gc-sidebar-divider mx-4" />
+
+      <div className="px-3 py-3">
+        <div className="gc-nav-kicker px-2 pb-2">Library</div>
+        <nav className="flex shrink-0 flex-col gap-1" aria-label="Notes library">
+          <NotesNavRow
+            to={ROUTES.ATTACHMENTS}
+            label="Attachments"
+            icon={PaperclipIcon}
+            active={location.pathname === ROUTES.ATTACHMENTS}
+            onClick={closeMobile}
+            compact
+          />
+          <NotesNavRow
+            to={ROUTES.INBOX}
+            label="Inbox"
+            icon={BellIcon}
+            active={location.pathname === ROUTES.INBOX}
+            onClick={closeMobile}
+            compact
+          />
           {unreadCount > 0 && (
-            <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center text-[10px] font-semibold leading-5 text-primary-foreground">
-              {unreadCount > 99 ? "99+" : unreadCount}
+            <span className="sr-only" aria-live="polite">
+              {unreadCount} unread notifications
             </span>
           )}
-        </Link>
-      </nav>
+          <NotesNavRow
+            to={ROUTES.SETTING}
+            label="Settings"
+            icon={Settings2Icon}
+            active={location.pathname === ROUTES.SETTING}
+            onClick={closeMobile}
+            compact
+          />
+          <NotesNavRow
+            to={ROUTES.ABOUT}
+            label="About"
+            icon={InfoIcon}
+            active={location.pathname === ROUTES.ABOUT}
+            onClick={closeMobile}
+            compact
+          />
+        </nav>
+      </div>
 
-      <footer className="shrink-0 border-t border-border/60">
+      <footer className="gc-sidebar-footer shrink-0">
         <UserMenu />
       </footer>
     </aside>
@@ -181,11 +213,11 @@ const GoreeCloudSettingsSidebarContent = () => {
     ));
 
   return (
-    <aside className="flex h-full w-full select-none flex-col bg-sidebar/92 text-sidebar-foreground backdrop-blur-xl">
-      <div className="flex h-16 shrink-0 items-center px-4">
+    <aside className="gc-sidebar flex h-full w-full select-none flex-col text-sidebar-foreground">
+      <div className="gc-sidebar-brand flex h-[4.5rem] shrink-0 items-center px-4">
         <Link
           to={ROUTES.HOME}
-          className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="gc-brand-link min-w-0 flex-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <MemosLogo compact />
         </Link>
@@ -195,25 +227,25 @@ const GoreeCloudSettingsSidebarContent = () => {
         <Link
           to={ROUTES.HOME}
           onClick={() => setMobileOpen(false)}
-          className="flex h-9 items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
+          className="gc-back-link flex h-10 items-center gap-2 rounded-xl px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" strokeWidth={1.8} />
           <span>Back to Notes</span>
         </Link>
       </div>
 
-      <div className="mx-4 border-t border-border/60" />
+      <div className="gc-sidebar-divider mx-4" />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4 [scrollbar-width:thin]">
-        <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/75">Settings</div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 [scrollbar-width:thin]">
+        <div className="gc-nav-kicker px-2 pb-2">Settings</div>
         <nav className="flex flex-col gap-1" aria-label="Personal settings">
           {renderSettingRows(personalItems)}
         </nav>
 
         {isAdmin && (
           <>
-            <div className="mx-2 my-4 border-t border-border/60" />
-            <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/75">Administration</div>
+            <div className="gc-sidebar-divider mx-2 my-4" />
+            <div className="gc-nav-kicker px-2 pb-2">Administration</div>
             <nav className="flex flex-col gap-1" aria-label="Administration settings">
               {renderSettingRows(adminItems)}
             </nav>
@@ -221,7 +253,7 @@ const GoreeCloudSettingsSidebarContent = () => {
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-border/60">
+      <footer className="gc-sidebar-footer shrink-0">
         <UserMenu />
       </footer>
     </aside>
@@ -240,11 +272,7 @@ const GoreeCloudWorkspaceSidebar = () => {
     return <GoreeCloudSettingsSidebarContent />;
   }
 
-  if (NOTES_WORKSPACE_ROUTES.has(location.pathname)) {
-    return <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />;
-  }
-
-  return <OriginalAppSidebar />;
+  return <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />;
 };
 
 export const GoreeCloudMobileAppHeader = () => {
@@ -258,34 +286,36 @@ export const GoreeCloudMobileAppHeader = () => {
 
   if (location.pathname === ROUTES.SETTING) {
     return (
-      <header className="sticky top-0 z-20 flex h-14 w-full items-center gap-2 border-b border-border/60 bg-background/88 px-2 backdrop-blur-xl md:hidden">
-        <Button variant="ghost" size="icon-sm" className="size-9" onClick={() => setMobileOpen(true)} aria-label="Open settings navigation">
+      <header className="gc-mobile-topbar sticky top-0 z-20 flex h-14 w-full items-center gap-2 px-2 md:hidden">
+        <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" onClick={() => setMobileOpen(true)} aria-label="Open settings navigation">
           <MenuIcon className="size-5" />
         </Button>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold">GoreeCloud Notes Settings</span>
-        <Button variant="ghost" size="icon-sm" className="size-9" render={<Link to={ROUTES.HOME} />} aria-label="Back to Notes">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.01em]">GoreeCloud Notes Settings</span>
+        <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" render={<Link to={ROUTES.HOME} />} aria-label="Back to Notes">
           <ArrowLeftIcon className="size-5" />
         </Button>
       </header>
     );
   }
 
-  if (!NOTES_WORKSPACE_ROUTES.has(location.pathname)) {
-    return <OriginalMobileAppHeader />;
-  }
-
   return (
-    <header className="sticky top-0 z-20 flex h-14 w-full items-center gap-2 border-b border-border/60 bg-background/88 px-2 backdrop-blur-xl md:hidden">
-      <Button variant="ghost" size="icon-sm" className="size-9" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
+    <header className="gc-mobile-topbar sticky top-0 z-20 flex h-14 w-full items-center gap-2 px-2 md:hidden">
+      <Button variant="ghost" size="icon-sm" className="gc-icon-button size-10 rounded-xl" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
         <MenuIcon className="size-5" />
       </Button>
       <Link
         to={ROUTES.HOME}
-        className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className="gc-brand-link min-w-0 flex-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
         <MemosLogo compact />
       </Link>
-      <Button variant="ghost" size="icon-sm" className="size-9" onClick={() => setQuickFindOpen(true)} aria-label="Search notes">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="gc-icon-button size-10 rounded-xl"
+        onClick={() => setQuickFindOpen(true)}
+        aria-label="Search notes"
+      >
         <SearchIcon className="size-5" strokeWidth={1.8} />
       </Button>
     </header>
@@ -301,26 +331,17 @@ export const GoreeCloudMobileAppSidebar = () => {
     return <OriginalMobileAppSidebar />;
   }
 
-  if (location.pathname === ROUTES.SETTING) {
-    return (
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[min(18rem,calc(100vw-2rem))] gap-0 border-border p-0 shadow-2xl [&>button]:hidden">
-          <SheetTitle className="sr-only">GoreeCloud Notes settings navigation</SheetTitle>
-          <GoreeCloudSettingsSidebarContent />
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  if (!NOTES_WORKSPACE_ROUTES.has(location.pathname)) {
-    return <OriginalMobileAppSidebar />;
-  }
-
   return (
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-      <SheetContent side="left" className="w-[min(18rem,calc(100vw-2rem))] gap-0 border-border p-0 shadow-2xl [&>button]:hidden">
-        <SheetTitle className="sr-only">GoreeCloud Notes navigation</SheetTitle>
-        <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />
+      <SheetContent side="left" className="w-[min(19rem,calc(100vw-1.5rem))] gap-0 border-border p-0 shadow-2xl [&>button]:hidden">
+        <SheetTitle className="sr-only">
+          {location.pathname === ROUTES.SETTING ? "GoreeCloud Notes settings navigation" : "GoreeCloud Notes navigation"}
+        </SheetTitle>
+        {location.pathname === ROUTES.SETTING ? (
+          <GoreeCloudSettingsSidebarContent />
+        ) : (
+          <GoreeCloudNotesSidebarContent currentUserName={currentUser.name} />
+        )}
       </SheetContent>
     </Sheet>
   );

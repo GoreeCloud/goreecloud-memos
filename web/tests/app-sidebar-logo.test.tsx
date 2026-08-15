@@ -128,6 +128,7 @@ describe("GoreeCloud Notes sidebar shell", () => {
     expect(screen.getByText("Labels")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("href", "/attachments");
     expect(screen.getByRole("link", { name: "Inbox" })).toHaveAttribute("href", "/inbox");
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/setting");
     expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
     expect(screen.queryByText("common.views")).not.toBeInTheDocument();
   });
@@ -160,17 +161,18 @@ describe("GoreeCloud Notes sidebar shell", () => {
     expect(screen.queryByRole("link", { name: "Notes" })).not.toBeInTheDocument();
   });
 
-  it("preserves the original sidebar on non-workspace application routes", () => {
+  it("keeps the GoreeCloud shell across authenticated library routes", () => {
     render(
       <MemoryRouter initialEntries={["/attachments"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    expect(screen.queryByRole("navigation", { name: "Notes navigation" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "common.search" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "common.attachments", level: 2 })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "common.attachments" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("navigation", { name: "Notes navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Notes library" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
   });
 
   it("uses the GoreeCloud Notes settings shell on Settings", () => {

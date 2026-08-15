@@ -1,27 +1,37 @@
 :root {
-  --gc-glaze-blur: 20px;
-  --gc-glaze-radius: 1.125rem;
-  --gc-glaze-surface: color-mix(in oklch, var(--background) 76%, transparent);
-  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 88%, transparent);
-  --gc-glaze-border: color-mix(in oklch, var(--border) 72%, transparent);
-  --gc-glaze-highlight: color-mix(in oklch, white 58%, transparent);
-  --gc-glaze-shadow: 0 1px 2px rgb(18 31 45 / 6%), 0 12px 34px rgb(18 31 45 / 7%);
-  --gc-glaze-shadow-raised: 0 2px 5px rgb(18 31 45 / 8%), 0 20px 48px rgb(18 31 45 / 10%);
+  --gc-glaze-blur: 22px;
+  --gc-glaze-radius: 1.25rem;
+  --gc-glaze-radius-sm: 0.9rem;
+  --gc-glaze-surface: color-mix(in oklch, var(--background) 74%, transparent);
+  --gc-glaze-surface-soft: color-mix(in oklch, var(--muted) 58%, transparent);
+  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 90%, transparent);
+  --gc-glaze-border: color-mix(in oklch, var(--border) 68%, transparent);
+  --gc-glaze-border-strong: color-mix(in oklch, var(--border) 88%, transparent);
+  --gc-glaze-highlight: color-mix(in oklch, white 62%, transparent);
+  --gc-glaze-shadow: 0 1px 2px rgb(18 31 45 / 5%), 0 14px 38px rgb(18 31 45 / 7%);
+  --gc-glaze-shadow-raised: 0 3px 8px rgb(18 31 45 / 8%), 0 24px 58px rgb(18 31 45 / 11%);
+  --gc-glaze-shadow-nav: 12px 0 42px rgb(18 31 45 / 5%);
 }
 
 html[data-theme="default-dark"] {
   --gc-glaze-surface: color-mix(in oklch, var(--background) 78%, transparent);
-  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 84%, transparent);
-  --gc-glaze-border: color-mix(in oklch, var(--border) 80%, transparent);
-  --gc-glaze-highlight: color-mix(in oklch, white 11%, transparent);
-  --gc-glaze-shadow: 0 1px 3px rgb(0 0 0 / 20%), 0 14px 38px rgb(0 0 0 / 18%);
-  --gc-glaze-shadow-raised: 0 3px 8px rgb(0 0 0 / 26%), 0 24px 58px rgb(0 0 0 / 24%);
+  --gc-glaze-surface-soft: color-mix(in oklch, var(--muted) 58%, transparent);
+  --gc-glaze-surface-strong: color-mix(in oklch, var(--card) 86%, transparent);
+  --gc-glaze-border: color-mix(in oklch, var(--border) 78%, transparent);
+  --gc-glaze-border-strong: color-mix(in oklch, var(--border) 94%, transparent);
+  --gc-glaze-highlight: color-mix(in oklch, white 10%, transparent);
+  --gc-glaze-shadow: 0 1px 3px rgb(0 0 0 / 20%), 0 16px 42px rgb(0 0 0 / 18%);
+  --gc-glaze-shadow-raised: 0 4px 10px rgb(0 0 0 / 28%), 0 28px 66px rgb(0 0 0 / 25%);
+  --gc-glaze-shadow-nav: 12px 0 46px rgb(0 0 0 / 18%);
 }
 
 body {
+  background-color: var(--background);
   background-image:
-    radial-gradient(circle at 52% -10rem, color-mix(in oklch, var(--primary) 14%, transparent), transparent 34rem),
-    radial-gradient(circle at 92% 14rem, color-mix(in oklch, var(--primary) 5%, transparent), transparent 26rem);
+    radial-gradient(circle at 45% -12rem, color-mix(in oklch, var(--primary) 16%, transparent), transparent 35rem),
+    radial-gradient(circle at 94% 14rem, color-mix(in oklch, var(--primary) 7%, transparent), transparent 29rem),
+    radial-gradient(circle at 10% 78%, color-mix(in oklch, var(--primary) 4%, transparent), transparent 32rem),
+    linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, white 4%), var(--background));
   background-attachment: fixed;
 }
 
@@ -29,90 +39,294 @@ body {
   background: color-mix(in oklch, var(--primary) 28%, transparent);
 }
 
-.gc-app-shell {
+.gc-app-shell,
+.gc-main-shell,
+.gc-workspace-stage,
+.gc-quick-notes-page {
   background: transparent;
 }
 
-.gc-app-shell aside,
-.gc-app-shell > main > header,
+.gc-app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.gc-main-shell {
+  position: relative;
+}
+
+.gc-main-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 0 var(--app-sidebar-width, 0px);
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 3%, transparent), transparent 42%),
+    radial-gradient(circle at 75% 0%, color-mix(in oklch, var(--primary) 5%, transparent), transparent 30rem);
+}
+
+.gc-desktop-sidebar-frame {
+  border-right: 1px solid var(--gc-glaze-border);
+  box-shadow: var(--gc-glaze-shadow-nav);
+}
+
 .gc-sidebar,
-.gc-topbar {
+.gc-topbar,
+.gc-mobile-topbar {
   background: var(--gc-glaze-surface);
   border-color: var(--gc-glaze-border);
-  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.14);
+  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.16);
+  -webkit-backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.16);
 }
 
-.gc-app-shell aside,
 .gc-sidebar {
-  box-shadow:
-    inset -1px 0 0 var(--gc-glaze-highlight),
-    10px 0 36px rgb(18 31 45 / 3%);
+  box-shadow: inset -1px 0 0 var(--gc-glaze-highlight);
 }
 
-.gc-app-shell > main > header,
-.gc-topbar {
-  box-shadow:
-    0 1px 0 var(--gc-glaze-highlight),
-    0 12px 34px rgb(18 31 45 / 4%);
+.gc-topbar,
+.gc-mobile-topbar {
+  border-bottom: 1px solid var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), 0 12px 34px rgb(18 31 45 / 4%);
 }
 
-.gc-app-shell > main > header .rounded-2xl,
-.gc-app-shell section[aria-label="Create note"] > button,
-.gc-app-shell section[aria-label="Create note"] > .group,
-.gc-app-shell div.rounded-2xl.backdrop-blur-xl,
-.gc-search-surface,
-.gc-control-surface,
-.gc-composer-collapsed,
-.gc-editor-surface,
-.gc-settings-panel {
-  background: var(--gc-glaze-surface-strong);
-  border-color: var(--gc-glaze-border);
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow);
-  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.1);
+.gc-sidebar-brand {
+  position: relative;
 }
 
-.gc-app-shell section[aria-label="Create note"] > button,
-.gc-app-shell section[aria-label="Create note"] > .group,
-.gc-app-shell article.group,
-.gc-app-shell div.rounded-2xl.backdrop-blur-xl,
-.gc-search-surface,
-.gc-composer-collapsed,
-.gc-editor-surface,
-.gc-note-card,
-.gc-settings-panel {
-  border-radius: var(--gc-glaze-radius);
+.gc-sidebar-brand::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  bottom: 0;
+  left: 1rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gc-glaze-border-strong), transparent);
 }
 
-.gc-app-shell article.group:focus-within,
-.gc-note-card:focus-within {
-  border-color: color-mix(in oklch, var(--primary) 20%, var(--gc-glaze-border));
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow-raised);
-  transform: translateY(-1px);
+.gc-sidebar-divider,
+.gc-sidebar-footer {
+  border-top: 1px solid var(--gc-glaze-border);
+}
+
+.gc-nav-kicker,
+.gc-eyebrow,
+.gc-topbar-eyebrow {
+  color: color-mix(in oklch, var(--muted-foreground) 82%, transparent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.gc-brand-link {
+  transition: opacity 150ms ease, transform 150ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .gc-app-shell section[aria-label="Create note"] > button:hover,
-  .gc-app-shell article.group:hover,
-  .gc-composer-collapsed:hover,
-  .gc-note-card:hover {
-    border-color: color-mix(in oklch, var(--primary) 20%, var(--gc-glaze-border));
-    box-shadow:
-      inset 0 1px 0 var(--gc-glaze-highlight),
-      var(--gc-glaze-shadow-raised);
+  .gc-brand-link:hover {
+    opacity: 0.92;
     transform: translateY(-1px);
   }
+}
+
+.gc-nav-row {
+  border: 1px solid transparent;
+}
+
+.gc-nav-icon,
+.gc-composer-icon,
+.gc-context-icon {
+  background: color-mix(in oklch, var(--muted) 68%, transparent);
+  border: 1px solid color-mix(in oklch, var(--border) 48%, transparent);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight);
+}
+
+.gc-nav-row[data-active="true"] {
+  color: var(--foreground);
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 15%, var(--gc-glaze-surface-strong)), var(--gc-glaze-surface-strong));
+  border-color: color-mix(in oklch, var(--primary) 20%, var(--gc-glaze-border));
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), 0 7px 18px rgb(18 31 45 / 5%);
+}
+
+.gc-nav-row[data-active="true"] .gc-nav-icon {
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 12%, var(--gc-glaze-surface-strong));
+  border-color: color-mix(in oklch, var(--primary) 24%, var(--gc-glaze-border));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gc-nav-row[data-active="false"]:hover,
+  .gc-back-link:hover {
+    background: color-mix(in oklch, var(--muted) 52%, transparent);
+    border-color: var(--gc-glaze-border);
+    transform: translateX(2px);
+  }
+}
+
+.gc-search-surface,
+.gc-context-surface,
+.gc-control-surface,
+.gc-private-badge,
+.gc-privacy-badge,
+.gc-workspace-intro,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-settings-panel,
+.gc-app-shell div.rounded-2xl.backdrop-blur-xl {
+  background: var(--gc-glaze-surface-strong);
+  border: 1px solid var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+  backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.12);
+  -webkit-backdrop-filter: blur(var(--gc-glaze-blur)) saturate(1.12);
+}
+
+.gc-search-surface,
+.gc-context-surface,
+.gc-control-surface,
+.gc-private-badge,
+.gc-privacy-badge,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-settings-panel,
+.gc-workspace-intro {
+  border-radius: var(--gc-glaze-radius);
+}
+
+.gc-search-surface:focus-within,
+.gc-composer-collapsed:focus-visible,
+.gc-editor-surface:focus-within,
+.gc-note-card:focus-within,
+.gc-app-shell article.group:focus-within {
+  border-color: color-mix(in oklch, var(--primary) 28%, var(--gc-glaze-border));
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow-raised), 0 0 0 3px color-mix(in oklch, var(--primary) 9%, transparent);
+}
+
+.gc-context-surface {
+  min-height: 2.75rem;
+}
+
+.gc-control-surface {
+  border-radius: var(--gc-glaze-radius-sm);
+}
+
+.gc-private-badge,
+.gc-privacy-badge {
+  border-radius: 999px;
+}
+
+.gc-workspace-intro {
+  position: relative;
+  overflow: hidden;
+}
+
+.gc-workspace-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--primary) 13%, transparent), transparent 18rem),
+    linear-gradient(120deg, color-mix(in oklch, white 5%, transparent), transparent 45%);
+}
+
+.gc-workspace-intro > * {
+  position: relative;
+}
+
+.gc-composer-collapsed {
+  border-radius: var(--gc-glaze-radius);
+}
+
+.gc-composer-icon {
+  color: var(--primary);
 }
 
 .gc-app-shell article.group,
 .gc-note-card {
   border-color: var(--gc-glaze-border);
-  box-shadow:
-    inset 0 1px 0 var(--gc-glaze-highlight),
-    var(--gc-glaze-shadow);
+  border-radius: var(--gc-glaze-radius);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+}
+
+.gc-app-shell article.group,
+.gc-note-card,
+.gc-composer-collapsed,
+.gc-editor-surface,
+.gc-workspace-intro,
+.gc-nav-row {
+  transition-duration: 170ms;
+  transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gc-app-shell article.group:hover,
+  .gc-note-card:hover,
+  .gc-composer-collapsed:hover {
+    border-color: color-mix(in oklch, var(--primary) 22%, var(--gc-glaze-border));
+    box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow-raised);
+    transform: translateY(-2px);
+  }
+}
+
+.gc-app-shell [data-slot="dialog-content"],
+.gc-app-shell [data-slot="alert-dialog-content"],
+.gc-app-shell [data-slot="sheet-content"],
+.gc-app-shell [data-slot="popover-content"],
+.gc-app-shell [data-slot="dropdown-menu-content"],
+.gc-app-shell [data-slot="select-content"] {
+  background: var(--gc-glaze-surface-strong);
+  border-color: var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow-raised);
+  backdrop-filter: blur(calc(var(--gc-glaze-blur) + 4px)) saturate(1.14);
+  -webkit-backdrop-filter: blur(calc(var(--gc-glaze-blur) + 4px)) saturate(1.14);
+}
+
+.gc-app-shell [data-slot="dialog-content"],
+.gc-app-shell [data-slot="alert-dialog-content"],
+.gc-app-shell [data-slot="popover-content"],
+.gc-app-shell [data-slot="dropdown-menu-content"],
+.gc-app-shell [data-slot="select-content"] {
+  border-radius: var(--gc-glaze-radius);
+}
+
+.gc-app-shell [data-slot="button"]:not(.rounded-full),
+.gc-app-shell [data-slot="input"],
+.gc-app-shell [data-slot="select-trigger"] {
+  border-radius: var(--gc-glaze-radius-sm);
+}
+
+.gc-app-shell [data-slot="input"],
+.gc-app-shell [data-slot="select-trigger"] {
+  background: color-mix(in oklch, var(--background) 58%, transparent);
+  border-color: var(--gc-glaze-border);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight);
+}
+
+.gc-app-shell [data-slot="input"]:focus-visible,
+.gc-app-shell [data-slot="select-trigger"]:focus-visible {
+  border-color: color-mix(in oklch, var(--primary) 32%, var(--gc-glaze-border));
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 9%, transparent);
+}
+
+.gc-workspace-stage > section,
+.gc-workspace-stage > div {
+  background-color: transparent;
+}
+
+.gc-icon-button {
+  border: 1px solid transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gc-icon-button:hover {
+    border-color: var(--gc-glaze-border);
+    background: color-mix(in oklch, var(--muted) 58%, transparent);
+    box-shadow: inset 0 1px 0 var(--gc-glaze-highlight);
+  }
 }
 
 @media (max-width: 767px) {
@@ -120,15 +334,14 @@ body {
     background-attachment: scroll;
   }
 
-  .gc-app-shell > main > header:not(.hidden) {
+  .gc-main-shell::before {
+    inset-left: 0;
+  }
+
+  .gc-mobile-topbar {
     min-height: calc(3.5rem + env(safe-area-inset-top));
     height: calc(3.5rem + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
-  }
-
-  .gc-app-shell > main > header:not(.hidden) button {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
   }
 
   [data-slot="sheet-content"] {
@@ -147,8 +360,12 @@ body {
     min-width: 2.75rem;
   }
 
-  aside nav[aria-label="Notes utilities"] a {
-    min-height: 2.75rem;
+  .gc-workspace-intro {
+    border-radius: 1.1rem;
+  }
+
+  .gc-quick-notes-page {
+    padding-top: 1rem;
   }
 
   .gc-app-shell > main {
@@ -157,11 +374,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gc-app-shell section[aria-label="Create note"] > button,
   .gc-app-shell article.group,
+  .gc-note-card,
   .gc-search-surface,
   .gc-composer-collapsed,
-  .gc-note-card {
+  .gc-editor-surface,
+  .gc-nav-row,
+  .gc-brand-link {
     transform: none !important;
     transition-duration: 0.01ms !important;
   }
