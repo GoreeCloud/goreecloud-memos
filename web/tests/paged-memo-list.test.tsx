@@ -26,7 +26,7 @@ vi.mock("@/components/MemoFilters", () => ({ default: () => <div data-testid="me
 
 const memo = { name: "memos/1", content: "hello", updateTime: undefined } as unknown as Memo;
 const renderList = (
-  renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = () => <div />,
+  renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = (m) => <div key={m.name} />,
   options: { leading?: React.ReactNode } = {},
 ) =>
   render(
