@@ -3,7 +3,8 @@ name: Upgrade Smoke
 # Verifies that a Memos instance carrying real data upgrades cleanly from the
 # previous stable release to the current build, and that a fresh install still
 # starts. These tiers need Docker and take minutes, so they run for relevant
-# pull requests and before releases rather than on every backend change.
+# pull requests and can be invoked manually for GoreeCloud release-readiness
+# validation rather than on every backend change.
 #
 # Fast startup coverage (server.NewServer plus route smoke, SQLite only) lives in
 # the `server` group of backend-tests.yml and runs on every pull request.
@@ -28,9 +29,6 @@ on:
       - ".github/workflows/upgrade-smoke.yml"
 
 concurrency:
-  # Keep this distinct from a caller's concurrency group when the workflow is
-  # invoked from release.yml; sharing a group with cancel-in-progress would
-  # cancel the parent release workflow.
   group: ${{ github.workflow }}-upgrade-smoke-${{ github.ref }}
   cancel-in-progress: true
 
@@ -78,7 +76,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.2.0
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
