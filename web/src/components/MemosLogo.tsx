@@ -28,7 +28,9 @@ function MemosLogo(props: Props) {
               {title}
             </span>
             {!compact && (
-              <span className="block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Quick capture</span>
+              <span className="block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Quick capture
+              </span>
             )}
           </div>
         )}
