@@ -30,31 +30,41 @@ interface ViewContextValue {
 
 const ViewContext = createContext<ViewContextValue | null>(null);
 
-// GoreeCloud Notes v2 intentionally uses a new preference key so installations
-// that previously cached Memos' single-column default receive the new Keep-style
-// responsive wall once. Preferences written after this migration remain stable.
-const LOCAL_STORAGE_KEY = "goreecloud-notes-view-setting-v2";
+const LOCAL_STORAGE_KEY = "goreecloud-memos-view-setting-v1";
+const LEGACY_LOCAL_STORAGE_KEYS = ["goreecloud-notes-view-setting-v2"] as const;
 
 const DEFAULT_VIEW_STATE: ViewState = { orderByTimeAsc: false, compactMode: false, linkPreview: true, maxColumns: 0 };
+
+const normalizeViewState = (data: Partial<ViewState>): ViewState => {
+  const cachedTimeBasis = data.timeBasis ?? data.sortTimeField;
+  const timeBasis = cachedTimeBasis === "create_time" || cachedTimeBasis === "update_time" ? cachedTimeBasis : undefined;
+  const maxColumns = MAX_COLUMNS_VALUES.includes(data.maxColumns as MemoMaxColumns)
+    ? (data.maxColumns as MemoMaxColumns)
+    : DEFAULT_VIEW_STATE.maxColumns;
+
+  return {
+    orderByTimeAsc: Boolean(data.orderByTimeAsc ?? DEFAULT_VIEW_STATE.orderByTimeAsc),
+    timeBasis,
+    compactMode: Boolean(data.compactMode ?? DEFAULT_VIEW_STATE.compactMode),
+    linkPreview: Boolean(data.linkPreview ?? DEFAULT_VIEW_STATE.linkPreview),
+    maxColumns,
+  };
+};
 
 export function ViewProvider({ children }: { children: ReactNode }) {
   const getInitialState = (): ViewState => {
     try {
-      const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (cached) {
-        const data = JSON.parse(cached) as Partial<ViewState>;
-        const cachedTimeBasis = data.timeBasis ?? data.sortTimeField;
-        const timeBasis = cachedTimeBasis === "create_time" || cachedTimeBasis === "update_time" ? cachedTimeBasis : undefined;
-        const maxColumns = MAX_COLUMNS_VALUES.includes(data.maxColumns as MemoMaxColumns)
-          ? (data.maxColumns as MemoMaxColumns)
-          : DEFAULT_VIEW_STATE.maxColumns;
-        return {
-          orderByTimeAsc: Boolean(data.orderByTimeAsc ?? DEFAULT_VIEW_STATE.orderByTimeAsc),
-          timeBasis,
-          compactMode: Boolean(data.compactMode ?? DEFAULT_VIEW_STATE.compactMode),
-          linkPreview: Boolean(data.linkPreview ?? DEFAULT_VIEW_STATE.linkPreview),
-          maxColumns,
-        };
+      const current = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (current) return normalizeViewState(JSON.parse(current) as Partial<ViewState>);
+
+      for (const legacyKey of LEGACY_LOCAL_STORAGE_KEYS) {
+        const legacy = localStorage.getItem(legacyKey);
+        if (!legacy) continue;
+
+        const migrated = normalizeViewState(JSON.parse(legacy) as Partial<ViewState>);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(migrated));
+        localStorage.removeItem(legacyKey);
+        return migrated;
       }
     } catch (error) {
       console.warn("Failed to load view settings from localStorage:", error);
