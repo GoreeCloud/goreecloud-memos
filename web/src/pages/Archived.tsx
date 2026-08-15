@@ -31,7 +31,9 @@ const Archived = () => {
         <div className="min-w-0">
           <div className="gc-eyebrow mb-1">Library</div>
           <h1 className="text-xl font-semibold tracking-[-0.025em]">Archive</h1>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">Keep finished or lower-priority notes out of the way without losing them.</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Keep finished or lower-priority notes out of the way without losing them.
+          </p>
         </div>
       </section>
 

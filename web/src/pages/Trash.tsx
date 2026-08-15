@@ -30,7 +30,9 @@ const Trash = () => {
           <div className="min-w-0">
             <div className="gc-eyebrow mb-1">Recovery</div>
             <h1 className="text-xl font-semibold tracking-[-0.025em]">Trash</h1>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">Notes remain recoverable until you explicitly choose permanent deletion.</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Notes remain recoverable until you explicitly choose permanent deletion.
+            </p>
           </div>
         </div>
         <div className="gc-privacy-badge flex w-fit shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">

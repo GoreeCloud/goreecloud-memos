@@ -69,16 +69,12 @@
 }
 
 .gc-sidebar {
-  background:
-    linear-gradient(180deg, color-mix(in oklch, var(--primary) 4%, transparent), transparent 22rem),
-    var(--gc-glaze-surface);
+  background: linear-gradient(180deg, color-mix(in oklch, var(--primary) 4%, transparent), transparent 22rem), var(--gc-glaze-surface);
 }
 
 .gc-topbar,
 .gc-mobile-topbar {
-  background:
-    linear-gradient(110deg, color-mix(in oklch, var(--primary) 3%, transparent), transparent 42%),
-    var(--gc-glaze-surface);
+  background: linear-gradient(110deg, color-mix(in oklch, var(--primary) 3%, transparent), transparent 42%), var(--gc-glaze-surface);
 }
 
 .gc-nav-row {
@@ -103,9 +99,7 @@
 }
 
 .gc-composer-collapsed {
-  background:
-    linear-gradient(135deg, color-mix(in oklch, var(--primary) 5%, transparent), transparent 44%),
-    var(--gc-glaze-surface-strong);
+  background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 5%, transparent), transparent 44%), var(--gc-glaze-surface-strong);
   box-shadow:
     inset 0 1px 0 var(--gc-glaze-highlight),
     0 2px 5px rgb(18 31 45 / 5%),
@@ -132,14 +126,16 @@
 
 .gc-app-shell article.group [data-slot="button"],
 .gc-note-card [data-slot="button"] {
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
 }
 
 .gc-private-badge,
 .gc-privacy-badge {
-  background:
-    linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, transparent), transparent 60%),
-    var(--gc-glaze-surface-strong);
+  background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, transparent), transparent 60%), var(--gc-glaze-surface-strong);
 }
 
 .gc-sidebar-footer {
