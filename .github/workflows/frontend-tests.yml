@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - ".github/workflows/frontend-tests.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -42,7 +43,21 @@ jobs:
 
       - name: Run lint
         working-directory: web
-        run: pnpm lint
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm lint 2>&1 | tee /tmp/frontend-lint.log
+          status=${PIPESTATUS[0]}
+          if (( status != 0 )); then
+            {
+              echo "### Frontend lint failure"
+              echo
+              echo '```text'
+              tail -n 200 /tmp/frontend-lint.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
 
       - name: Run unit tests
         working-directory: web
