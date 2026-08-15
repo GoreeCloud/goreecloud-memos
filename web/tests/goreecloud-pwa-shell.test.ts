@@ -6,11 +6,11 @@ const indexHtml = readFileSync(join(process.cwd(), "index.html"), "utf8");
 const manifest = JSON.parse(readFileSync(join(process.cwd(), "public/site.webmanifest"), "utf8")) as Record<string, unknown>;
 const glazeCss = readFileSync(join(process.cwd(), "src/themes/goreecloud-glaze.css"), "utf8");
 
-describe("GoreeCloud Notes mobile PWA shell", () => {
+describe("GoreeCloud Memos mobile PWA shell", () => {
   it("keeps browser zoom available and opts into display safe areas", () => {
     expect(indexHtml).toContain('content="width=device-width, initial-scale=1, viewport-fit=cover"');
     expect(indexHtml).not.toContain("user-scalable=no");
-    expect(indexHtml).toContain('name="apple-mobile-web-app-title" content="GoreeCloud Notes"');
+    expect(indexHtml).toContain('name="apple-mobile-web-app-title" content="GoreeCloud Memos"');
   });
 
   it("provides one app-controlled browser theme color", () => {
@@ -28,11 +28,11 @@ describe("GoreeCloud Notes mobile PWA shell", () => {
     expect(glazeCss).toContain("min-width: 2.75rem;");
   });
 
-  it("keeps an explicit standalone GoreeCloud Notes app identity", () => {
+  it("keeps an explicit standalone GoreeCloud Memos app identity", () => {
     expect(manifest).toMatchObject({
       id: "/",
-      name: "GoreeCloud Notes",
-      short_name: "GC Notes",
+      name: "GoreeCloud Memos",
+      short_name: "GC Memos",
       lang: "en",
       dir: "ltr",
       display: "standalone",
