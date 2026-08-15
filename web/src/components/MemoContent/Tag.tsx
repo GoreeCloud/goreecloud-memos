@@ -16,7 +16,7 @@ interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   children?: React.ReactNode;
 }
 
-export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, className, style, node: _node, ...props }) => {
+export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children: _children, className, style, node: _node, ...props }) => {
   const { parentPage } = useMemoViewContext();
   const location = useLocation();
   const navigateTo = useNavigateTo();
@@ -42,7 +42,7 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, classNa
   const handleTagClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // If the tag is clicked in a memo detail page, we should navigate to the memo list page.
+    // If the label is clicked in a note detail page, navigate to the note list page.
     if (location.pathname.startsWith("/m")) {
       const pathname = parentPage || Routes.HOME;
       const searchParams = new URLSearchParams();
@@ -56,7 +56,7 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, classNa
     if (isActive) {
       removeFilter((f: MemoFilter) => f.factor === "tagSearch" && f.value === tag);
     } else {
-      // Remove all existing tag filters first, then add the new one
+      // Labels are single-select in the GoreeCloud Notes workspace.
       removeFilter((f: MemoFilter) => f.factor === "tagSearch");
       addFilter({
         factor: "tagSearch",
@@ -67,13 +67,27 @@ export const Tag: React.FC<TagProps> = ({ "data-tag": dataTag, children, classNa
 
   return (
     <span
-      className={cn(tagStyles.base, "cursor-pointer transition-opacity hover:opacity-75", !bgHex && tagStyles.defaultColor, className)}
+      className={cn(
+        tagStyles.base,
+        "min-h-11 cursor-pointer touch-manipulation rounded-full px-3 py-1.5 text-xs font-medium transition-[opacity,transform] hover:-translate-y-px hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:min-h-0 sm:px-2 sm:py-0.5",
+        !bgHex && tagStyles.defaultColor,
+        className,
+      )}
       style={tagStyle}
       data-tag={tag}
+      aria-label={`Label ${tag}`}
+      role="button"
+      tabIndex={0}
       {...props}
       onClick={handleTagClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
     >
-      {children}
+      {tag}
     </span>
   );
 };

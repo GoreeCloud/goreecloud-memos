@@ -24,32 +24,18 @@ describe("<Placeholder>", () => {
     expect(screen.getByText(DEFAULT_MESSAGES.notFound)).toBeInTheDocument();
   });
 
-  it("overrides the default message when `message` prop is passed", () => {
+  it("overrides the default message when message is passed", () => {
     render(<Placeholder variant="empty" message="Custom copy goes here" />);
     expect(screen.getByText("Custom copy goes here")).toBeInTheDocument();
     expect(screen.queryByText(DEFAULT_MESSAGES.empty)).not.toBeInTheDocument();
   });
 
-  it("renders a 32px sprite tileset at a crisp 2x display scale", () => {
+  it("uses a Glaze UI icon rather than the upstream sprite artwork", () => {
     const { container } = render(<Placeholder variant="empty" />);
-    const viewport = screen.getByTestId("placeholder-sprite");
-    const strip = viewport.firstElementChild;
-
-    expect(viewport).toHaveAttribute("aria-hidden", "true");
-    expect(viewport).toHaveStyle({
-      width: "64px",
-      height: "64px",
-      overflow: "hidden",
-    });
-    expect(strip).toHaveAttribute("src", expect.stringMatching(/(\.svg|data:image\/svg\+xml)/));
-    expect(strip).toHaveAttribute("width", expect.stringMatching(/^(128|160|192)$/));
-    expect(strip).toHaveAttribute("height", "32");
-    expect(["256px", "320px", "384px"]).toContain((strip as HTMLElement).style.width);
-    expect(["steps(4)", "steps(5)", "steps(6)"]).toContain((strip as HTMLElement).style.animationTimingFunction);
-    expect(strip).toHaveStyle({
-      height: "64px",
-      imageRendering: "pixelated",
-    });
+    const icon = screen.getByTestId("placeholder-icon");
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+    expect(icon).toHaveClass("gc-context-icon");
+    expect(screen.queryByTestId("placeholder-sprite")).not.toBeInTheDocument();
     expect(container.firstChild).toHaveClass("max-w-md");
   });
 
@@ -59,10 +45,9 @@ describe("<Placeholder>", () => {
     expect(screen.queryByText(/jgs|Joan Stark/i)).not.toBeInTheDocument();
   });
 
-  it('applies role="status" and aria-live="polite" ONLY when variant=loading', () => {
+  it('applies role="status" and aria-live="polite" only when variant=loading', () => {
     const { rerender, container } = render(<Placeholder variant="empty" />);
     expect(container.querySelector('[role="status"]')).toBeNull();
-
     rerender(<Placeholder variant="loading" />);
     const live = container.querySelector('[role="status"]');
     expect(live).not.toBeNull();

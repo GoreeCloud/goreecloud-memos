@@ -4,6 +4,7 @@ export const ROUTES = {
   ATTACHMENTS: "/attachments",
   INBOX: "/inbox",
   ARCHIVED: "/archived",
+  TRASH: "/trash",
   VIEWS: "/views",
   SETTING: "/setting",
   EXPLORE: "/explore",

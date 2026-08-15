@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useView, ViewProvider } from "@/contexts/ViewContext";
 
-const LOCAL_STORAGE_KEY = "memos-view-setting";
+const LOCAL_STORAGE_KEY = "goreecloud-memos-view-setting-v1";
+const LEGACY_LOCAL_STORAGE_KEY = "goreecloud-notes-view-setting-v2";
 
 const wrapper = ({ children }: { children: ReactNode }) => <ViewProvider>{children}</ViewProvider>;
 
@@ -14,18 +15,18 @@ describe("ViewContext maxColumns setting", () => {
     localStorage.clear();
   });
 
-  it("defaults to a single column", () => {
+  it("defaults to the responsive GoreeCloud Memos card wall", () => {
     const { result } = renderHook(() => useView(), { wrapper });
-    expect(result.current.maxColumns).toBe(1);
+    expect(result.current.maxColumns).toBe(0);
   });
 
   it("updates and persists the column ceiling", () => {
     const { result } = renderHook(() => useView(), { wrapper });
 
-    act(() => result.current.setMaxColumns(0));
+    act(() => result.current.setMaxColumns(2));
 
-    expect(result.current.maxColumns).toBe(0);
-    expect(persisted().maxColumns).toBe(0);
+    expect(result.current.maxColumns).toBe(2);
+    expect(persisted().maxColumns).toBe(2);
   });
 
   it("sets and persists the sort direction explicitly", () => {
@@ -45,11 +46,22 @@ describe("ViewContext maxColumns setting", () => {
     expect(result.current.maxColumns).toBe(2);
   });
 
-  it("falls back to a single column for an invalid persisted value", () => {
+  it("migrates the historical Notes-branded preference without resetting the user", () => {
+    localStorage.setItem(LEGACY_LOCAL_STORAGE_KEY, JSON.stringify({ maxColumns: 3, compactMode: true }));
+
+    const { result } = renderHook(() => useView(), { wrapper });
+
+    expect(result.current.maxColumns).toBe(3);
+    expect(result.current.compactMode).toBe(true);
+    expect(persisted()).toMatchObject({ maxColumns: 3, compactMode: true });
+    expect(localStorage.getItem(LEGACY_LOCAL_STORAGE_KEY)).toBeNull();
+  });
+
+  it("falls back to the responsive grid for an invalid persisted value", () => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ maxColumns: 7 }));
 
     const { result } = renderHook(() => useView(), { wrapper });
 
-    expect(result.current.maxColumns).toBe(1);
+    expect(result.current.maxColumns).toBe(0);
   });
 });

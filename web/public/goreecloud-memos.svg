@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GoreeCloud Memos">
+  <defs>
+    <linearGradient id="g" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#315f8d"/>
+      <stop offset="1" stop-color="#18324d"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="17" fill="url(#g)"/>
+  <path d="M19 15h26a4 4 0 0 1 4 4v19L36 51H19a4 4 0 0 1-4-4V19a4 4 0 0 1 4-4Z" fill="#fbfaf6" fill-opacity=".96"/>
+  <path d="M36 51V41a3 3 0 0 1 3-3h10" fill="none" stroke="#9db7cf" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M23 26h18M23 33h14M23 40h9" fill="none" stroke="#315f8d" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

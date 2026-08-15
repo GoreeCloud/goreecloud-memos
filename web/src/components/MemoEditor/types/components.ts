@@ -29,6 +29,8 @@ export interface MemoEditorProps {
 
 export interface EditorContentProps {
   placeholder?: string;
+  /** Present a leading Markdown H1 through the separate GoreeCloud Notes title field. */
+  separateTitle?: boolean;
   /** Invoked by the in-editor save shortcut (Cmd/Ctrl+Enter). */
   onSubmit: () => void;
   onFiles: (files: File[], position: number) => void;

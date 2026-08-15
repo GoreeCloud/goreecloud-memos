@@ -9,8 +9,9 @@ import { findTagMetadata } from "@/lib/tag";
 import { cn } from "@/lib/utils";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { lazyWithReload } from "@/utils/lazy";
+import { getNoteColor, getNoteColorCardClassName } from "@/utils/noteColor";
 import { isSuperUser } from "@/utils/user";
-import { MemoBody, MemoCommentListView, MemoHeader } from "./components";
+import { GoreeCloudCardActions, MemoBody, MemoCommentListView, MemoHeader } from "./components";
 import { MEMO_CARD_BASE_CLASSES } from "./constants";
 import { useImagePreview } from "./hooks";
 import { computeCommentAmount, MemoViewContext } from "./MemoViewContext";
@@ -32,6 +33,7 @@ const MemoView: React.FC<MemoViewProps> = (props: MemoViewProps) => {
   const isArchived = memoData.state === State.ARCHIVED;
   const readonly = memoData.creator !== currentUser?.name && !isSuperUser(currentUser);
   const parentPage = parentPageProp || "/";
+  const noteColor = getNoteColor(memoData.content);
 
   // Blur content when any tag has blur_content enabled in the current user's tag settings.
   const [showBlurredContent, setShowBlurredContent] = useState(false);
@@ -120,13 +122,20 @@ const MemoView: React.FC<MemoViewProps> = (props: MemoViewProps) => {
 
   const article = (
     <article
-      className={cn(MEMO_CARD_BASE_CLASSES, showCommentPreview ? "mb-0 rounded-b-none" : "mb-2", className)}
+      className={cn(
+        MEMO_CARD_BASE_CLASSES,
+        getNoteColorCardClassName(noteColor),
+        showCommentPreview ? "mb-0 rounded-b-none" : "mb-2",
+        className,
+      )}
       ref={cardRef}
       tabIndex={readonly ? -1 : 0}
     >
       <MemoHeader showCreator={showCreator} showVisibility={showVisibility} showPinned={showPinned} />
 
       <MemoBody compact={compact} />
+
+      <GoreeCloudCardActions />
 
       {previewState.items.length > 0 && (
         <Suspense fallback={null}>

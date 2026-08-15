@@ -1,8 +1,13 @@
 {
-  "name": "Memos",
-  "short_name": "Memos",
-  "description": "An open-source, self-hosted note-taking tool. Capture thoughts instantly. Own them completely.",
+  "id": "/",
+  "name": "GoreeCloud Memos",
+  "short_name": "GC Memos",
+  "description": "Private, self-hosted quick-note capture for GoreeCloud.",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
   "icons": [
+    { "src": "/goreecloud-memos.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
   ],

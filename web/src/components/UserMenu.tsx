@@ -1,14 +1,19 @@
 import {
+  BracesIcon,
   CheckIcon,
   ChevronsUpDownIcon,
+  DownloadIcon,
+  FileTextIcon,
   GlobeIcon,
   InfoIcon,
   LogOutIcon,
   PaletteIcon,
   SettingsIcon,
   SquareUserIcon,
+  Trash2Icon,
   User2Icon,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAppSidebar } from "@/contexts/AppSidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -18,6 +23,7 @@ import { useUpdateUserGeneralSetting } from "@/hooks/useUserQueries";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/router";
 import { getLocaleWithFallback, loadLocale, useTranslate } from "@/utils/i18n";
+import { downloadLibraryExport, type NoteExportFormat } from "@/utils/noteExport";
 import { getThemeWithFallback, loadTheme, THEME_OPTIONS } from "@/utils/theme";
 import { LocaleSearchList } from "./LocalePicker";
 import UserAvatar from "./UserAvatar";
@@ -50,63 +56,48 @@ const UserMenu = (props: Props) => {
 
   const handleLocaleChange = async (locale: Locale) => {
     if (!currentUser) return;
-    // Apply locale immediately for instant UI feedback and persist to localStorage
     loadLocale(locale);
-    // Persist to user settings
-    updateUserGeneralSetting(
-      { generalSetting: { locale }, updateMask: ["locale"] },
-      {
-        onSuccess: () => {
-          refetchSettings();
-        },
-      },
-    );
+    updateUserGeneralSetting({ generalSetting: { locale }, updateMask: ["locale"] }, { onSuccess: () => refetchSettings() });
   };
 
   const handleThemeChange = async (theme: string) => {
     if (!currentUser) return;
-    // Apply theme immediately for instant UI feedback
     loadTheme(theme);
-    // Persist to user settings
-    updateUserGeneralSetting(
-      { generalSetting: { theme }, updateMask: ["theme"] },
-      {
-        onSuccess: () => {
-          refetchSettings();
-        },
-      },
-    );
+    updateUserGeneralSetting({ generalSetting: { theme }, updateMask: ["theme"] }, { onSuccess: () => refetchSettings() });
   };
 
   const handleSignOut = async () => {
-    // First, clear auth state and cache BEFORE doing anything else
     await logout();
 
     try {
-      // Then clear user-specific localStorage items
-      // Preserve app-wide settings (theme, locale, view preferences, tag view settings)
       const keysToPreserve = ["memos-theme", "memos-locale", "memos-view-setting", "tag-view-as-tree"];
       const keysToRemove: string[] = [];
-
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && !keysToPreserve.includes(key)) {
-          keysToRemove.push(key);
-        }
+        if (key && !keysToPreserve.includes(key)) keysToRemove.push(key);
       }
-
       keysToRemove.forEach((key) => localStorage.removeItem(key));
     } catch {
-      // Ignore errors from localStorage operations
+      // Ignore errors from localStorage operations.
     }
 
-    // Always redirect to auth page (use replace to prevent back navigation)
     window.location.replace(Routes.AUTH);
   };
 
   const navigateFromMenu = (path: string) => {
     setMobileOpen(false);
     navigateTo(path);
+  };
+
+  const handleLibraryExport = async (format: NoteExportFormat) => {
+    if (!currentUser?.name) return;
+    const toastId = toast.loading(`Preparing ${format === "markdown" ? "Markdown" : "JSON"} export…`);
+    try {
+      const count = await downloadLibraryExport(currentUser.name, format);
+      toast.success(`Exported ${count} ${count === 1 ? "note" : "notes"}`, { id: toastId });
+    } catch {
+      toast.error("Unable to export notes", { id: toastId });
+    }
   };
 
   return (
@@ -121,7 +112,7 @@ const UserMenu = (props: Props) => {
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="relative shrink-0">
             {currentUser?.avatarUrl ? (
-              <UserAvatar className="size-6 rounded-md" avatarUrl={currentUser?.avatarUrl} />
+              <UserAvatar className="size-6 rounded-md" avatarUrl={currentUser.avatarUrl} />
             ) : (
               <User2Icon className="mx-auto size-5 text-muted-foreground" />
             )}
@@ -178,6 +169,26 @@ const UserMenu = (props: Props) => {
             ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <DownloadIcon className="size-4 text-muted-foreground" />
+            Export notes
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => void handleLibraryExport("markdown")}>
+              <FileTextIcon className="size-4 text-muted-foreground" />
+              Markdown
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => void handleLibraryExport("json")}>
+              <BracesIcon className="size-4 text-muted-foreground" />
+              JSON
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuItem onClick={() => navigateFromMenu(Routes.TRASH)}>
+          <Trash2Icon className="size-4 text-muted-foreground" />
+          Trash
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateFromMenu(Routes.ABOUT)}>
           <InfoIcon className="size-4 text-muted-foreground" />
           {t("common.about")}

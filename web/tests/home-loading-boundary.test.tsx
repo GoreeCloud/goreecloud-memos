@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Home from "@/pages/Home";
 
@@ -52,10 +52,15 @@ vi.mock("@/utils/i18n", () => ({
 }));
 
 describe("<Home>", () => {
-  it("renders the editor and memo cards synchronously without blank placeholders", () => {
+  it("renders note cards immediately and expands the quick composer on demand", () => {
     render(<Home />);
 
-    expect(screen.getByTestId("memo-editor")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /take a note/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("memo-editor")).not.toBeInTheDocument();
     expect(screen.getByTestId("memo-view")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /take a note/i }));
+
+    expect(screen.getByTestId("memo-editor")).toBeInTheDocument();
   });
 });

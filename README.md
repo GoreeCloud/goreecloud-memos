@@ -1,82 +1,65 @@
-> ✨ Featured Sponsor: [CodeRabbit](https://coderabbit.link/usememos) — Cut code review time & bugs in half, instantly.
+# GoreeCloud Memos
 
-# Memos
+GoreeCloud Memos is the GoreeCloud-maintained fork of [Memos](https://github.com/usememos/memos) for **lightweight, private quick-note capture**.
 
-<img align="right" height="96px" src="https://raw.githubusercontent.com/usememos/.github/refs/heads/main/assets/logo-rounded.png" alt="Memos" />
+It is intentionally focused on fast capture, simple retrieval, labels, pinning, Archive and recoverable Trash, attachments where useful, portable export, responsive/PWA use, and a polished GoreeCloud **Glaze UI** experience.
 
-Memos is an open-source, self-hosted note-taking app built for quick capture. It is Markdown-native, lightweight, and keeps your data under your control.
+GoreeCloud Memos and [GoreeCloud Notes](https://github.com/GoreeCloud/goreecloud-notes) are separate, complementary products. Memos is the quick-capture product; Notes is the larger notes, knowledge-management, research, and long-term productivity product.
 
-[![Home](https://img.shields.io/badge/🏠-usememos.com-blue?style=flat-square)](https://usememos.com)
-[![Live Demo](https://img.shields.io/badge/✨-Try%20Demo-orange?style=flat-square)](https://demo.usememos.com/)
-[![Docs](https://img.shields.io/badge/📚-Documentation-green?style=flat-square)](https://usememos.com/docs)
-[![Discord](https://img.shields.io/badge/💬-Discord-5865f2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/tfPJa4UmAv)
-[![Docker Pulls](https://img.shields.io/docker/pulls/neosmemo/memos?style=flat-square&logo=docker)](https://hub.docker.com/r/neosmemo/memos)
+## Product principles
 
-<img src="https://raw.githubusercontent.com/usememos/.github/refs/heads/main/assets/demo.png" alt="Memos Demo Screenshot" height="512" />
+- **Quick capture first.** Opening the app and writing should stay low-friction.
+- **Private by default.** GoreeCloud-specific behavior favors authenticated, private note creation and avoids unnecessary public/social workflows.
+- **Own the data.** Markdown-friendly content, documented exports, attachments, and persistence are treated as portable user data rather than disposable application state.
+- **Glaze UI throughout.** Authentication, navigation, content surfaces, empty states, settings, About, light/dark modes, reduced-motion, and reduced-transparency behavior should feel consistently GoreeCloud.
+- **Maintain the fork responsibly.** Preserve the upstream relationship, MIT license, required attribution, security fixes, compatibility knowledge, and avoid unnecessary divergence.
+- **Keep the scope narrow.** Deep notebooks, knowledge graphs, research workspaces, extensive revision systems, and Evernote-class knowledge management belong primarily to GoreeCloud Notes.
 
-## Features
+## Current capabilities
 
-- **Capture quickly** — A timeline-first interface keeps note-taking simple: open, write, and move on.
-- **Own your data** — Self-host Memos on your infrastructure with no telemetry.
-- **Deploy anywhere** — Run a single Go binary or Docker container with SQLite, MySQL, or PostgreSQL.
-- **Integrate freely** — Build on the REST and gRPC APIs or adapt the MIT-licensed source to your needs.
+The GoreeCloud development line includes the quick composer, Markdown note content and checklists, pinned notes, labels, search and filtering, Archive, recoverable Trash, per-note colors, attachments, portable export, private-by-default behavior, responsive/PWA support, Glaze UI presentation, hardened container packaging, and restart-persistence validation.
 
-## Quick Start
+Historical Notes-branded RC1–RC3 work remains in Git history as engineering, migration, and provenance evidence. That history does not define the current product identity: this repository is now GoreeCloud Memos.
 
-Want to explore Memos first? Open the [live demo](https://demo.usememos.com/).
+## Repository and upstream
 
-### Docker (Recommended)
+- GoreeCloud repository: `GoreeCloud/goreecloud-memos`
+- Active development branch: `feature/goreecloud-foundation`
+- Upstream repository: `usememos/memos`
+- License: MIT; upstream copyright and license obligations remain preserved
+- Target GoreeCloud address: `https://memos.goreecloud.com`
 
-```bash
-docker run -d \
-  --name memos \
-  -p 5230:5230 \
-  -v ~/.memos:/var/opt/memos \
-  neosmemo/memos:stable
-```
+The target hostname is a deployment goal, not proof that the production cutover has already occurred. DNS, Caddy, TLS, monitoring, backup coverage, application data, and rollback must be validated before retiring the historical Notes-branded publication path.
 
-Open `http://localhost:5230` and start writing.
+## Development
 
-### Native Binary
+The frontend uses Node.js 24 and pnpm 11.0.1. The backend is written in Go.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/usememos/memos/main/scripts/install.sh | sh
+# Backend
+ go run ./cmd/memos --port 8081
+
+# Frontend, in a second terminal
+cd web
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-### Other Installation Methods
+The frontend development server runs on `http://localhost:3001` and proxies API requests to the backend on port `8081`.
 
-- **Docker Compose** — Recommended for production deployments.
-- **Kubernetes** — Helm charts and manifests are available.
-- **Build from source** — Best for development and customization.
+Before proposing a release, run the applicable lint, unit, production-build, container, persistence, export, attachment, backup/restore, and deployment checks. Source-level success must not be treated as proof of a production deployment.
 
-See the [deployment guide](https://usememos.com/docs/deploy) for detailed instructions.
+## GoreeCloud deployment package
 
-## Web Clipper
+`deploy/goreecloud/` contains the GoreeCloud-oriented Docker Compose package and supporting configuration examples. It is a source-controlled deployment reference, not authorization to modify a live host.
 
-Save pages, selected text, and images directly to your Memos instance with the official [Memos Web Clipper](https://github.com/usememos/web-clipper). The extension is available for [Chrome](https://chromewebstore.google.com/detail/memos-web-clipper/nebaoebnljalfegiidibihhkebeiklbl) and [Firefox](https://addons.mozilla.org/en-US/firefox/addon/memos-web-clipper/), and lets you review each clip, choose its visibility, and customize its Markdown format before saving.
+Production changes must follow GoreeCloud private-service publication, Docker, backup/recovery, network-exposure, secret-separation, and validation requirements.
 
-## Contributing
+## Security
 
-Contributions of all kinds are welcome, including bug reports, feature suggestions, pull requests, documentation, and translations.
+See [SECURITY.md](SECURITY.md). Do not commit passwords, tokens, private keys, production secrets, private user data, or reusable credentials.
 
-- [Report bugs](https://github.com/usememos/memos/issues/new?template=bug_report.md)
-- [Suggest features](https://github.com/usememos/memos/issues/new?template=feature_request.md)
-- [Submit pull requests](https://github.com/usememos/memos/pulls)
-- [Improve documentation](https://github.com/usememos/dotcom)
-- [Help with translations](https://github.com/usememos/memos/tree/main/web/src/locales)
+## Attribution
 
-## Sponsors
-
-- [**CodeRabbit** — Cut code review time and bugs in half](https://coderabbit.link/usememos)
-- [**SSD Nodes** — Affordable VPS hosting for self-hosters](https://ssdnodes.com/?utm_source=memos&utm_medium=sponsor)
-- [**TestMu AI** — The world’s first full-stack Agentic AI Quality Engineering platform](https://www.testmuai.com/?utm_medium=sponsor&utm_source=memos)
-
-Love Memos? [Sponsor us on GitHub](https://github.com/sponsors/usememos) to help keep the project growing!
-
-## License
-
-Memos is open-source software licensed under the [MIT License](LICENSE). See our [Privacy Policy](https://usememos.com/privacy) for details on data handling.
-
----
-
-**[Website](https://usememos.com)** • **[Documentation](https://usememos.com/docs)** • **[Demo](https://demo.usememos.com/)** • **[Discord](https://discord.gg/tfPJa4UmAv)** • **[X/Twitter](https://x.com/usememos)**
+GoreeCloud Memos derives from the open-source Memos project. GoreeCloud branding and Glaze UI do not remove upstream authorship or legal attribution. See [LICENSE](LICENSE) and the upstream project at <https://github.com/usememos/memos>.

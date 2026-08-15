@@ -89,6 +89,7 @@ const PreferencesSection = () => {
       theme: "system",
       saveMediaMetadata: false,
     });
+  const useGoreeCloudEnglishTerminology = setting.locale === "en" || setting.locale === "en-GB";
 
   return (
     <SettingSection title={t("setting.preference.label")}>
@@ -105,14 +106,22 @@ const PreferencesSection = () => {
       </SettingGroup>
 
       <SettingGroup
-        title={t("setting.preference.memo-defaults-title")}
-        description={t("setting.preference.memo-defaults-description")}
+        title={useGoreeCloudEnglishTerminology ? "Note defaults" : t("setting.preference.memo-defaults-title")}
+        description={
+          useGoreeCloudEnglishTerminology
+            ? "Set the defaults used when creating new notes."
+            : t("setting.preference.memo-defaults-description")
+        }
         showSeparator
       >
         <SettingList>
           <SettingListItem
-            label={t("setting.preference.default-memo-visibility")}
-            description={t("setting.preference.default-memo-visibility-description")}
+            label={useGoreeCloudEnglishTerminology ? "Default note visibility" : t("setting.preference.default-memo-visibility")}
+            description={
+              useGoreeCloudEnglishTerminology
+                ? "Visibility applied to newly created notes unless changed in the editor."
+                : t("setting.preference.default-memo-visibility-description")
+            }
           >
             <Select
               value={setting.memoVisibility || "PRIVATE"}

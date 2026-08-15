@@ -5,12 +5,7 @@ import PagedMemoList from "@/components/PagedMemoList";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 
 const view = vi.hoisted(() => ({ maxColumns: 1 as 0 | 1 | 2 | 3, compactMode: false }));
-const feed = vi.hoisted(() => ({
-  memos: [] as unknown[],
-  hasNextPage: false,
-  isLoading: false,
-  fetchNextPage: vi.fn(async () => undefined),
-}));
+const feed = vi.hoisted(() => ({ memos: [] as unknown[], hasNextPage: false, isLoading: false, fetchNextPage: vi.fn(async () => undefined) }));
 const readiness = vi.hoisted(() => ({ userSettings: true }));
 
 vi.mock("@/hooks/useMemoQueries", () => ({
@@ -22,35 +17,16 @@ vi.mock("@/hooks/useMemoQueries", () => ({
     isLoading: feed.isLoading,
   }),
 }));
-
-vi.mock("@/contexts/MemoFilterContext", () => ({
-  useMemoFilterContext: () => ({ filters: [] }),
-}));
-
-vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ isUserSettingsInitialized: readiness.userSettings }),
-}));
-
-vi.mock("@/contexts/ViewContext", () => ({
-  useView: () => view,
-}));
-
-vi.mock("@/utils/i18n", () => ({
-  useTranslate: () => (key: string) => (key === "message.no-data" ? "No data found." : key),
-}));
-
-vi.mock("@/components/MemoContent/MentionResolutionContext", () => ({
-  MentionResolutionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
-vi.mock("@/components/MemoFilters", () => ({
-  default: () => <div data-testid="memo-filters" />,
-}));
+vi.mock("@/contexts/MemoFilterContext", () => ({ useMemoFilterContext: () => ({ filters: [] }) }));
+vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => ({ isUserSettingsInitialized: readiness.userSettings }) }));
+vi.mock("@/contexts/ViewContext", () => ({ useView: () => view }));
+vi.mock("@/utils/i18n", () => ({ useTranslate: () => (key: string) => (key === "message.no-data" ? "No data found." : key) }));
+vi.mock("@/components/MemoContent/MentionResolutionContext", () => ({ MentionResolutionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
+vi.mock("@/components/MemoFilters", () => ({ default: () => <div data-testid="memo-filters" /> }));
 
 const memo = { name: "memos/1", content: "hello", updateTime: undefined } as unknown as Memo;
-
 const renderList = (
-  renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = () => <div />,
+  renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = (m) => <div key={m.name} />,
   options: { leading?: React.ReactNode } = {},
 ) =>
   render(
@@ -74,9 +50,7 @@ describe("<PagedMemoList>", () => {
     feed.memos = [memo];
     readiness.userSettings = false;
     const renderer = vi.fn((m: Memo) => <div key={m.name}>{m.content}</div>);
-
     renderList(renderer);
-
     expect(renderer).not.toHaveBeenCalled();
     expect(screen.queryByText("hello")).not.toBeInTheDocument();
   });
@@ -84,9 +58,7 @@ describe("<PagedMemoList>", () => {
   it("renders fetched memo content once privacy settings settle", () => {
     feed.memos = [memo];
     const renderer = vi.fn((m: Memo) => <div key={m.name}>{m.content}</div>);
-
     renderList(renderer);
-
     expect(renderer).toHaveBeenCalled();
     expect(screen.getByText("hello")).toBeInTheDocument();
   });
@@ -97,10 +69,8 @@ describe("<PagedMemoList>", () => {
       feed.memos = [memo];
       feed.hasNextPage = true;
       readiness.userSettings = false;
-
       renderList();
       await act(async () => vi.advanceTimersByTimeAsync(1000));
-
       expect(feed.fetchNextPage).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
@@ -112,10 +82,8 @@ describe("<PagedMemoList>", () => {
     try {
       feed.memos = [memo];
       feed.hasNextPage = true;
-
       renderList();
       await act(async () => vi.advanceTimersByTimeAsync(200));
-
       expect(feed.fetchNextPage).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
@@ -127,7 +95,6 @@ describe("<PagedMemoList>", () => {
     try {
       feed.isLoading = true;
       const { container } = renderList();
-
       expect(container.querySelector(".animate-spin")).not.toBeInTheDocument();
       await act(async () => vi.advanceTimersByTimeAsync(249));
       expect(container.querySelector(".animate-spin")).not.toBeInTheDocument();
@@ -140,25 +107,22 @@ describe("<PagedMemoList>", () => {
 
   it("keeps route-owned leading content visible while memos load", () => {
     feed.isLoading = true;
-
     renderList(undefined, { leading: <div data-testid="leading-content" /> });
-
     expect(screen.getByTestId("leading-content")).toBeInTheDocument();
   });
 
-  it("uses the tile sprite Placeholder for the empty state", () => {
+  it("uses the Glaze UI Placeholder for the empty state", () => {
     renderList();
-
     expect(screen.getByText("No data found.")).toBeInTheDocument();
-    expect(screen.getByTestId("placeholder-sprite")).toBeInTheDocument();
+    expect(screen.getByTestId("placeholder-icon")).toBeInTheDocument();
+    expect(screen.queryByTestId("placeholder-sprite")).not.toBeInTheDocument();
   });
 
   it("shows the empty state below route-owned leading content", () => {
     renderList(undefined, { leading: <div data-testid="leading-content" /> });
-
     expect(screen.getByTestId("leading-content")).toBeInTheDocument();
     expect(screen.getByText("No data found.")).toBeInTheDocument();
-    expect(screen.getByTestId("placeholder-sprite")).toBeInTheDocument();
+    expect(screen.getByTestId("placeholder-icon")).toBeInTheDocument();
   });
 
   it("places leading content and the empty state in the first grid column", () => {
@@ -166,7 +130,6 @@ describe("<PagedMemoList>", () => {
     const widthSpy = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1200);
     try {
       renderList(undefined, { leading: <div data-testid="leading-content" /> });
-
       const leadingTile = screen.getByText("No data found.").closest(".absolute");
       expect(leadingTile).not.toBeNull();
       expect(leadingTile).toContainElement(screen.getByTestId("leading-content"));
@@ -194,7 +157,6 @@ describe("<PagedMemoList>", () => {
     });
 
     it("respects the compact setting in the narrow-width fallback even when columns are allowed", () => {
-      // jsdom measures 0px, so the flow fallback renders and behaves exactly like maxColumns = 1.
       view.maxColumns = 0;
       const renderer = vi.fn((m: Memo) => <div key={m.name} />);
       renderList(renderer);

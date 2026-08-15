@@ -4,12 +4,13 @@ import { useInstance } from "@/contexts/InstanceContext";
 import { ROUTES } from "@/router/routes";
 import { useTranslate } from "@/utils/i18n";
 import AuthFooter from "./AuthFooter";
+import GoreeCloudMemosMark from "./GoreeCloudMemosMark";
 
 interface Props {
   chip?: React.ReactNode;
   title: string;
   subtitle?: string;
-  // Hide the explore band on pages that shouldn't offer an exit (e.g. first-run setup).
+  // Hide the explore band on pages that should not offer an exit, such as first-run setup.
   hideExplore?: boolean;
   children: React.ReactNode;
 }
@@ -20,7 +21,6 @@ export const AuthChip = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-// Centered icon + title + description block for states where a form cannot be shown.
 export const AuthEmptyState = ({
   icon,
   title,
@@ -40,7 +40,6 @@ export const AuthEmptyState = ({
   </div>
 );
 
-// "Already have an account? Sign in" style prompt for hopping between auth pages.
 export const AuthLinkPrompt = ({ prompt, to, label }: { prompt: string; to: string; label: string }) => (
   <p className="mt-5 text-center text-sm text-muted-foreground">
     {prompt}{" "}
@@ -56,21 +55,25 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
   const t = useTranslate();
   const { generalSetting, profile } = useInstance();
   const showExplore = Boolean(profile.instanceUrl) && !hideExplore;
+  const productTitle = generalSetting.customProfile?.title || "GoreeCloud Memos";
 
   return (
     <div className="min-h-svh w-full flex flex-col items-center px-4 py-4 sm:py-8">
       <div className="w-full grow flex flex-col justify-center items-center">
-        <div className="w-90 max-w-full rounded-xl border border-border bg-card p-7 shadow-sm">
-          <div className="mb-6 flex items-center gap-2">
-            <img className="h-6 w-auto rounded-full" src={generalSetting.customProfile?.logoUrl || "/logo.webp"} alt="" />
-            <span className="text-sm font-semibold text-foreground">{generalSetting.customProfile?.title || "Memos"}</span>
+        <div className="gc-route-hero w-90 max-w-full rounded-2xl p-7 shadow-md">
+          <div className="mb-6 flex items-center gap-2.5">
+            <GoreeCloudMemosMark className="size-7" logoUrl={generalSetting.customProfile?.logoUrl} />
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-semibold tracking-[-0.01em] text-foreground">{productTitle}</span>
+              <span className="block text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Quick capture</span>
+            </div>
           </div>
           {chip && <div className="mb-2">{chip}</div>}
           <h1 className="text-lg font-semibold tracking-tight text-foreground">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
           <div className="mt-6 w-full">{children}</div>
           {showExplore && (
-            <div className="-mx-7 -mb-7 mt-6 rounded-b-xl border-t border-border bg-background/60">
+            <div className="-mx-7 -mb-7 mt-6 rounded-b-2xl border-t border-border bg-background/45">
               <Link
                 to={ROUTES.EXPLORE}
                 className="group flex items-center justify-center gap-2 px-7 py-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"

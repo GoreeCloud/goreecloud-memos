@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { convertVisibilityFromString } from "@/utils/memo";
-import { AudioRecorderPanel, EditorContent, EditorMetadata, FocusModeOverlay, TimestampPopover } from "./components";
+import { AudioRecorderPanel, EditorContent, EditorMetadata, FocusModeOverlay, NoteTitleField, TimestampPopover } from "./components";
 import { FOCUS_MODE_STYLES, FORMATTING_TOOLBAR_STORAGE_KEY } from "./constants";
 import {
   splitInlineLocalFiles,
@@ -289,7 +289,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-lg border border-border gap-2",
+          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-xl border border-border gap-2",
           FOCUS_MODE_STYLES.transition,
           isFocusMode && cn(FOCUS_MODE_STYLES.container.base, FOCUS_MODE_STYLES.container.spacing),
           !isFocusMode && className,
@@ -308,8 +308,18 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
           </div>
         )}
 
-        {/* Editor content grows to fill available space in focus mode */}
-        <EditorContent ref={editorRef} placeholder={placeholder} onSubmit={handleSave} onFiles={handleInsertImages} />
+        {/* A top-level note title maps to the leading Markdown H1. Replies keep
+            the upstream single-document editor because they do not need titles. */}
+        {!parentMemoName && <NoteTitleField onEnter={() => editorRef.current?.focus()} />}
+
+        {/* Editor content grows to fill available space in focus mode. */}
+        <EditorContent
+          ref={editorRef}
+          placeholder={placeholder}
+          separateTitle={!parentMemoName}
+          onSubmit={handleSave}
+          onFiles={handleInsertImages}
+        />
 
         {isAudioRecorderOpen && (audioRecorder.isBusy || isTranscribingAudio) && (
           <AudioRecorderPanel

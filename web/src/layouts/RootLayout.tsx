@@ -9,6 +9,7 @@ import AppSidebar, {
   SidebarResizeHandle,
   useSidebarWidth,
 } from "@/components/AppSidebar";
+import GoreeCloudMemosHeader from "@/components/GoreeCloudMemosHeader";
 import { AppSidebarProvider } from "@/contexts/AppSidebarContext";
 import { useInstance } from "@/contexts/InstanceContext";
 import { MemoFilterProvider, useMemoFilterContext } from "@/contexts/MemoFilterContext";
@@ -50,7 +51,6 @@ const RootLayoutContent = () => {
   useEffect(() => {
     const prevPathname = prevPathnameRef.current;
 
-    // When the route changes and there is no filter in the search params, remove all filters.
     if (prevPathname !== undefined && prevPathname !== pathname && !searchParams.has("filter")) {
       removeFilter(() => true);
     }
@@ -58,9 +58,6 @@ const RootLayoutContent = () => {
     prevPathnameRef.current = pathname;
   }, [pathname, searchParams, removeFilter]);
 
-  // Private instance (no InstanceURL configured): anonymous visitors may only reach
-  // share links; everything else redirects to the sign-in page, preserving the intended
-  // destination. Public instances keep the open Explore behavior for logged-out users.
   if (shouldGatePrivateInstance({ isPrivateInstance: !profile.instanceUrl, isAuthenticated: !!currentUser, pathname })) {
     const redirect = `${pathname}${location.search}${location.hash}`;
     return <Navigate to={buildAuthRoute({ redirect })} replace />;
@@ -68,9 +65,9 @@ const RootLayoutContent = () => {
 
   return (
     <AppSidebarProvider>
-      <div ref={shellRef} className="min-h-full w-full bg-background" style={{ [SIDEBAR_WIDTH_VAR]: `${sidebarWidth}px` } as CSSProperties}>
+      <div ref={shellRef} className="gc-app-shell min-h-full w-full" style={{ [SIDEBAR_WIDTH_VAR]: `${sidebarWidth}px` } as CSSProperties}>
         {md && (
-          <div className="fixed inset-y-0 left-0 z-30 w-(--app-sidebar-width) border-r border-border/70">
+          <div className="gc-desktop-sidebar-frame fixed inset-y-0 left-0 z-30 w-(--app-sidebar-width)">
             <AppSidebar />
             <SidebarResizeHandle
               width={sidebarWidth}
@@ -82,10 +79,13 @@ const RootLayoutContent = () => {
           </div>
         )}
         <MobileAppSidebar />
-        <main className="flex min-h-full w-full min-w-0 flex-col items-center md:pl-(--app-sidebar-width)">
+        <main className="gc-main-shell flex min-h-full w-full min-w-0 flex-col items-center md:pl-(--app-sidebar-width)">
           <MobileAppHeader />
+          <GoreeCloudMemosHeader />
           {profile.demo && <DemoBanner />}
-          <Outlet />
+          <div className="gc-workspace-stage w-full flex-1">
+            <Outlet />
+          </div>
         </main>
         <QuickFindDialog />
       </div>

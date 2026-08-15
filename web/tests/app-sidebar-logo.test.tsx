@@ -1,9 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render as testingLibraryRender, screen } from "@testing-library/react";
+import { render as testingLibraryRender, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppSidebar, { MobileAppHeader } from "@/components/AppSidebar";
-import { SIDEBAR_SECTION_ACTION_BUTTON_CLASSES, SIDEBAR_SECTION_ACTION_ICON_CLASSES } from "@/components/AppSidebar/SidebarSection";
 
 const authState = vi.hoisted(() => ({
   currentUser: { name: "users/test" } as { name: string } | undefined,
@@ -30,7 +29,7 @@ vi.mock("@/components/StatisticsView", () => ({
 }));
 
 vi.mock("@/components/AppSidebar/TagsSection", () => ({
-  default: () => <div>Tags</div>,
+  default: () => <div>Labels</div>,
 }));
 
 vi.mock("@/contexts/AppSidebarContext", () => ({
@@ -89,6 +88,7 @@ vi.mock("@/hooks/useUserQueries", () => ({
   },
   useMemoViews: () => ({ data: authState.memoViews }),
   useNotifications: () => ({ data: [] }),
+  useTagCounts: () => ({ data: {} }),
   useUser: () => ({ data: undefined }),
 }));
 
@@ -105,27 +105,49 @@ const render = (ui: Parameters<typeof testingLibraryRender>[0]) =>
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{ui}</QueryClientProvider>,
   );
 
-describe("App sidebar logo", () => {
+describe("GoreeCloud Notes sidebar shell", () => {
   beforeEach(() => {
     authState.currentUser = { name: "users/test" };
     authState.memoViews = [];
     sidebarState.memoScope = "home";
   });
 
-  it("navigates home instead of opening a global editor", () => {
+  it("uses a dedicated notes workspace instead of the Memos calendar sidebar", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    const logo = screen.getByRole("link", { name: "Memos logo" });
-    expect(logo).toHaveAttribute("href", "/");
-    expect(screen.queryByRole("button", { name: /create.*memos/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("common.calendar")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Memos logo" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("navigation", { name: "Notes navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Notes" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Archive" })).toHaveAttribute("href", "/archived");
+    expect(screen.getByRole("link", { name: "Trash" })).toHaveAttribute("href", "/trash");
+    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.getByText("Labels")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("href", "/attachments");
+    expect(screen.getByRole("link", { name: "Inbox" })).toHaveAttribute("href", "/inbox");
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/setting");
+    expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
+    expect(screen.queryByText("common.views")).not.toBeInTheDocument();
   });
 
-  it("shows the compact public navigation for a guest", () => {
+  it.each([
+    ["/archived", "Archive"],
+    ["/trash", "Trash"],
+  ])("marks %s as the active Notes destination", (path, label) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <AppSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
+  });
+
+  it("preserves the upstream public navigation for a guest", () => {
     authState.currentUser = undefined;
     render(
       <MemoryRouter initialEntries={["/explore"]}>
@@ -136,165 +158,40 @@ describe("App sidebar logo", () => {
     expect(screen.getByRole("link", { name: "common.explore" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "common.about" })).toHaveAttribute("href", "/about");
     expect(screen.getByRole("link", { name: "common.sign-in-to-memos" }).closest("footer")).not.toBeNull();
-    expect(screen.queryByRole("link", { name: "common.home" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Notes" })).not.toBeInTheDocument();
   });
 
-  it("falls back to the library content on a route without a specific tenant", () => {
-    render(
-      <MemoryRouter initialEntries={["/404"]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText("Calendar")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "common.statistics" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "common.statistics" })).not.toBeInTheDocument();
-    expect(screen.getByText("common.views")).toBeInTheDocument();
-    expect(screen.getByText("Tags")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "common.attachments" })).toHaveAttribute("href", "/attachments");
-    expect(screen.getByRole("link", { name: "common.inbox" })).toHaveAttribute("href", "/inbox");
-    expect(screen.queryByRole("link", { name: "common.home" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "common.about" })).not.toBeInTheDocument();
-    expect(screen.getByText("User menu").closest("footer")).not.toBeNull();
-  });
-
-  it("uses a visitor sidebar for a guest on a route without contextual content", () => {
-    authState.currentUser = undefined;
-    render(
-      <MemoryRouter initialEntries={["/404"]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole("link", { name: "common.explore" })).toHaveAttribute("href", "/explore");
-    expect(screen.queryByRole("link", { name: "common.home" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "common.attachments" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "common.inbox" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "common.about" })).toHaveAttribute("href", "/about");
-    expect(screen.getByRole("link", { name: "common.sign-in-to-memos" }).closest("footer")).not.toBeNull();
-  });
-
-  it("marks About active for a guest on the About page", () => {
-    authState.currentUser = undefined;
-    render(
-      <MemoryRouter initialEntries={["/about"]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByRole("link", { name: "common.about" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText("Calendar")).toBeInTheDocument();
-  });
-
-  it("uses a compact scope menu and places views below the calendar", async () => {
-    render(
-      <MemoryRouter initialEntries={["/"]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    const calendar = screen.getByText("Calendar");
-    const views = screen.getByText("common.views");
-    expect(screen.getByRole("region", { name: "common.statistics" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "common.views", level: 2 })).toBeInTheDocument();
-    expect(calendar.compareDocumentPosition(views) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    const viewOptions = screen.getByRole("button", { name: "memo.view-options" });
-    const createView = screen.getByRole("button", { name: "common.create" });
-    expect(viewOptions.compareDocumentPosition(createView) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(createView).toHaveClass(...SIDEBAR_SECTION_ACTION_BUTTON_CLASSES.split(" "));
-    expect(createView.querySelector("svg")).toHaveClass(SIDEBAR_SECTION_ACTION_ICON_CLASSES);
-    const tasksView = screen.getByRole("button", { name: "common.tasks" });
-    expect(tasksView).toHaveTextContent("common.tasks");
-    expect(tasksView).not.toHaveTextContent("☑️");
-    expect(screen.queryByRole("button", { name: "common.all" })).not.toBeInTheDocument();
-
-    const scopeTrigger = screen.getByRole("button", { name: "common.home" });
-    fireEvent.click(scopeTrigger);
-    expect(await screen.findByRole("menuitem", { name: "common.home" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "common.explore" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "common.archived" })).toBeInTheDocument();
-  });
-
-  it("uses compact text-only actions for a saved view", async () => {
-    authState.memoViews = [{ name: "memoViews/1", title: "testgp" }];
-    render(
-      <MemoryRouter initialEntries={["/"]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "common.edit testgp" }));
-
-    const menu = await screen.findByRole("menu");
-    expect(menu).toHaveAttribute("data-size", "sm");
-    expect(menu).toHaveClass("min-w-24", "p-0.5");
-    const editItem = screen.getByRole("menuitem", { name: "common.edit" });
-    const deleteItem = screen.getByRole("menuitem", { name: "common.delete" });
-    expect(editItem.querySelector("svg")).toBeNull();
-    expect(deleteItem.querySelector("svg")).toBeNull();
-    expect(deleteItem).toHaveAttribute("data-variant", "destructive");
-  });
-
-  it("collapses inactive global destinations and defaults the scope icon to Home", async () => {
+  it("keeps the GoreeCloud shell across authenticated library routes", () => {
     render(
       <MemoryRouter initialEntries={["/attachments"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    const scopeTrigger = screen.getByRole("button", { name: "common.home" });
-    expect(scopeTrigger).toHaveClass("size-[30px]");
-    expect(scopeTrigger).not.toHaveTextContent("common.home");
-
-    const inbox = screen.getByRole("link", { name: "common.inbox" });
-    expect(inbox).toHaveClass("size-[30px]");
-    expect(inbox).not.toHaveTextContent("common.inbox");
-
-    const attachments = screen.getByRole("link", { name: "common.attachments" });
-    expect(attachments).toHaveAttribute("aria-current", "page");
-    expect(attachments).toHaveTextContent("common.attachments");
-
-    fireEvent.click(scopeTrigger);
-    expect(await screen.findByText("Calendar")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "common.home" })).toHaveTextContent("common.home");
-    expect(screen.queryByRole("menuitem", { name: "common.explore" })).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Notes navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Notes library" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
   });
 
-  it.each([
-    ["/attachments", "common.attachments"],
-    ["/inbox", "common.inbox"],
-    ["/setting", "common.basic"],
-    ["/u/test", "common.profile"],
-  ])("labels the sidebar content section on %s", (path, label) => {
+  it("uses the GoreeCloud Notes settings shell on Settings", () => {
     render(
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={["/setting"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { name: label, level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to Notes" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("navigation", { name: "Personal settings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My account" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Preferences" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Labels" })).toHaveAttribute("href", "/setting#tags");
+    expect(screen.queryByRole("heading", { name: "common.basic", level: 2 })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Notes navigation" })).not.toBeInTheDocument();
   });
 
-  it.each([
-    ["explore", "common.explore", "/inbox"],
-    ["archived", "common.archived", "/attachments"],
-  ] as const)("keeps the %s scope available from a global destination", async (scope, label, destination) => {
-    sidebarState.memoScope = scope;
-    render(
-      <MemoryRouter initialEntries={[destination]}>
-        <AppSidebar />
-      </MemoryRouter>,
-    );
-
-    const scopeTrigger = screen.getByRole("button", { name: label });
-    expect(scopeTrigger).toHaveClass("size-[30px]");
-    expect(scopeTrigger).not.toHaveTextContent(label);
-
-    fireEvent.click(scopeTrigger);
-    expect(await screen.findByRole("button", { name: label })).toHaveTextContent(label);
-  });
-
-  it("keeps the mobile brand beside navigation without a duplicate search action", () => {
+  it("keeps mobile navigation and search immediately accessible", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <MobileAppHeader />
@@ -303,6 +200,6 @@ describe("App sidebar logo", () => {
 
     expect(screen.getByRole("button", { name: "Open navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Memos logo" })).toHaveAttribute("href", "/");
-    expect(screen.queryByRole("button", { name: "common.search" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
   });
 });

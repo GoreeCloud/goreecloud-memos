@@ -1,0 +1,61 @@
+name: GoreeCloud Memos Frontend Quality
+
+on:
+  push:
+    branches:
+      - feature/goreecloud-foundation
+    paths:
+      - "web/src/**"
+      - "web/tests/**"
+      - "web/package.json"
+      - "web/pnpm-lock.yaml"
+      - ".github/workflows/goreecloud-memos-frontend-quality.yml"
+  workflow_dispatch:
+
+# Validate the GoreeCloud Memos frontend without mutating the development branch.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "11.0.1"
+
+jobs:
+  quality:
+    name: Lint, test, and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend lint and type checks
+        working-directory: web
+        run: pnpm lint
+
+      - name: Run frontend unit tests
+        working-directory: web
+        run: pnpm test
+
+      - name: Build production frontend
+        working-directory: web
+        run: pnpm build

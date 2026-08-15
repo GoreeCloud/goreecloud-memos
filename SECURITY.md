@@ -1,41 +1,42 @@
-# Security Policy
+# GoreeCloud Memos Security Policy
 
-## Supported Versions
+## Scope
 
-Memos is currently a `0.x` project. Security fixes are only provided for the latest release. Older releases are not supported for security updates, and fixes are not backported.
+This policy covers the GoreeCloud-maintained Memos fork in `GoreeCloud/goreecloud-memos`, including GoreeCloud-specific frontend behavior, deployment packaging, data-state extensions, export/recovery behavior, and changes carried on the active development line.
 
-If you run Memos in production, keep your instance updated to the latest release.
+GoreeCloud Memos is a private-by-default quick-note application. Security work must preserve that product role without weakening upstream Memos protections or silently blocking relevant upstream security fixes.
 
-## Reporting a Vulnerability
+## Security priorities
 
-Please report security issues privately by email: `dev@usememos.com`
+Changes should receive heightened review when they affect:
 
-Do not open public GitHub issues, discussions, or pull requests for suspected vulnerabilities.
+- authentication, sessions, authorization, or account separation;
+- private-by-default visibility and public/share behavior;
+- attachment upload, storage, rendering, or download authorization;
+- Markdown/HTML rendering, sanitization, links, embeds, and cross-site scripting boundaries;
+- exports, imports, backups, restores, migrations, and data integrity;
+- database migrations and persistent GoreeCloud note state;
+- dependencies, build tooling, GitHub Actions, or container supply-chain behavior;
+- secrets, environment/configuration files, filesystem permissions, or least privilege;
+- network exposure, reverse-proxy assumptions, and private-service publication; and
+- the controlled transition to `memos.goreecloud.com`.
 
-Please include:
+## Reporting
 
-- A clear description of the issue
-- Steps to reproduce
-- Affected version or commit
-- Deployment details that matter to reproduction
-- Your assessment of impact
+Do not publish suspected vulnerabilities, credentials, private infrastructure details, private user content, or exploit details in a public issue.
 
-We will review reports as time permits and fix valid issues in regular releases.
+Use a private GoreeCloud administrative/security channel for GoreeCloud-specific findings. For an upstream Memos vulnerability, also follow the upstream project's current security-reporting process when appropriate.
 
-## Disclosure and CVEs
+## Deployment boundary
 
-Memos is self-hosted software and is still in the `0.x` stage. At this stage, we do not run a formal disclosure program, publish separate security advisories for every issue, or request CVE IDs.
+A successful application build, a login page, or a healthy container is not sufficient evidence that a deployment is secure. Production acceptance must also verify the intended access path, TLS, DNS, reverse proxy, firewall/network exposure, authentication behavior, persistent-data ownership/permissions, backup coverage, restore path, monitoring, and rollback capability.
 
-Security fixes may be shipped directly in normal releases or noted briefly in release notes and changelogs.
+Do not expose the Memos backend port directly to the public internet as a substitute for the approved GoreeCloud publication architecture.
 
-## Self-Hosted Deployment Notes
+## Secrets and private information
 
-The security posture of a Memos instance depends heavily on how it is deployed and operated. In particular:
+Never commit reusable secrets. Keep passwords, tokens, API keys, private keys, recovery material, production environment values, and other sensitive information outside ordinary source and documentation. Use only synthetic data in automated tests and examples.
 
-- Keep Memos updated
-- Put it behind a properly configured reverse proxy when exposed to the internet
-- Require authentication for any non-public deployment
-- Use TLS in production
-- Limit access to trusted users and administrators
+## Upstream maintenance
 
-Reports that depend entirely on intentionally unsafe deployment choices, unsupported local patches, or administrator actions may be treated as deployment issues rather than product vulnerabilities.
+This fork retains responsibility for monitoring relevant upstream Memos releases, security fixes, dependency changes, database migrations, breaking changes, and license changes. GoreeCloud-specific divergence must remain deliberate and reviewable.

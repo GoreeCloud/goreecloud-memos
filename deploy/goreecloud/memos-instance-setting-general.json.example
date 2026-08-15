@@ -1,0 +1,17 @@
+{
+  "key": "GENERAL",
+  "generalSetting": {
+    "disallowUserRegistration": true,
+    "disallowPasswordAuth": false,
+    "additionalScript": "",
+    "additionalStyle": "",
+    "weekStartDayOffset": 0,
+    "disallowChangeUsername": false,
+    "disallowChangeNickname": false,
+    "customProfile": {
+      "title": "GoreeCloud Memos",
+      "description": "Private quick-note capture for GoreeCloud",
+      "logoUrl": ""
+    }
+  }
+}
