@@ -20,18 +20,18 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 info() { printf 'INFO: %s\n' "$*"; }
 require_command() { command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"; }
 
-require_command docker
-require_command curl
-require_command getent
-require_command grep
-require_command sed
+for command_name in docker curl getent grep sed awk sort tr stat mktemp; do
+  require_command "$command_name"
+done
 
 [ -f "$COMPOSE_FILE" ] || fail "Compose file not found: $COMPOSE_FILE"
 [ -f "$ENV_FILE" ] || fail "environment file not found: $ENV_FILE"
 
-case "$(stat -c '%a' "$ENV_FILE" 2>/dev/null || true)" in
+compose_render="$(mktemp)"
+trap 'rm -f "$compose_render"' EXIT HUP INT TERM
+
+case "$(stat -c '%a' "$ENV_FILE")" in
   600|640) pass "environment file permissions are restricted" ;;
-  "") info "could not read environment-file mode with GNU stat; inspect permissions manually" ;;
   *) fail "environment file permissions must be 0600 or 0640" ;;
 esac
 
@@ -47,10 +47,10 @@ if [ -n "$EXPECTED_IMAGE" ]; then
   pass "configured image matches expected immutable release reference"
 fi
 
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config >/tmp/goreecloud-memos-compose-preflight.yml
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config >"$compose_render"
 pass "Compose configuration renders successfully"
 
-if grep -Eq '(^|[[:space:]])published:' /tmp/goreecloud-memos-compose-preflight.yml; then
+if grep -Eq '(^|[[:space:]])published:' "$compose_render"; then
   fail "Compose configuration contains a published host port"
 fi
 pass "Compose configuration has no published backend host port"
@@ -82,8 +82,8 @@ published_ports="$(docker inspect --format '{{range $p, $v := .NetworkSettings.P
 [ -z "$published_ports" ] || fail "container publishes host ports: $published_ports"
 pass "running container exposes no backend host ports"
 
-network_attached="$(docker inspect --format '{{with index .NetworkSettings.Networks "'"$EXPECTED_NETWORK"'"}}{{.NetworkID}}{{end}}' "$CONTAINER")"
-[ -n "$network_attached" ] || fail "container is not attached to Docker network: $EXPECTED_NETWORK"
+networks_json="$(docker inspect --format '{{json .NetworkSettings.Networks}}' "$CONTAINER")"
+printf '%s\n' "$networks_json" | grep -F "\"$EXPECTED_NETWORK\"" >/dev/null || fail "container is not attached to Docker network: $EXPECTED_NETWORK"
 pass "container is attached to the approved proxy network"
 
 resolved_ips="$(getent ahostsv4 "$HOSTNAME" | awk '{print $1}' | sort -u | tr '\n' ' ')"
