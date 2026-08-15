@@ -6,6 +6,8 @@ I use this checklist to move GoreeCloud Memos from source-ready status to a veri
 
 This checklist is intentionally conservative. I preserve the historical Notes-branded Memos runtime and data until backup, restore, routing, user access, and rollback are verified.
 
+The current GoreeCloud private-DNS inventory already records `memos.goreecloud.com` at `100.71.27.119`. That is useful prerequisite evidence, but DNS presence alone does not prove that the Memos container, Caddy route, TLS path, monitoring, backup, or application acceptance is complete.
+
 ## 1. Stable release evidence
 
 Before changing the live runtime, I verify all of the following:
