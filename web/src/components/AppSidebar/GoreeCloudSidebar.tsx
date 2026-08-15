@@ -123,7 +123,6 @@ const GoreeCloudNotesSidebarContent = ({ currentUserName }: { currentUserName: s
       <div className="gc-sidebar-divider mx-4" />
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:thin]">
-        <div className="gc-nav-kicker px-2 pb-2">Labels</div>
         <TagsSection tagCount={tagCount} navigationTarget={ROUTES.HOME} scope={currentUserName} onSelect={closeMobile} />
       </div>
 
