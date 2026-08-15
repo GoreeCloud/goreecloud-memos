@@ -1,59 +1,65 @@
-# GoreeCloud Memos — Transitional Notes Source
+# GoreeCloud Memos
 
-This repository is the **transitional Memos-derived source for GoreeCloud Notes**. It preserves the validated self-hosted implementation, migration source, data-compatibility knowledge, deployment packaging, and engineering history that existed before GoreeCloud Notes moved to a native GoreeCloud-owned application direction.
+GoreeCloud Memos is the GoreeCloud-maintained fork of [Memos](https://github.com/usememos/memos) for **lightweight, private quick-note capture**.
 
-The long-term Notes product is developed in [`GoreeCloud/goreecloud-notes`](https://github.com/GoreeCloud/goreecloud-notes).
+It is intentionally focused on fast capture, simple retrieval, labels, pinning, Archive and recoverable Trash, attachments where useful, portable export, responsive/PWA use, and a polished GoreeCloud **Glaze UI** experience.
 
-## Repository Role
+GoreeCloud Memos and [GoreeCloud Notes](https://github.com/GoreeCloud/goreecloud-notes) are separate, complementary products. Memos is the quick-capture product; Notes is the larger notes, knowledge-management, research, and long-term productivity product.
 
-This repository remains useful for:
+## Product principles
 
-- preserving compatibility with the existing Memos-derived Notes data model;
-- maintaining a safe migration source while the native application matures;
-- fixing security, stability, accessibility, recovery, and migration defects that affect the transitional service;
-- keeping the transitional interface coherent with the GoreeCloud **Glaze UI** design language;
-- validating export, persistence, backup, restore, and replacement paths; and
-- preserving upstream ancestry, license obligations, release evidence, and historical implementation decisions.
+- **Quick capture first.** Opening the app and writing should stay low-friction.
+- **Private by default.** GoreeCloud-specific behavior favors authenticated, private note creation and avoids unnecessary public/social workflows.
+- **Own the data.** Markdown-friendly content, documented exports, attachments, and persistence are treated as portable user data rather than disposable application state.
+- **Glaze UI throughout.** Authentication, navigation, content surfaces, empty states, settings, About, light/dark modes, reduced-motion, and reduced-transparency behavior should feel consistently GoreeCloud.
+- **Maintain the fork responsibly.** Preserve the upstream relationship, MIT license, required attribution, security fixes, compatibility knowledge, and avoid unnecessary divergence.
+- **Keep the scope narrow.** Deep notebooks, knowledge graphs, research workspaces, extensive revision systems, and Evernote-class knowledge management belong primarily to GoreeCloud Notes.
 
-It is **not** the preferred location for new long-term Notes product capabilities. New feature work should normally be implemented in the native GoreeCloud Notes repository unless a migration, compatibility, security, or transitional-operability requirement specifically belongs here.
+## Current capabilities
 
-## Current Development Boundary
+The GoreeCloud development line includes the quick composer, Markdown note content and checklists, pinned notes, labels, search and filtering, Archive, recoverable Trash, per-note colors, attachments, portable export, private-by-default behavior, responsive/PWA support, Glaze UI presentation, hardened container packaging, and restart-persistence validation.
 
-The active GoreeCloud development line is `feature/goreecloud-foundation`, represented by draft PR #1.
+Historical Notes-branded RC1–RC3 work remains in Git history as engineering, migration, and provenance evidence. That history does not define the current product identity: this repository is now GoreeCloud Memos.
 
-Changes on that line should minimize unnecessary divergence from upstream Memos and should avoid new database/schema forks unless they are required to protect existing data or complete the migration safely.
+## Repository and upstream
 
-The transitional source currently includes GoreeCloud product identity, private-by-default note creation, Archive and recoverable Trash behavior, labels, export support, responsive/PWA work, Glaze UI presentation, hardened container packaging, and restart-persistence validation.
+- GoreeCloud repository: `GoreeCloud/goreecloud-memos`
+- Active development branch: `feature/goreecloud-foundation`
+- Upstream repository: `usememos/memos`
+- License: MIT; upstream copyright and license obligations remain preserved
+- Target GoreeCloud address: `https://memos.goreecloud.com`
 
-## Glaze UI
+The target hostname is a deployment goal, not proof that the production cutover has already occurred. DNS, Caddy, TLS, monitoring, backup coverage, application data, and rollback must be validated before retiring the historical Notes-branded publication path.
 
-The transitional interface is intentionally presented as a GoreeCloud product rather than an upstream Memos theme. Glaze UI work in this repository focuses on a consistent application shell, layered surfaces, rounded geometry, restrained depth, responsive behavior, accessible interaction states, and polished light/dark presentation without changing the underlying migration-critical data model.
+## Development
 
-## Privacy and Deployment
+The frontend uses Node.js 24 and pnpm 11.0.1. The backend is written in Go.
 
-The GoreeCloud configuration is designed around private self-hosting:
+```bash
+# Backend
+ go run ./cmd/memos --port 8081
 
-- private-by-default note creation;
-- authenticated user access;
-- no unnecessary telemetry or tracking introduced by GoreeCloud changes;
-- no direct backend host-port publication in the GoreeCloud Compose package;
-- persistent application data separated from source code; and
-- export, backup, restore, and migration treated as release-readiness requirements.
+# Frontend, in a second terminal
+cd web
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-Live infrastructure state must be verified before operational changes. Repository examples and historical deployment records are not substitutes for inspecting the currently deployed environment.
+The frontend development server runs on `http://localhost:3001` and proxies API requests to the backend on port `8081`.
 
-## Validation
+Before proposing a release, run the applicable lint, unit, production-build, container, persistence, export, attachment, backup/restore, and deployment checks. Source-level success must not be treated as proof of a production deployment.
 
-Material transitional changes should be validated with the applicable frontend, backend, container, persistence, migration, and recovery checks. A successful build alone is not sufficient evidence for production readiness.
+## GoreeCloud deployment package
 
-Real-device, deployed-browser, backup, and restore evidence should remain explicit rather than being inferred from source review or unit tests.
+`deploy/goreecloud/` contains the GoreeCloud-oriented Docker Compose package and supporting configuration examples. It is a source-controlled deployment reference, not authorization to modify a live host.
 
-## Upstream and License
+Production changes must follow GoreeCloud private-service publication, Docker, backup/recovery, network-exposure, secret-separation, and validation requirements.
 
-This repository is a fork of [`usememos/memos`](https://github.com/usememos/memos) and remains subject to the repository's MIT license and required upstream copyright notices.
+## Security
 
-GoreeCloud rebranding does not remove upstream authorship or legal attribution. Upstream information should remain available in source, license, acknowledgments, and engineering records even when GoreeCloud Notes is the primary user-facing identity.
+See [SECURITY.md](SECURITY.md). Do not commit passwords, tokens, private keys, production secrets, private user data, or reusable credentials.
 
-## Transitional Exit
+## Attribution
 
-Retirement of this repository or its deployed service must preserve the information and recovery paths required to migrate safely to native GoreeCloud Notes. Before retirement, verify the applicable data export/import path, attachment handling, account ownership, backup/restore state, configuration dependencies, and rollback plan.
+GoreeCloud Memos derives from the open-source Memos project. GoreeCloud branding and Glaze UI do not remove upstream authorship or legal attribution. See [LICENSE](LICENSE) and the upstream project at <https://github.com/usememos/memos>.

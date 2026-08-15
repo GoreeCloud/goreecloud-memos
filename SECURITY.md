@@ -1,59 +1,42 @@
-# Security Policy
+# GoreeCloud Memos Security Policy
 
 ## Scope
 
-This repository is the transitional Memos-derived implementation used as a migration source and historical service line for GoreeCloud Notes. Security work remains in scope while the transitional implementation is retained or deployed.
+This policy covers the GoreeCloud-maintained Memos fork in `GoreeCloud/goreecloud-memos`, including GoreeCloud-specific frontend behavior, deployment packaging, data-state extensions, export/recovery behavior, and changes carried on the active development line.
 
-The native long-term Notes product is developed separately in `GoreeCloud/goreecloud-notes`.
+GoreeCloud Memos is a private-by-default quick-note application. Security work must preserve that product role without weakening upstream Memos protections or silently blocking relevant upstream security fixes.
 
-## Supported Code
+## Security priorities
 
-Security fixes should target the currently maintained GoreeCloud transitional branch or the exact deployed GoreeCloud release that is still in service. Historical release candidates and arbitrary older commits are not automatically supported.
+Changes should receive heightened review when they affect:
 
-Because this repository derives from Memos, relevant upstream Memos security fixes, dependency advisories, authentication changes, migrations, and container changes must continue to be reviewed until the transitional service is retired.
+- authentication, sessions, authorization, or account separation;
+- private-by-default visibility and public/share behavior;
+- attachment upload, storage, rendering, or download authorization;
+- Markdown/HTML rendering, sanitization, links, embeds, and cross-site scripting boundaries;
+- exports, imports, backups, restores, migrations, and data integrity;
+- database migrations and persistent GoreeCloud note state;
+- dependencies, build tooling, GitHub Actions, or container supply-chain behavior;
+- secrets, environment/configuration files, filesystem permissions, or least privilege;
+- network exposure, reverse-proxy assumptions, and private-service publication; and
+- the controlled transition to `memos.goreecloud.com`.
 
-## Reporting a Vulnerability
+## Reporting
 
-Do **not** publish suspected vulnerabilities, credentials, private infrastructure details, exploit steps, or sensitive user information in a public issue or discussion.
+Do not publish suspected vulnerabilities, credentials, private infrastructure details, private user content, or exploit details in a public issue.
 
-Report the issue privately to the GoreeCloud repository owner through an established private GoreeCloud administrative channel. If GitHub private vulnerability reporting is enabled for this repository, that private reporting path is also appropriate.
+Use a private GoreeCloud administrative/security channel for GoreeCloud-specific findings. For an upstream Memos vulnerability, also follow the upstream project's current security-reporting process when appropriate.
 
-Include when available:
+## Deployment boundary
 
-- a concise description of the issue;
-- affected commit, release, or deployment version;
-- steps required to reproduce it;
-- expected and observed behavior;
-- security impact and affected data or permissions;
-- whether the problem is inherited from upstream Memos or introduced by a GoreeCloud change; and
-- any safe mitigation already identified.
+A successful application build, a login page, or a healthy container is not sufficient evidence that a deployment is secure. Production acceptance must also verify the intended access path, TLS, DNS, reverse proxy, firewall/network exposure, authentication behavior, persistent-data ownership/permissions, backup coverage, restore path, monitoring, and rollback capability.
 
-Do not include reusable secrets in the report body unless the private reporting method is explicitly approved for that secret. Rotate exposed credentials independently of the software fix.
+Do not expose the Memos backend port directly to the public internet as a substitute for the approved GoreeCloud publication architecture.
 
-## Security Priorities
+## Secrets and private information
 
-Transitional maintenance should prioritize:
+Never commit reusable secrets. Keep passwords, tokens, API keys, private keys, recovery material, production environment values, and other sensitive information outside ordinary source and documentation. Use only synthetic data in automated tests and examples.
 
-- authentication and authorization integrity;
-- individual-user data separation;
-- private-by-default visibility and sharing behavior;
-- attachment and export authorization;
-- XSS, Markdown/rendering, upload, and content-sanitization risks;
-- dependency and container vulnerabilities;
-- database migration and data-integrity risks;
-- secret separation and least privilege;
-- removal of unnecessary network exposure;
-- backup/restore confidentiality and integrity; and
-- migration safety to native GoreeCloud Notes.
+## Upstream maintenance
 
-## Deployment Boundary
-
-A login page alone is not considered sufficient private-service protection. GoreeCloud deployments should use the approved private networking, reverse-proxy, TLS, application-authentication, and no-unnecessary-host-port model documented for the current environment.
-
-Repository configuration does not prove that a live deployment is secure. Validate the deployed network path, access controls, secrets, logging, persistent storage, backup scope, and recovery process directly.
-
-## Disclosure and Remediation
-
-Security fixes should be validated before deployment and documented with enough detail to support future review without unnecessarily publishing exploit-enabling information before remediation is complete.
-
-When a vulnerability is inherited from upstream, preserve the upstream relationship and evaluate the upstream fix rather than creating unnecessary long-lived divergence.
+This fork retains responsibility for monitoring relevant upstream Memos releases, security fixes, dependency changes, database migrations, breaking changes, and license changes. GoreeCloud-specific divergence must remain deliberate and reviewable.

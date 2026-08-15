@@ -1,4 +1,4 @@
-name: GoreeCloud Notes Frontend Quality
+name: GoreeCloud Memos Frontend Quality
 
 on:
   push:
@@ -9,11 +9,10 @@ on:
       - "web/tests/**"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
-      - ".github/workflows/goreecloud-notes-format.yml"
+      - ".github/workflows/goreecloud-memos-frontend-quality.yml"
   workflow_dispatch:
 
-# This workflow validates the transitional frontend but never mutates the branch.
-# Keeping the token read-only avoids CI-generated commits and preserves reviewable history.
+# Validate the GoreeCloud Memos frontend without mutating the development branch.
 permissions:
   contents: read
 

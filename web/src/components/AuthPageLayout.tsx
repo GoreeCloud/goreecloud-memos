@@ -4,13 +4,13 @@ import { useInstance } from "@/contexts/InstanceContext";
 import { ROUTES } from "@/router/routes";
 import { useTranslate } from "@/utils/i18n";
 import AuthFooter from "./AuthFooter";
-import GoreeCloudNotesMark from "./GoreeCloudNotesMark";
+import GoreeCloudMemosMark from "./GoreeCloudMemosMark";
 
 interface Props {
   chip?: React.ReactNode;
   title: string;
   subtitle?: string;
-  // Hide the explore band on pages that shouldn't offer an exit (e.g. first-run setup).
+  // Hide the explore band on pages that should not offer an exit, such as first-run setup.
   hideExplore?: boolean;
   children: React.ReactNode;
 }
@@ -21,7 +21,6 @@ export const AuthChip = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-// Centered icon + title + description block for states where a form cannot be shown.
 export const AuthEmptyState = ({
   icon,
   title,
@@ -41,7 +40,6 @@ export const AuthEmptyState = ({
   </div>
 );
 
-// "Already have an account? Sign in" style prompt for hopping between auth pages.
 export const AuthLinkPrompt = ({ prompt, to, label }: { prompt: string; to: string; label: string }) => (
   <p className="mt-5 text-center text-sm text-muted-foreground">
     {prompt}{" "}
@@ -57,17 +55,17 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
   const t = useTranslate();
   const { generalSetting, profile } = useInstance();
   const showExplore = Boolean(profile.instanceUrl) && !hideExplore;
-  const productTitle = generalSetting.customProfile?.title || "GoreeCloud Notes";
+  const productTitle = generalSetting.customProfile?.title || "GoreeCloud Memos";
 
   return (
     <div className="min-h-svh w-full flex flex-col items-center px-4 py-4 sm:py-8">
       <div className="w-full grow flex flex-col justify-center items-center">
         <div className="gc-route-hero w-90 max-w-full rounded-2xl p-7 shadow-md">
           <div className="mb-6 flex items-center gap-2.5">
-            <GoreeCloudNotesMark className="size-7" logoUrl={generalSetting.customProfile?.logoUrl} />
+            <GoreeCloudMemosMark className="size-7" logoUrl={generalSetting.customProfile?.logoUrl} />
             <div className="min-w-0">
               <span className="block truncate text-sm font-semibold tracking-[-0.01em] text-foreground">{productTitle}</span>
-              <span className="block text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Private workspace</span>
+              <span className="block text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Quick capture</span>
             </div>
           </div>
           {chip && <div className="mb-2">{chip}</div>}
@@ -82,7 +80,7 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
                 viewTransition
               >
                 <CompassIcon className="h-3.5 w-3.5" />
-                {t("common.explore")}
+                {t("auth.explore-public-memos")}
                 <ArrowRightIcon className="-ml-1 h-3.5 w-3.5 opacity-0 transition-all group-hover:ml-0 group-hover:opacity-100" />
               </Link>
             </div>

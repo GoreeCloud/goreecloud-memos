@@ -1,6 +1,6 @@
 import { useInstance } from "@/contexts/InstanceContext";
 import { cn } from "@/lib/utils";
-import GoreeCloudNotesMark from "./GoreeCloudNotesMark";
+import GoreeCloudMemosMark from "./GoreeCloudMemosMark";
 
 interface Props {
   className?: string;
@@ -11,7 +11,7 @@ interface Props {
 function MemosLogo(props: Props) {
   const { collapsed, compact } = props;
   const { generalSetting: instanceGeneralSetting } = useInstance();
-  const title = instanceGeneralSetting.customProfile?.title || "GoreeCloud Notes";
+  const title = instanceGeneralSetting.customProfile?.title || "GoreeCloud Memos";
   const logoUrl = instanceGeneralSetting.customProfile?.logoUrl;
 
   return (
@@ -19,7 +19,7 @@ function MemosLogo(props: Props) {
       <div
         className={cn("flex w-auto flex-row items-center justify-start text-foreground", compact ? "px-0" : collapsed ? "px-1" : "px-3")}
       >
-        <GoreeCloudNotesMark className={cn(compact ? "size-8" : "size-9")} logoUrl={logoUrl} />
+        <GoreeCloudMemosMark className={cn(compact ? "size-8" : "size-9")} logoUrl={logoUrl} />
         {!collapsed && (
           <div className={cn("min-w-0", compact ? "ml-2" : "ml-2.5")}>
             <span
@@ -28,9 +28,7 @@ function MemosLogo(props: Props) {
               {title}
             </span>
             {!compact && (
-              <span className="block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Private workspace
-              </span>
+              <span className="block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Quick capture</span>
             )}
           </div>
         )}

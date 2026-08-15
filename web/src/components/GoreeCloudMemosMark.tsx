@@ -1,4 +1,4 @@
-import { NotebookPenIcon } from "lucide-react";
+import { StickyNoteIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -6,7 +6,7 @@ interface Props {
   logoUrl?: string;
 }
 
-const GoreeCloudNotesMark = ({ className, logoUrl }: Props) => {
+const GoreeCloudMemosMark = ({ className, logoUrl }: Props) => {
   if (logoUrl) {
     return <img className={cn("select-none object-cover", className)} src={logoUrl} alt="" draggable={false} />;
   }
@@ -19,9 +19,9 @@ const GoreeCloudNotesMark = ({ className, logoUrl }: Props) => {
         className,
       )}
     >
-      <NotebookPenIcon className="size-[58%]" strokeWidth={1.8} />
+      <StickyNoteIcon className="size-[58%]" strokeWidth={1.8} />
     </span>
   );
 };
 
-export default GoreeCloudNotesMark;
+export default GoreeCloudMemosMark;

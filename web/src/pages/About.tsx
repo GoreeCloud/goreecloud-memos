@@ -1,17 +1,20 @@
 import { ExternalLinkIcon } from "lucide-react";
-import GoreeCloudNotesMark from "@/components/GoreeCloudNotesMark";
+import GoreeCloudMemosMark from "@/components/GoreeCloudMemosMark";
 import { Badge } from "@/components/ui/badge";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useTranslate } from "@/utils/i18n";
 
-const GOREECLOUD_COMMIT_URL_PREFIX = "https://github.com/GoreeCloud/memos/commit/";
-const GOREECLOUD_SOURCE_URL = "https://github.com/GoreeCloud/memos";
-const NATIVE_NOTES_URL = "https://github.com/GoreeCloud/goreecloud-notes";
+const GOREECLOUD_COMMIT_URL_PREFIX = "https://github.com/GoreeCloud/goreecloud-memos/commit/";
+const GOREECLOUD_SOURCE_URL = "https://github.com/GoreeCloud/goreecloud-memos";
+const GOREECLOUD_NOTES_URL = "https://github.com/GoreeCloud/goreecloud-notes";
 const UPSTREAM_MEMOS_URL = "https://github.com/usememos/memos";
-const LICENSE_URL = "https://github.com/GoreeCloud/memos/blob/main/LICENSE";
+const UPSTREAM_DOCS_URL = "https://usememos.com/docs";
+const UPSTREAM_API_URL = "https://usememos.com/docs/api";
+const WEB_CLIPPER_URL = "https://github.com/usememos/web-clipper";
+const LICENSE_URL = "https://github.com/GoreeCloud/goreecloud-memos/blob/main/LICENSE";
 
-const DEFAULT_TITLE = "GoreeCloud Notes";
-const DEFAULT_TAGLINE = "Private notes. Portable data. GoreeCloud control.";
+const DEFAULT_TITLE = "GoreeCloud Memos";
+const DEFAULT_TAGLINE = "Capture first. Keep it yours.";
 
 const isCommitSha = (commit: string) => /^[0-9a-f]{7,40}$/i.test(commit);
 
@@ -49,7 +52,6 @@ const LinkRow = ({ label, note, href }: { label: string; note: string; href: str
 const About = () => {
   const t = useTranslate();
   const { profile, generalSetting } = useInstance();
-
   const customProfile = generalSetting.customProfile;
   const instanceTitle = customProfile?.title || DEFAULT_TITLE;
   const instanceTagline = customProfile?.description || DEFAULT_TAGLINE;
@@ -58,21 +60,17 @@ const About = () => {
   const shortCommit = hasCommitSha ? profile.commit.slice(0, 7) : "";
 
   const buildRows: { label: string; value: React.ReactNode }[] = [];
-  if (profile.version) {
-    buildRows.push({ label: t("common.version"), value: <Chip>{profile.version}</Chip> });
-  }
-  if (shortCommit) {
-    buildRows.push({ label: t("about.commit"), value: <Chip href={commitUrl}>{shortCommit}</Chip> });
-  }
+  if (profile.version) buildRows.push({ label: t("common.version"), value: <Chip>{profile.version}</Chip> });
+  if (shortCommit) buildRows.push({ label: t("about.commit"), value: <Chip href={commitUrl}>{shortCommit}</Chip> });
   buildRows.push({ label: t("about.license"), value: <Chip href={LICENSE_URL}>MIT</Chip> });
-  buildRows.push({ label: "Role", value: <span className="text-[13px] text-muted-foreground">Transitional Notes source</span> });
+  buildRows.push({ label: "Role", value: <span className="text-[13px] text-muted-foreground">Quick-note capture</span> });
 
   return (
     <section className="gc-route-page min-h-full w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-3xl">
         <header className="gc-route-hero rounded-[1.5rem] px-5 py-6 sm:px-7">
           <div className="flex items-start gap-4">
-            <GoreeCloudNotesMark className="size-12" logoUrl={customProfile?.logoUrl} />
+            <GoreeCloudMemosMark className="size-12" logoUrl={customProfile?.logoUrl} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-semibold tracking-[-0.025em] text-foreground">{instanceTitle}</h1>
@@ -82,8 +80,8 @@ const About = () => {
             </div>
           </div>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            This repository is the protected Memos-derived GoreeCloud Notes implementation retained for migration, compatibility, data
-            continuity, and recovery while the long-term native GoreeCloud Notes application is developed independently.
+            GoreeCloud Memos is the lightweight GoreeCloud quick-capture workspace: fast private notes, simple organization, portable data,
+            and a focused Glaze UI experience. GoreeCloud Notes remains the separate full notes and knowledge-management product.
           </p>
         </header>
 
@@ -100,21 +98,24 @@ const About = () => {
         </section>
 
         <section className="mt-7">
-          <SectionLabel>GoreeCloud project</SectionLabel>
-          <nav aria-label="GoreeCloud Notes project links" className="gc-context-surface mt-2.5 rounded-2xl px-4">
-            <LinkRow label="Transitional source" note="Migration, compatibility, and recovery source" href={GOREECLOUD_SOURCE_URL} />
-            <LinkRow label="Native GoreeCloud Notes" note="Long-term original application" href={NATIVE_NOTES_URL} />
+          <SectionLabel>GoreeCloud products</SectionLabel>
+          <nav aria-label="GoreeCloud product links" className="gc-context-surface mt-2.5 rounded-2xl px-4">
+            <LinkRow label="GoreeCloud Memos repository" note="Maintained quick-capture fork" href={GOREECLOUD_SOURCE_URL} />
+            <LinkRow label="GoreeCloud Notes" note="Full notes and knowledge-management application" href={GOREECLOUD_NOTES_URL} />
           </nav>
         </section>
 
         <section className="mt-7">
-          <SectionLabel>Source & attribution</SectionLabel>
+          <SectionLabel>Upstream & documentation</SectionLabel>
           <div className="gc-context-surface mt-2.5 rounded-2xl px-4">
             <LinkRow label="Upstream Memos" note="Original open-source project" href={UPSTREAM_MEMOS_URL} />
+            <LinkRow label="Memos documentation" note="Upstream product documentation" href={UPSTREAM_DOCS_URL} />
+            <LinkRow label="Memos API documentation" note="Upstream API reference" href={UPSTREAM_API_URL} />
+            <LinkRow label="Memos Web Clipper" note="Upstream browser capture project" href={WEB_CLIPPER_URL} />
             <LinkRow label="MIT License" note="License preserved with this source" href={LICENSE_URL} />
           </div>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            GoreeCloud branding does not remove or replace required upstream copyright, license, or source attribution.
+            {t("about.powered-by")}. GoreeCloud branding does not remove or replace required upstream copyright, license, or source attribution.
           </p>
         </section>
       </div>
