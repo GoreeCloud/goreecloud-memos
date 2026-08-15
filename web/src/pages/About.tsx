@@ -82,8 +82,8 @@ const About = () => {
             </div>
           </div>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            This repository is the protected Memos-derived GoreeCloud Notes implementation retained for migration, compatibility, data continuity,
-            and recovery while the long-term native GoreeCloud Notes application is developed independently.
+            This repository is the protected Memos-derived GoreeCloud Notes implementation retained for migration, compatibility, data
+            continuity, and recovery while the long-term native GoreeCloud Notes application is developed independently.
           </p>
         </header>
 

@@ -1,4 +1,4 @@
-import { FileQuestionIcon, LoaderCircleIcon, SearchXIcon, StickyNoteIcon, type LucideIcon } from "lucide-react";
+import { FileQuestionIcon, LoaderCircleIcon, type LucideIcon, SearchXIcon, StickyNoteIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_MESSAGES, type PlaceholderVariant } from "./messages";

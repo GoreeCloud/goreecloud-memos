@@ -15,13 +15,7 @@ const UserAvatar = ({ avatarUrl, className }: Props) => {
       )}
     >
       {avatarUrl ? (
-        <img
-          className="size-full min-h-full min-w-full object-cover shadow"
-          src={avatarUrl}
-          decoding="async"
-          loading="lazy"
-          alt=""
-        />
+        <img className="size-full min-h-full min-w-full object-cover shadow" src={avatarUrl} decoding="async" loading="lazy" alt="" />
       ) : (
         <UserRoundIcon className="size-[58%]" strokeWidth={1.7} aria-hidden="true" />
       )}
