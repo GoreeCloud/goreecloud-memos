@@ -9,8 +9,8 @@
     "disallowChangeUsername": false,
     "disallowChangeNickname": false,
     "customProfile": {
-      "title": "GoreeCloud Notes",
-      "description": "Private notes for GoreeCloud",
+      "title": "GoreeCloud Memos",
+      "description": "Private quick-note capture for GoreeCloud",
       "logoUrl": ""
     }
   }
