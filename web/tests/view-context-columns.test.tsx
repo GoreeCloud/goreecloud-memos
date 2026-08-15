@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useView, ViewProvider } from "@/contexts/ViewContext";
 
-const LOCAL_STORAGE_KEY = "goreecloud-notes-view-setting-v2";
+const LOCAL_STORAGE_KEY = "goreecloud-memos-view-setting-v1";
+const LEGACY_LOCAL_STORAGE_KEY = "goreecloud-notes-view-setting-v2";
 
 const wrapper = ({ children }: { children: ReactNode }) => <ViewProvider>{children}</ViewProvider>;
 
@@ -14,7 +15,7 @@ describe("ViewContext maxColumns setting", () => {
     localStorage.clear();
   });
 
-  it("defaults to the responsive GoreeCloud Notes card wall", () => {
+  it("defaults to the responsive GoreeCloud Memos card wall", () => {
     const { result } = renderHook(() => useView(), { wrapper });
     expect(result.current.maxColumns).toBe(0);
   });
@@ -43,6 +44,17 @@ describe("ViewContext maxColumns setting", () => {
     const { result } = renderHook(() => useView(), { wrapper });
 
     expect(result.current.maxColumns).toBe(2);
+  });
+
+  it("migrates the historical Notes-branded preference without resetting the user", () => {
+    localStorage.setItem(LEGACY_LOCAL_STORAGE_KEY, JSON.stringify({ maxColumns: 3, compactMode: true }));
+
+    const { result } = renderHook(() => useView(), { wrapper });
+
+    expect(result.current.maxColumns).toBe(3);
+    expect(result.current.compactMode).toBe(true);
+    expect(persisted()).toMatchObject({ maxColumns: 3, compactMode: true });
+    expect(localStorage.getItem(LEGACY_LOCAL_STORAGE_KEY)).toBeNull();
   });
 
   it("falls back to the responsive grid for an invalid persisted value", () => {
