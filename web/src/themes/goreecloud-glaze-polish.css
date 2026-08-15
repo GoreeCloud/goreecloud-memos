@@ -1,8 +1,8 @@
 /*
- * Transitional Glaze UI refinement layer.
+ * GoreeCloud Memos Glaze UI refinement layer.
  *
- * This file intentionally limits itself to presentation. The Memos-derived data model is a
- * migration source, so visual improvements must not create new persistence or schema coupling.
+ * This file intentionally limits itself to presentation. Glaze refinements should preserve
+ * the lightweight Memos product model and avoid unnecessary persistence or schema coupling.
  */
 
 :root {
