@@ -4,7 +4,7 @@
 
 I use this checklist to move GoreeCloud Memos from source-ready status to a verified private production deployment at `https://memos.goreecloud.com` without treating repository CI as proof that the live service is ready.
 
-This checklist is intentionally conservative. I preserve the historical Notes-branded Memos runtime and data until backup, restore, routing, user access, and rollback are verified.
+This checklist is intentionally conservative. I preserve the currently accepted production runtime and data until backup, restore, routing, user access, and rollback are verified for the candidate deployment.
 
 The current GoreeCloud private-DNS inventory already records `memos.goreecloud.com` at `100.71.27.119`. That is useful prerequisite evidence, but DNS presence alone does not prove that the Memos container, Caddy route, TLS path, monitoring, backup, or application acceptance is complete.
 
@@ -12,12 +12,13 @@ The current GoreeCloud private-DNS inventory already records `memos.goreecloud.c
 
 Before changing the live runtime, I verify all of the following:
 
-- PR #1 exact-head frontend validation is green.
-- PR #1 exact-head GoreeCloud container validation is green.
-- PR #1 exact-head upgrade-smoke validation is green.
-- The intended release tag is a GoreeCloud `goreecloud-v*` tag.
-- The tagged publication workflow completed its container and upgrade gates.
-- I recorded the published multi-architecture manifest digest and source commit from the workflow summary.
+- The exact candidate source revision has passed the applicable frontend validation.
+- The exact candidate source revision has passed the GoreeCloud container validation.
+- The exact candidate source revision has passed the Stable upgrade-smoke validation.
+- The release branch, when used, points to the exact intended current `main` revision.
+- The intended release tag is a GoreeCloud `goreecloud-vX.Y.Z` Stable tag.
+- The controlled Stable promotion workflow completed its frontend, container, persistence, upgrade, publication, exact-main, and tag-promotion gates.
+- I recorded the published multi-architecture manifest digest and source commit from the workflow/tag evidence.
 - The approved production image is written as an immutable tag-plus-digest reference:
 
 ```text
@@ -26,9 +27,19 @@ ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>
 
 I do not deploy `latest`, a moving tag, or a tag-only reference.
 
+For GoreeCloud Memos v0.1.1, the validated release evidence is:
+
+```text
+Source commit: ca52b1a7a25925b02cb4bf19b05e38581265fd02
+Stable tag: goreecloud-v0.1.1
+Immutable image: ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+```
+
+This source/release evidence does not by itself prove that v0.1.1 is the active production deployment.
+
 ## 2. Backup and rollback evidence
 
-Before modifying the current Notes-branded Memos runtime or its publication path, I record:
+Before modifying the current production Memos runtime or its publication path, I record:
 
 - the currently running image and image digest;
 - the current Compose/environment configuration;
@@ -54,7 +65,7 @@ Private hostname: memos.goreecloud.com
 Recorded private DNS target: 100.71.27.119
 ```
 
-I verify ownership and permissions before startup. I do not delete, rename, or overwrite the historical `/notes` data merely because the Memos target paths exist.
+I verify ownership and permissions before startup. I do not delete, rename, or overwrite accepted production data merely because target paths exist.
 
 ## 4. Protected environment file
 
