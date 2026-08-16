@@ -6,8 +6,12 @@ on:
     paths:
       - ".github/workflows/goreecloud-deployment-tooling.yml"
       - "deploy/goreecloud/**"
+      - "docs/goreecloud/backup-live-preflight.md"
+      - "docs/goreecloud/backup-restore-validation.md"
+      - "docs/goreecloud/monitoring-readiness.md"
       - "scripts/goreecloud-memos-deployment-preflight.sh"
       - "scripts/goreecloud-memos-deployment-preflight-test.sh"
+      - "scripts/goreecloud-memos-readiness-docs-test.sh"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +33,10 @@ jobs:
         run: |
           sh -n scripts/goreecloud-memos-deployment-preflight.sh
           sh -n scripts/goreecloud-memos-deployment-preflight-test.sh
+          sh -n scripts/goreecloud-memos-readiness-docs-test.sh
 
       - name: Validate private DNS and HTTPS preflight behavior
         run: sh scripts/goreecloud-memos-deployment-preflight-test.sh
+
+      - name: Validate backup and monitoring readiness records
+        run: sh scripts/goreecloud-memos-readiness-docs-test.sh
