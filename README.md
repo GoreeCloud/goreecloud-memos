@@ -31,15 +31,29 @@ Historical Notes-branded RC1–RC3 work remains in Git history as engineering, m
 
 ## Stable release status
 
-GoreeCloud Memos `goreecloud-v0.1.0` is the established Stable release from commit `181317ee0d8c32f5e0c2e625b7b293afdfc659c5`.
+### Current production deployment
 
-The validated production image is:
+GoreeCloud Memos `goreecloud-v0.1.0` remains the currently documented production Stable deployment from commit `181317ee0d8c32f5e0c2e625b7b293afdfc659c5`.
+
+The currently documented production image is:
 
 `ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1`
 
-The Stable release was restored from the preserved historical Memos data in an isolated validation environment, promoted to the dedicated GoreeCloud Memos runtime, and accepted through the private `https://memos.goreecloud.com` publication path before the historical Notes-branded Memos runtime was retired. `notes.goreecloud.com` remains reserved for the separate native GoreeCloud Notes application.
+That Stable deployment was restored from the preserved historical Memos data in an isolated validation environment, promoted to the dedicated GoreeCloud Memos runtime, and accepted through the private `https://memos.goreecloud.com` publication path before the historical Notes-branded Memos runtime was retired. `notes.goreecloud.com` remains reserved for the separate native GoreeCloud Notes application.
 
-Later commits and pull requests are post-Stable development until they are separately validated, merged, released, and deployed. Source changes must not be represented as production merely because CI passes or they exist on `main`.
+### Validated Stable artifact awaiting production acceptance
+
+GoreeCloud Memos `goreecloud-v0.1.1` has completed the controlled Stable source/release promotion from exact `main` commit `ca52b1a7a25925b02cb4bf19b05e38581265fd02`.
+
+The promoted immutable image is:
+
+`ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075`
+
+The release-branch workflow passed the Stable frontend quality gate, container build and health validation, authenticated restart persistence, GoreeCloud state persistence, fresh-install smoke testing, upgrade validation for SQLite/PostgreSQL/MySQL, multi-architecture image publication, exact-current-main verification, and annotated Stable tag promotion.
+
+**v0.1.1 is therefore a validated deployable Stable artifact, but it is not represented here as the active production version until the live GoreeCloud deployment, backup/restore, routing, monitoring, and application-acceptance checks are completed and recorded.** See [`deploy/goreecloud/DEPLOYMENT-CHECKLIST.md`](deploy/goreecloud/DEPLOYMENT-CHECKLIST.md) and [`docs/goreecloud/v0.1.1-deployment-acceptance.md`](docs/goreecloud/v0.1.1-deployment-acceptance.md).
+
+Later commits and pull requests after the promoted v0.1.1 source commit are post-release development until separately validated, released, and deployed. Source changes must not be represented as production merely because CI passes or they exist on `main`.
 
 See [`docs/goreecloud/release-candidate-validation.md`](docs/goreecloud/release-candidate-validation.md) for the preserved RC history, Stable evidence boundary, and post-Stable validation rules.
 
