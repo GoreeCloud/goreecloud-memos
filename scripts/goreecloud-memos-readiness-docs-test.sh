@@ -12,10 +12,12 @@ done
 for file in "$backup_preflight" "$backup_restore"; do
   grep -F '/srv/docker/appdata/memos' "$file" >/dev/null
   grep -F 'goreecloud-memos' "$file" >/dev/null
-  if grep -F '/srv/docker/appdata/notes' "$file" >/dev/null; then
-    echo "stale retired Notes appdata path found in $file" >&2
+
+  if grep -Eq 'sudo test -(d|f) /srv/docker/appdata/notes|docker inspect goreecloud-notes|docker exec goreecloud-notes|Notes application.data path is:.*appdata/notes' "$file"; then
+    echo "obsolete retired Notes runtime instruction found in $file" >&2
     exit 1
   fi
+
   if grep -F 'goreecloud-notes' "$file" >/dev/null; then
     echo "stale retired Notes container found in $file" >&2
     exit 1
