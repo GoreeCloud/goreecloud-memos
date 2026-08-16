@@ -49,8 +49,8 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-row justify-between items-center mb-2">
-      <div className="flex flex-row justify-start items-center gap-1">
+    <div className="mb-2 flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex w-full min-w-0 items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
           isSaving={isSaving}
@@ -66,9 +66,9 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
         <VisibilitySelector value={visibility} onChange={handleVisibilityChange} />
       </div>
 
-      <div className="flex flex-row justify-end items-center gap-2">
+      <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
         {onCancel && (
-          <Button variant="ghost" onClick={onCancel} disabled={isSaving}>
+          <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" variant="ghost" onClick={onCancel} disabled={isSaving}>
             {t("common.cancel")}
           </Button>
         )}
@@ -76,14 +76,14 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
         {!valid && !isSaving && blockedMessage ? (
           <Tooltip>
             <TooltipTrigger render={<span className="inline-flex" tabIndex={0} aria-label={blockedMessage} />}>
-              <Button onClick={onSave} disabled>
+              <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" onClick={onSave} disabled>
                 {t("editor.save")}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top">{blockedMessage}</TooltipContent>
           </Tooltip>
         ) : (
-          <Button onClick={onSave} disabled={isSaving}>
+          <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" onClick={onSave} disabled={isSaving}>
             {isSaving ? t("editor.saving") : t("editor.save")}
           </Button>
         )}
