@@ -43,7 +43,7 @@ interface ToolbarButton {
 // hover + active treatment don't map to a single kit variant, and per policy a
 // custom look is raw HTML rather than className overrides on the kit.
 const SEGMENT_BASE =
-  "inline-flex items-center justify-center h-7 min-w-7 px-1.5 rounded-md text-sm transition-colors outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex h-11 min-w-11 items-center justify-center rounded-md px-2 text-sm transition-colors outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-ring sm:h-7 sm:min-w-7 sm:px-1.5";
 const SEGMENT_IDLE = "text-muted-foreground hover:text-foreground hover:bg-foreground/5";
 const SEGMENT_ACTIVE = "bg-accent text-accent-foreground";
 
@@ -134,7 +134,14 @@ export function FormattingToolbar({ controllerRef, onExit, className }: Formatti
       {onExit && (
         <>
           <div className="flex-1" />
-          <Button variant="ghost" size="icon" aria-label={t("editor.exit-focus-mode")} title={t("editor.exit-focus-mode")} onClick={onExit}>
+          <Button
+            className="size-11 sm:size-8"
+            variant="ghost"
+            size="icon"
+            aria-label={t("editor.exit-focus-mode")}
+            title={t("editor.exit-focus-mode")}
+            onClick={onExit}
+          >
             <Minimize2Icon className="w-4 h-4" />
           </Button>
         </>
