@@ -26,9 +26,9 @@ and tested.
 Options:
   --candidate-image IMAGE  Test an existing image instead of building locally.
   --previous-image IMAGE   Image used to seed the upgrade test. By default, the
-                           latest prior stable GoreeCloud release tag is used;
-                           if no stable release exists yet, the latest prior
-                           GoreeCloud prerelease is used as the bootstrap base.
+                           latest lower stable GoreeCloud release is used. For
+                           the first stable release, the highest matching RC is
+                           used as the bootstrap predecessor.
   --keep-resources         Keep containers and volumes after the test for debugging.
   -h, --help               Show this help text.
 
@@ -146,45 +146,90 @@ cleanup() {
 }
 trap cleanup EXIT
 
-is_prior_tag() {
+tag_commit() {
+  git -C "$REPO_ROOT" rev-list -n 1 "$1"
+}
+
+stable_version() {
   local tag="$1"
-  local head_sha tag_sha
+  printf '%s\n' "${tag#goreecloud-v}"
+}
 
-  head_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-  tag_sha="$(git -C "$REPO_ROOT" rev-list -n 1 "$tag")"
+version_lt() {
+  local left="$1"
+  local right="$2"
+  local first
 
-  [[ "$tag_sha" != "$head_sha" ]] && git -C "$REPO_ROOT" merge-base --is-ancestor "$tag" HEAD
+  [[ "$left" != "$right" ]] || return 1
+  first="$(printf '%s\n%s\n' "$left" "$right" | sort -V | head -n 1)"
+  [[ "$first" == "$left" ]]
 }
 
 detect_previous_image() {
-  local tag
+  local tag tag_sha head_sha current_stable_tag current_version tag_version
 
-  # Prefer the latest prior stable GoreeCloud release. Stable tags deliberately
-  # exclude release-candidate suffixes so normal upgrades test stable-to-stable.
+  head_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  current_stable_tag="$(
+    git -C "$REPO_ROOT" tag --points-at HEAD --list 'goreecloud-v[0-9]*' --sort=-version:refname |
+      grep -v -- '-rc\.' |
+      head -n 1 || true
+  )"
+
+  # When validating a stable tag, choose the highest lower stable version. This
+  # is intentionally version-based rather than ancestry-based: GoreeCloud uses
+  # squash merges, so prerelease commits do not have to be Git ancestors of the
+  # final stable commit.
+  if [[ -n "$current_stable_tag" ]]; then
+    current_version="$(stable_version "$current_stable_tag")"
+    while IFS= read -r tag; do
+      [[ -n "$tag" ]] || continue
+      case "$tag" in
+        *-rc.*) continue ;;
+      esac
+      [[ "$tag" != "$current_stable_tag" ]] || continue
+      tag_version="$(stable_version "$tag")"
+      if version_lt "$tag_version" "$current_version"; then
+        printf '%s:%s\n' "$release_image" "$tag"
+        return
+      fi
+    done < <(git -C "$REPO_ROOT" tag --list 'goreecloud-v[0-9]*' --sort=-version:refname)
+
+    # The first stable release has no lower stable predecessor. Bootstrap from
+    # the highest RC carrying the same release version, regardless of squash
+    # merge topology.
+    tag="$(
+      git -C "$REPO_ROOT" tag --list "${current_stable_tag}-rc.*" --sort=-version:refname |
+        head -n 1 || true
+    )"
+    if [[ -n "$tag" ]]; then
+      printf '%s:%s\n' "$release_image" "$tag"
+      return
+    fi
+  fi
+
+  # Branch and non-stable-tag validation prefers the newest stable release that
+  # is not the current commit.
   while IFS= read -r tag; do
     [[ -n "$tag" ]] || continue
     case "$tag" in
       *-rc.*) continue ;;
     esac
-    if is_prior_tag "$tag"; then
+    tag_sha="$(tag_commit "$tag")"
+    if [[ "$tag_sha" != "$head_sha" ]]; then
       printf '%s:%s\n' "$release_image" "$tag"
       return
     fi
   done < <(git -C "$REPO_ROOT" tag --list 'goreecloud-v[0-9]*' --sort=-version:refname)
 
-  # The first GoreeCloud stable release has no stable predecessor. In that one
-  # bootstrap case, validate the real supported transition from the most recent
-  # GoreeCloud prerelease rather than an unrelated upstream image.
+  # Before the first stable release, branch validation uses the newest RC that
+  # is not the current commit.
   while IFS= read -r tag; do
     [[ -n "$tag" ]] || continue
-    case "$tag" in
-      *-rc.*)
-        if is_prior_tag "$tag"; then
-          printf '%s:%s\n' "$release_image" "$tag"
-          return
-        fi
-        ;;
-    esac
+    tag_sha="$(tag_commit "$tag")"
+    if [[ "$tag_sha" != "$head_sha" ]]; then
+      printf '%s:%s\n' "$release_image" "$tag"
+      return
+    fi
   done < <(git -C "$REPO_ROOT" tag --list 'goreecloud-v[0-9]*-rc.*' --sort=-version:refname)
 
   die "could not detect a prior GoreeCloud release; pass --previous-image"
