@@ -17,19 +17,31 @@ GoreeCloud Memos and [GoreeCloud Notes](https://github.com/GoreeCloud/goreecloud
 
 ## Current capabilities
 
-The GoreeCloud development line includes the quick composer, Markdown note content and checklists, pinned notes, labels, search and filtering, Archive, recoverable Trash, per-note colors, attachments, portable export, private-by-default behavior, responsive/PWA support, Glaze UI presentation, hardened container packaging, and restart-persistence validation.
+The GoreeCloud line includes the quick composer, Markdown memo content and checklists, optional titles, pinned memos, labels, search and filtering, Archive, recoverable Trash, per-memo colors, attachments, portable export, private-by-default behavior, responsive/PWA support, Glaze UI presentation, hardened container packaging, and restart-persistence validation.
 
-Historical Notes-branded RC1–RC3 work remains in Git history as engineering, migration, and provenance evidence. That history does not define the current product identity: this repository is now GoreeCloud Memos.
+Historical Notes-branded RC1–RC3 work remains in Git history as engineering, migration, and provenance evidence. That history does not define the current product identity: this repository is GoreeCloud Memos.
 
 ## Repository and upstream
 
 - GoreeCloud repository: `GoreeCloud/goreecloud-memos`
-- Active development branch: `feature/goreecloud-foundation`
+- Canonical source branch: `main`
 - Upstream repository: `usememos/memos`
 - License: MIT; upstream copyright and license obligations remain preserved
-- Target GoreeCloud address: `https://memos.goreecloud.com`
+- Stable product address: `https://memos.goreecloud.com`
 
-The target hostname is a deployment goal, not proof that the production cutover has already occurred. DNS, Caddy, TLS, monitoring, backup coverage, application data, and rollback must be validated before retiring the historical Notes-branded publication path.
+## Stable release status
+
+GoreeCloud Memos `goreecloud-v0.1.0` is the established Stable release from commit `181317ee0d8c32f5e0c2e625b7b293afdfc659c5`.
+
+The validated production image is:
+
+`ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1`
+
+The Stable release was restored from the preserved historical Memos data in an isolated validation environment, promoted to the dedicated GoreeCloud Memos runtime, and accepted through the private `https://memos.goreecloud.com` publication path before the historical Notes-branded Memos runtime was retired. `notes.goreecloud.com` remains reserved for the separate native GoreeCloud Notes application.
+
+Later commits and pull requests are post-Stable development until they are separately validated, merged, released, and deployed. Source changes must not be represented as production merely because CI passes or they exist on `main`.
+
+See [`docs/goreecloud/release-candidate-validation.md`](docs/goreecloud/release-candidate-validation.md) for the preserved RC history, Stable evidence boundary, and post-Stable validation rules.
 
 ## Development
 
@@ -37,7 +49,7 @@ The frontend uses Node.js 24 and pnpm 11.0.1. The backend is written in Go.
 
 ```bash
 # Backend
- go run ./cmd/memos --port 8081
+go run ./cmd/memos --port 8081
 
 # Frontend, in a second terminal
 cd web
@@ -48,7 +60,7 @@ pnpm dev
 
 The frontend development server runs on `http://localhost:3001` and proxies API requests to the backend on port `8081`.
 
-Before proposing a release, run the applicable lint, unit, production-build, container, persistence, export, attachment, backup/restore, and deployment checks. Source-level success must not be treated as proof of a production deployment.
+Before proposing a new release, run the applicable lint, unit, production-build, container, persistence, export, attachment, backup/restore, and deployment checks at the exact candidate revision. Source-level success must not be treated as proof of a production deployment.
 
 ## GoreeCloud deployment package
 

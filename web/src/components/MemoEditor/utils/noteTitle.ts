@@ -5,8 +5,8 @@ export interface NoteTitleParts {
 }
 
 /**
- * Treat a leading Markdown H1 as the GoreeCloud Notes title while preserving
- * Memos' existing Markdown-native storage model.
+ * Treat a leading Markdown H1 as the optional GoreeCloud Memos title while
+ * preserving the upstream Markdown-native storage model.
  */
 export const splitNoteTitle = (content: string): NoteTitleParts => {
   const lines = content.split("\n");
