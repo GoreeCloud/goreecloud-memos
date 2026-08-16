@@ -26,7 +26,7 @@ const VisibilitySelector = (props: VisibilitySelectorProps) => {
           <button
             className={cn(
               "inline-flex items-center rounded-md hover:bg-accent transition-colors",
-              compact ? "px-1.5 py-[3px] text-[13px] leading-5 text-foreground/85" : "h-8 px-2 text-sm text-muted-foreground",
+              compact ? "px-1.5 py-[3px] text-[13px] leading-5 text-foreground/85" : "h-11 px-2 text-sm text-muted-foreground sm:h-8",
             )}
           />
         }

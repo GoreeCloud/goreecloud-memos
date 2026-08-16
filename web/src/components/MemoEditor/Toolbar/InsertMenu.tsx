@@ -159,7 +159,17 @@ const InsertMenu = (props: InsertMenuProps) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="secondary" size="icon" disabled={insertionDisabled} aria-label={t("common.add")} />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              className="size-11 sm:size-8"
+              variant="secondary"
+              size="icon"
+              disabled={insertionDisabled}
+              aria-label={t("common.add")}
+            />
+          }
+        >
           {isUploading ? <LoaderIcon className="size-4 animate-spin" /> : <PlusIcon className="size-4" />}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
