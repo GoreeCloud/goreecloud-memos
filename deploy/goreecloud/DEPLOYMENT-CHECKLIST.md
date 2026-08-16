@@ -1,162 +1,203 @@
-# GoreeCloud Memos Production Cutover Checklist
+# GoreeCloud Memos Production Upgrade Checklist
 
 ## Purpose
 
-I use this checklist to move GoreeCloud Memos from source-ready status to a verified private production deployment at `https://memos.goreecloud.com` without treating repository CI as proof that the live service is ready.
+I use this checklist to upgrade the accepted GoreeCloud Memos production deployment at `https://memos.goreecloud.com` without confusing repository validation with live-host acceptance.
 
-This checklist is intentionally conservative. I preserve the historical Notes-branded Memos runtime and data until backup, restore, routing, user access, and rollback are verified.
+The original Notes-to-Memos cutover is complete. The current accepted production runtime is GoreeCloud Memos v0.1.0. The next approved deployment target is the already validated v0.1.1 Stable artifact.
 
-The current GoreeCloud private-DNS inventory already records `memos.goreecloud.com` at `100.71.27.119`. That is useful prerequisite evidence, but DNS presence alone does not prove that the Memos container, Caddy route, TLS path, monitoring, backup, or application acceptance is complete.
+## 1. Current and target identities
 
-## 1. Stable release evidence
-
-Before changing the live runtime, I verify all of the following:
-
-- PR #1 exact-head frontend validation is green.
-- PR #1 exact-head GoreeCloud container validation is green.
-- PR #1 exact-head upgrade-smoke validation is green.
-- The intended release tag is a GoreeCloud `goreecloud-v*` tag.
-- The tagged publication workflow completed its container and upgrade gates.
-- I recorded the published multi-architecture manifest digest and source commit from the workflow summary.
-- The approved production image is written as an immutable tag-plus-digest reference:
+Current accepted production image:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>
+ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1
 ```
 
-I do not deploy `latest`, a moving tag, or a tag-only reference.
-
-## 2. Backup and rollback evidence
-
-Before modifying the current Notes-branded Memos runtime or its publication path, I record:
-
-- the currently running image and image digest;
-- the current Compose/environment configuration;
-- the current persistent data and configuration paths;
-- the current Caddy route and private-DNS state;
-- a current application-consistent backup or approved recovery point;
-- an isolated restore result proving that the protected data can be recovered; and
-- the exact previous image, paths, and routing configuration required for rollback.
-
-I do not point an older binary at an upgraded database unless downgrade compatibility has been explicitly validated. When schema compatibility is uncertain, rollback means restoring the pre-change data together with the previous image and publication configuration.
-
-## 3. Target runtime preparation
-
-The intended target uses:
+Validated v0.1.1 target image:
 
 ```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+```
+
+Validated v0.1.1 source commit:
+
+```text
+ca52b1a7a25925b02cb4bf19b05e38581265fd02
+```
+
+Post-v0.1.1 `main` commits may improve deployment/recovery tooling without changing the already published v0.1.1 application image. I do not rebuild or substitute a different runtime artifact merely because operational documentation changed after the Stable tag.
+
+## 2. Production baseline
+
+The live deployment must retain this model unless a separately approved change says otherwise:
+
+```text
+Host: goreecloud-vps-01
 Container: goreecloud-memos
 Application port: 5230 inside Docker only
-Target data path: /srv/docker/appdata/memos
-Target configuration path: /srv/docker/secrets/memos
+Data path: /srv/docker/appdata/memos
+Protected configuration path: /srv/docker/secrets/memos
+Live stack: /srv/docker/stacks/memos/docker-compose.yml
 Proxy network: proxy
 Private hostname: memos.goreecloud.com
-Recorded private DNS target: 100.71.27.119
+AdGuard / NetBird private address: 100.71.27.119
 ```
 
-I verify ownership and permissions before startup. I do not delete, rename, or overwrite the historical `/notes` data merely because the Memos target paths exist.
+Port 5230 must not be published to the host or public internet.
 
-## 4. Protected environment file
+## 3. Pre-upgrade recovery gate
 
-I create `deploy/goreecloud/.env` from `.env.example` and set the exact immutable production image.
+Before replacing v0.1.0, I complete the current recovery gate in:
 
-The file must remain outside ordinary source control and use restricted permissions:
+- `docs/goreecloud/backup-live-preflight.md`
+- `docs/goreecloud/backup-restore-validation.md`
+
+At minimum I require:
+
+- the current production image and Compose/environment state recorded;
+- a current application-consistent v0.1.0 recovery point;
+- verified backup readability;
+- a fresh isolated restore of the protected Memos data;
+- the v0.1.0 immutable image retained for rollback; and
+- the protected configuration/secrets recovery path confirmed without exposing reusable credentials.
+
+I do not point v0.1.0 at a database modified by v0.1.1 unless downgrade compatibility has been explicitly proven. Conservative rollback means restoring the pre-upgrade v0.1.0 recovery data together with the v0.1.0 image and previous deployment configuration.
+
+## 4. Inspect the live target before writing
+
+Using the approved VPS administrative path, I first confirm the host and current runtime:
 
 ```bash
-chmod 0600 deploy/goreecloud/.env
+hostname
+whoami
+sudo docker inspect goreecloud-memos \
+  --format '{{.Config.Image}} {{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}'
+
+sudo docker inspect goreecloud-memos \
+  --format '{{range .Mounts}}{{println .Source "->" .Destination}}{{end}}'
 ```
 
-The image value must use the exact published release tag and digest.
+I stop if I am on the wrong host, the current image is unexpected, the Memos bind mounts differ from the documented production paths, or the container is not healthy before maintenance begins.
 
-## 5. Read-only deployment preflight
+## 5. Update only the protected production image reference
 
-After the target container and routing are in place, I run the repository preflight from the repository root:
+I preserve the existing production stack and change only the approved immutable image reference required for the v0.1.1 upgrade.
+
+The active value must be exactly:
+
+```text
+GOREECLOUD_MEMOS_IMAGE=ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+```
+
+I keep the live environment file outside ordinary source control and preserve its approved restrictive permissions.
+
+Before activation I render the live Compose configuration and verify the resolved image, paths, network, and absence of a published backend port.
+
+## 6. Pull and recreate only GoreeCloud Memos
+
+I pull the exact immutable v0.1.1 image before replacing the running service. I then recreate only the Memos service using the live production stack.
+
+I do not restart Caddy, NetBird, AdGuard Home, Kopia, Uptime Kuma, or unrelated application containers merely because Memos is being upgraded.
+
+After recreation I require Docker health to become `healthy` and the local container health endpoint to return:
+
+```text
+Service ready.
+```
+
+## 7. Private-DNS-aware production preflight
+
+The VPS system resolver may return Porkbun public proxy addresses for `memos.goreecloud.com`; that is not the authoritative private-service answer. The approved AdGuard private DNS path returns `100.71.27.119`.
+
+I run the repository preflight with the private DNS server and HTTPS destination explicitly selected:
 
 ```bash
 GOREECLOUD_MEMOS_EXPECTED_PRIVATE_IP=100.71.27.119 \
-GOREECLOUD_MEMOS_EXPECTED_IMAGE='ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>' \
+GOREECLOUD_MEMOS_PRIVATE_DNS_SERVER=100.71.27.119 \
+GOREECLOUD_MEMOS_HTTPS_TARGET_IP=100.71.27.119 \
+GOREECLOUD_MEMOS_EXPECTED_IMAGE='ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075' \
 sh scripts/goreecloud-memos-deployment-preflight.sh
 ```
 
-The preflight is read-only. It checks:
+The preflight must confirm:
 
-- environment-file permissions;
-- exact immutable GoreeCloud image syntax and optional expected-image equality;
-- Compose rendering;
-- absence of published backend host ports;
-- presence of the approved proxy network;
-- running and healthy `goreecloud-memos` container state;
-- non-root `10001:10001` runtime identity;
-- running-image equality with the configured immutable image;
-- absence of runtime host-port publication;
-- attachment to the approved proxy network;
-- private DNS resolution for `memos.goreecloud.com`;
-- optional equality with the recorded private DNS address;
-- HTTPS/TLS reachability through Caddy to `/healthz`; and
-- GoreeCloud Memos product identity on the application page.
+- restricted environment-file permissions;
+- exact immutable image equality;
+- valid Compose rendering;
+- no backend host-port publication;
+- approved `proxy` network attachment;
+- running and healthy `goreecloud-memos` state;
+- runtime identity `10001:10001`;
+- direct AdGuard/private-DNS equality with `100.71.27.119`;
+- HTTPS/TLS reachability pinned to the approved private destination; and
+- GoreeCloud Memos product identity.
 
-A preflight pass is necessary but not sufficient for production approval.
+A preflight pass is necessary but does not replace application, backup, monitoring, or rollback acceptance.
 
-## 6. Private publication validation
+## 8. Application acceptance
 
-I separately verify that:
-
-- `memos.goreecloud.com` resolves through the approved GoreeCloud private DNS path;
-- Caddy routes only the intended hostname to `goreecloud-memos:5230`;
-- port 5230 is not directly published to the host or public internet;
-- HTTPS uses a valid certificate and no certificate warning appears on approved clients;
-- access works from an approved NetBird client;
-- access is unavailable through unintended public/backend paths; and
-- `notes.goreecloud.com` remains reserved for the separate GoreeCloud Notes product.
-
-## 7. Application acceptance
-
-I validate the live service with an approved individual account rather than a shared administrator identity.
-
-At minimum I verify:
+From an approved NetBird client I verify at minimum:
 
 - sign-in and session persistence;
-- private note creation and editing;
+- existing memo visibility and representative attachment retrieval;
+- private memo creation and editing;
 - Markdown and checklist behavior;
 - pinning;
 - labels/tags and filtering;
 - search;
-- per-note colors;
+- memo colors;
 - Archive and restore;
 - Trash and restore;
 - attachment upload and retrieval;
 - Markdown export;
 - full-library JSON export;
-- restart persistence for application state and attachment bytes;
-- registration remains disabled after the approved account/bootstrap sequence; and
-- desktop plus real-device Android/PWA behavior is acceptable.
+- restart persistence; and
+- acceptable desktop and real-device Android/PWA behavior.
 
-## 8. Monitoring and recovery acceptance
+Registration must remain in its approved locked-down state.
 
-Before declaring the service production-ready, I verify:
+## 9. Monitoring acceptance
 
-- Uptime Kuma monitors the intended private HTTPS endpoint where appropriate;
-- backup coverage includes the complete Memos persistence path and required protected configuration;
-- the backup job is monitored through the approved GoreeCloud monitoring path;
-- an isolated restore has succeeded against the intended release image; and
-- the previous runtime remains available as a tested rollback path until acceptance is complete.
+I complete `docs/goreecloud/monitoring-readiness.md` against the live target.
 
-## 9. Production acceptance record
+The authoritative target is:
 
-I only record GoreeCloud Memos as stable and visit-ready after all applicable checks above pass.
+```text
+https://memos.goreecloud.com/healthz
+```
 
-The acceptance record must identify:
+with HTTP 200, valid TLS, and response marker `Service ready.`.
+
+I verify the live Uptime Kuma source identity before changing any Caddy allowlist. I do not assume another application's historical monitoring IP, and I do not broaden the Memos allowlist to an unnecessary Docker subnet.
+
+Production monitoring acceptance requires controlled DOWN and RECOVERED transitions plus the expected administrative notifications.
+
+## 10. Final security and publication checks
+
+Before closing the maintenance window I confirm:
+
+- approved NetBird clients still reach `https://memos.goreecloud.com`;
+- an unapproved non-NetBird/non-monitor source remains denied by Caddy;
+- port 5230 remains unpublished on the host;
+- the running container uses the exact v0.1.1 immutable image;
+- `/srv/docker/appdata/memos` remains the production persistence path;
+- Caddy, private DNS, and TLS remain unchanged except for a separately validated narrow monitoring-source allowance if required; and
+- unrelated GoreeCloud services remain healthy.
+
+## 11. Production acceptance record
+
+I record v0.1.1 as deployed only after all applicable live checks pass. The acceptance record includes:
 
 - source commit;
-- release tag;
+- Stable tag;
 - immutable image reference;
-- production hostname;
-- target host;
+- production hostname and target host;
 - data/configuration paths;
 - validation date;
-- backup/restore evidence;
-- monitoring state;
+- backup and isolated-restore evidence;
+- monitoring DOWN/RECOVERED evidence;
 - rollback reference; and
-- any known limitations.
+- any remaining limitations.
 
-Repository CI, private DNS presence, successful container startup, or a reachable login page by itself is not sufficient evidence of production readiness.
+Until that record exists, v0.1.1 is a validated Stable artifact ready for controlled deployment, while v0.1.0 remains the accepted production runtime.
