@@ -24,12 +24,18 @@ Historical Notes-branded RC1–RC3 work remains in Git history as engineering, m
 ## Repository and upstream
 
 - GoreeCloud repository: `GoreeCloud/goreecloud-memos`
-- Active development branch: `feature/goreecloud-foundation`
+- Canonical source branch: `main`
 - Upstream repository: `usememos/memos`
 - License: MIT; upstream copyright and license obligations remain preserved
 - Target GoreeCloud address: `https://memos.goreecloud.com`
 
 The target hostname is a deployment goal, not proof that the production cutover has already occurred. DNS, Caddy, TLS, monitoring, backup coverage, application data, and rollback must be validated before retiring the historical Notes-branded publication path.
+
+## Release status
+
+The post-RC stabilization work is merged into `main`, but a merged source baseline is **not** the same as a Stable release or an approved production cutover. Historical Notes-branded RC1–RC3 artifacts remain validation evidence only.
+
+Before a Stable GoreeCloud Memos release, validate the exact candidate revision, product terminology and Glaze UI behavior, data portability and recovery, container/deployment integrity, real-device responsive/PWA behavior, and the controlled transition to `https://memos.goreecloud.com`. See [`docs/goreecloud/release-candidate-validation.md`](docs/goreecloud/release-candidate-validation.md) for the release-gate boundary.
 
 ## Development
 
@@ -37,7 +43,7 @@ The frontend uses Node.js 24 and pnpm 11.0.1. The backend is written in Go.
 
 ```bash
 # Backend
- go run ./cmd/memos --port 8081
+go run ./cmd/memos --port 8081
 
 # Frontend, in a second terminal
 cd web
