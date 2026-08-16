@@ -4,29 +4,63 @@
 
 I use this package as the source-controlled deployment reference for **GoreeCloud Memos**, the lightweight GoreeCloud quick-note service derived from upstream Memos.
 
-This package is production-oriented, but repository configuration is not proof of a production deployment. I will not treat GoreeCloud Memos as production-ready until the exact image, data path, private publication path, backup/restore process, and application behavior are validated on the intended host.
+GoreeCloud Memos is already an accepted private production service at `https://memos.goreecloud.com`. The original Notes-branded cutover is complete. This package now governs reproducible maintenance, upgrades, recovery, and production acceptance rather than an unperformed initial cutover.
 
-## Runtime model
+## Current production state
 
-I run one GoreeCloud Memos application container with SQLite storage.
+Current accepted production runtime:
 
-- Container name: `goreecloud-memos`
-- Compose service: `memos`
-- Internal application port: `5230`
-- Persistent application path in the container: `/var/opt/memos`
-- Target GoreeCloud data path: `/srv/docker/appdata/memos`
-- Target GoreeCloud configuration path: `/srv/docker/secrets/memos`
-- Reverse-proxy Docker network: `proxy`
-- Target private address: `https://memos.goreecloud.com`
-- Runtime user and group: `10001:10001`
+```text
+Host: goreecloud-vps-01
+Container: goreecloud-memos
+Image: ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1
+Internal port: 5230/tcp
+Data: /srv/docker/appdata/memos
+Protected configuration: /srv/docker/secrets/memos
+Live stack: /srv/docker/stacks/memos/docker-compose.yml
+Proxy network: proxy
+Private address: https://memos.goreecloud.com
+Private DNS / NetBird target: 100.71.27.119
+Runtime identity: 10001:10001
+```
 
-I do not publish port 5230 to the host. Caddy should reach the application directly through the external `proxy` Docker network at `goreecloud-memos:5230`.
+The backend does not publish port 5230 to the host. Caddy reaches `goreecloud-memos:5230` through the approved Docker proxy network and applies the private-service access boundary.
 
-I intentionally do **not** set `MEMOS_INSTANCE_URL` for the private GoreeCloud deployment. In the upstream baseline, an instance URL participates in anonymous/public behavior. Leaving it unset preserves the private-by-default model while same-origin requests continue through the reverse proxy.
+## Current validated upgrade target
 
-## Historical Notes-branded deployment boundary
+The validated Stable v0.1.1 runtime artifact is:
 
-Earlier GoreeCloud validation used a Notes-branded Memos deployment and paths such as:
+```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+```
+
+Its Stable source commit is:
+
+```text
+ca52b1a7a25925b02cb4bf19b05e38581265fd02
+```
+
+The application image remains distinct from later source-only deployment/recovery tooling improvements on `main`. I do not substitute an unvalidated rebuild for the published Stable v0.1.1 digest.
+
+## Repository and live-host boundary
+
+The canonical repository deployment model is:
+
+```text
+deploy/goreecloud/compose.yaml
+```
+
+The current live VPS stack is:
+
+```text
+/srv/docker/stacks/memos/docker-compose.yml
+```
+
+Repository configuration is a reproducible reference, not proof of live state. Before every production maintenance operation I inspect the current host, live Compose configuration, immutable image, mounts, Caddy route, private DNS, backup state, monitoring state, and rollback path.
+
+## Historical Notes-branded runtime
+
+Earlier Memos-based GoreeCloud Notes validation used paths such as:
 
 ```text
 /srv/docker/appdata/notes
@@ -34,137 +68,25 @@ Earlier GoreeCloud validation used a Notes-branded Memos deployment and paths su
 notes.goreecloud.com
 ```
 
-Those names are historical migration sources, not current GoreeCloud Memos targets. I will **not** rename, move, overwrite, or delete those live paths solely because this repository now uses Memos names.
+Those paths are historical migration evidence, not current Memos runtime targets. The original stable Memos production cutover preserved and validated data before retiring the historical Notes-branded runtime. I do not use the retired Notes paths for current Memos deployment, backup, or upgrade operations.
 
-Before any cutover I will:
+`notes.goreecloud.com` remains reserved for the separate native GoreeCloud Notes product.
 
-1. identify the exact existing data and configuration paths;
-2. create and verify a recoverable pre-cutover backup;
-3. test restore into an isolated location;
-4. decide whether to copy or migrate data into the Memos target paths;
-5. validate ownership and permissions;
-6. validate `memos.goreecloud.com`, Caddy, private DNS, NetBird access, TLS, monitoring, and health checks; and
-7. retain rollback to the previous image, paths, and route until the Memos deployment is accepted.
+## Container image policy
 
-Historical Notes-branded RC records remain engineering evidence. They are not evidence that the Memos hostname or target paths have already been deployed.
-
-## Container image
-
-Production must use the exact immutable GoreeCloud release reference recorded by the successful tagged `GoreeCloud Container` workflow. I use the human-readable release tag together with the published multi-architecture manifest digest:
+Production uses only an exact immutable GoreeCloud Stable tag-plus-digest reference:
 
 ```text
 ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>
 ```
 
-I will not use `latest`, `canary`, a floating release family, or a tag by itself for production. `GOREECLOUD_MEMOS_IMAGE` is mandatory in the Compose package.
+I do not deploy `latest`, a moving branch image, a floating release family, or a tag without its validated digest.
 
-A `goreecloud-v*` image is eligible for publication only after both the hardened GoreeCloud container validation and the reusable upgrade-smoke workflow succeed. After publication, the workflow records in its job summary:
+Stable publication requires the GoreeCloud release workflow gates, including frontend validation, container validation, persistence checks, upgrade-smoke coverage, and immutable multi-architecture publication.
 
-- the exact release tag;
-- the multi-architecture manifest digest;
-- the immutable `tag@sha256:...` reference; and
-- the source commit used for the build.
+## Persistent data and protected configuration
 
-I copy that exact immutable reference into the protected production environment file. I retain the previously approved immutable image reference until the new release is fully accepted so rollback does not depend on rediscovering an old tag or digest.
-
-## Host preparation
-
-Before starting the stack, I will verify the intended Docker host and the approved reverse-proxy network:
-
-```bash
-docker network inspect proxy
-```
-
-For a new Memos target layout I will prepare the persistent directories for the non-root container identity:
-
-```bash
-sudo install -d -o 10001 -g 10001 -m 0770 /srv/docker/appdata/memos
-sudo install -d -o 10001 -g 10001 -m 0750 /srv/docker/secrets/memos
-```
-
-I will copy the instance policy into the protected configuration directory:
-
-```bash
-sudo cp deploy/goreecloud/memos-instance-setting-general.json.example \
-  /srv/docker/secrets/memos/memos-instance-setting-general.json
-sudo chown 10001:10001 /srv/docker/secrets/memos/memos-instance-setting-general.json
-sudo chmod 0640 /srv/docker/secrets/memos/memos-instance-setting-general.json
-```
-
-The supplied policy disables ordinary self-registration while retaining password authentication. I will validate first-administrator bootstrap and registration lockout against the exact release image.
-
-## Environment file
-
-I will create a local `.env` from the example and replace the image placeholder with the exact immutable tag-and-digest reference recorded by the successful tagged release workflow:
-
-```bash
-cp deploy/goreecloud/.env.example deploy/goreecloud/.env
-```
-
-At minimum, the active value must have this shape:
-
-```text
-GOREECLOUD_MEMOS_IMAGE=ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>
-```
-
-The `.env` file must not contain reusable credentials. Future OAuth, SMTP, S3, AI, or other secrets must remain in approved protected secret storage rather than ordinary source control.
-
-## Configuration validation
-
-Before creating or recreating the service, I will render the Compose configuration:
-
-```bash
-docker compose \
-  --env-file deploy/goreecloud/.env \
-  -f deploy/goreecloud/compose.yaml \
-  config
-```
-
-I will stop if Compose reports an error, resolves an unexpected path, uses an unexpected image reference, or publishes a backend host port.
-
-I will review the resolved image and confirm it matches the exact approved tag-and-digest reference before activation.
-
-## Start and health validation
-
-I will start the service with:
-
-```bash
-docker compose \
-  --env-file deploy/goreecloud/.env \
-  -f deploy/goreecloud/compose.yaml \
-  up -d
-```
-
-I will verify container state and the Memos health endpoint:
-
-```bash
-docker inspect \
-  --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}' \
-  goreecloud-memos
-
-docker exec goreecloud-memos \
-  wget -q -O - http://127.0.0.1:5230/healthz
-```
-
-The health endpoint must return `Service ready.`.
-
-## Private publication
-
-I will publish GoreeCloud Memos only through the approved private-service path:
-
-1. the intended service host is an approved NetBird peer;
-2. `memos.goreecloud.com` resolves privately to the approved destination through GoreeCloud DNS;
-3. Caddy and `goreecloud-memos` share only the required `proxy` Docker network;
-4. Caddy reverse-proxies the private hostname to `goreecloud-memos:5230`;
-5. the backend does not publish port 5230 to the host or public internet;
-6. approved network and application controls restrict access to intended users and devices; and
-7. HTTPS, authentication, desktop behavior, and mobile/PWA behavior are validated before production acceptance.
-
-This repository does not own the production Caddyfile, DNS inventory, NetBird policy, monitoring configuration, or backup schedule. I will make those changes only in their authoritative GoreeCloud locations during a controlled deployment.
-
-## Persistent data and backup scope
-
-The complete Memos application data directory is part of the recovery set:
+The complete Memos application-data recovery scope begins at:
 
 ```text
 /srv/docker/appdata/memos/
@@ -176,56 +98,114 @@ The SQLite database is expected at:
 /srv/docker/appdata/memos/memos_prod.db
 ```
 
-Attachments and other application-managed data under the same directory must be included. The protected configuration required to reconstruct the deployment is also part of recovery planning.
+Attachments and other application-managed persistent data under the same directory are part of the recovery set.
 
-I will not assume that copying a live SQLite database is consistent. Until a validated online-backup procedure is documented for this deployment, the conservative application-consistent process is to stop the service cleanly, capture the complete persistence/configuration set, restart, verify health, and verify the backup result.
+Protected configuration is stored under:
 
-## Restore validation
+```text
+/srv/docker/secrets/memos/
+```
 
-A completed backup is not sufficient evidence of recoverability. I will restore into an isolated validation location and verify at minimum:
+I keep reusable credentials and other sensitive values outside ordinary source control. The current GoreeCloud Kopia filesystem source model intentionally does not treat `/srv/docker/secrets` as an ordinary snapshot source; protected configuration and credentials require the approved independent recovery process.
 
-- the exact immutable image starts against the restored data;
-- database migration succeeds;
-- authentication succeeds;
-- normal, pinned, colored, archived, and trashed notes survive;
-- labels, checklists, and local attachments survive;
-- Markdown and JSON export works; and
-- the restored instance remains isolated from production publication paths.
+## Private publication model
+
+GoreeCloud Memos is private by design:
+
+1. approved clients use NetBird;
+2. AdGuard Home provides the private `memos.goreecloud.com` answer;
+3. the approved private target is `100.71.27.119`;
+4. Caddy terminates HTTPS and reverse-proxies to `goreecloud-memos:5230`;
+5. the Memos backend has no host-published port; and
+6. unapproved source paths remain denied.
+
+The VPS system resolver may return Porkbun public proxy addresses for the hostname. I therefore do not use the VPS system resolver as the authoritative proof of Memos private DNS.
+
+## Production preflight
+
+The read-only preflight is:
+
+```text
+scripts/goreecloud-memos-deployment-preflight.sh
+```
+
+For the current VPS architecture I explicitly select the approved private DNS server and private HTTPS target:
+
+```bash
+GOREECLOUD_MEMOS_EXPECTED_PRIVATE_IP=100.71.27.119 \
+GOREECLOUD_MEMOS_PRIVATE_DNS_SERVER=100.71.27.119 \
+GOREECLOUD_MEMOS_HTTPS_TARGET_IP=100.71.27.119 \
+GOREECLOUD_MEMOS_EXPECTED_IMAGE='ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>' \
+sh scripts/goreecloud-memos-deployment-preflight.sh
+```
+
+This preserves TLS hostname verification while directing the HTTPS acceptance request to the verified private destination.
+
+The preflight validates the immutable image, Compose rendering, non-root runtime identity, health, absence of backend host-port publication, proxy-network attachment, authoritative private DNS, private Caddy/TLS reachability, and GoreeCloud Memos product identity.
+
+## Backup and restore acceptance
+
+I use these current records:
+
+- `docs/goreecloud/backup-live-preflight.md`
+- `docs/goreecloud/backup-restore-validation.md`
+
+The original v0.1.0 production cutover already proved a pre-cutover archive and isolated restore. That historical acceptance does not prove recurring long-term backup coverage for the current `/srv/docker/appdata/memos` data.
+
+Before the v0.1.1 production upgrade, I require a current application-consistent v0.1.0 recovery point and a fresh isolated restore. Until a separately validated SQLite-safe online backup method exists, I use the documented conservative quiesced-data procedure.
+
+## Monitoring acceptance
+
+The current monitoring contract is:
+
+```text
+docs/goreecloud/monitoring-readiness.md
+```
+
+Uptime Kuma remains the active availability-monitoring platform until a separately accepted GoreeCloud Monitor cutover occurs.
+
+The Memos monitor must validate:
+
+```text
+https://memos.goreecloud.com/healthz
+```
+
+with valid TLS, HTTP 200, and response marker `Service ready.`.
+
+Before allowing a monitoring source through Caddy, I inspect the live Uptime Kuma source identity. I do not reuse another application's historical source address without verification and I do not broaden the Memos access boundary to an unnecessary Docker subnet.
+
+## Upgrade procedure
+
+The controlled v0.1.0 → v0.1.1 procedure is maintained in:
+
+```text
+deploy/goreecloud/DEPLOYMENT-CHECKLIST.md
+```
+
+The upgrade changes only the approved Memos image reference unless a separately documented target-environment finding requires another change. I do not restart or reconfigure unrelated services merely because Memos is being upgraded.
+
+After recreation, I run the private-DNS-aware preflight and complete application, backup, monitoring, publication, and rollback acceptance.
 
 ## Rollback
 
-Before an upgrade or Notes-to-Memos cutover I will record the running immutable image reference, preserve the previous Compose/environment configuration, verify a current recovery point, and review database migrations.
+I retain the exact v0.1.0 immutable image and pre-upgrade production recovery point until v0.1.1 is fully accepted.
 
-If an upgrade changes the database schema, I will not point an older binary at the upgraded database unless downgrade compatibility has been explicitly validated. When required, rollback means restoring the pre-change data together with the previous image and publication configuration.
+If v0.1.1 modifies the database and rollback is required, I do not point the older v0.1.0 binary at the modified database unless downgrade compatibility is explicitly proven. The conservative rollback is the v0.1.0 image together with the pre-upgrade v0.1.0 data and deployment configuration.
 
-I will not remove the previous approved image or migration source until the new production state has passed the applicable functional, monitoring, backup, and recovery acceptance checks.
+## Production approval rule
 
-## Post-cutover validation
+I call a new Memos version deployed only after target-environment evidence confirms:
 
-After a live cutover I will independently validate the production runtime rather than infer production success from repository CI. At minimum I will verify:
+- exact immutable image identity;
+- healthy container and local `/healthz`;
+- approved non-root runtime and mounts;
+- no backend host-port publication;
+- authoritative private DNS and private HTTPS/Caddy access;
+- approved NetBird client access and unintended-source denial;
+- authentication and representative quick-note workflows;
+- restart persistence;
+- current backup and fresh isolated restore;
+- Uptime Kuma DOWN/RECOVERED monitoring acceptance; and
+- a recorded rollback state.
 
-- the running container resolves to the approved immutable image reference;
-- private DNS, Caddy, NetBird access, and TLS work through the intended path;
-- no unintended host listener or public exposure was introduced;
-- authentication and administrator access work;
-- representative notes and attachments remain intact;
-- create, edit, pin, label, checklist, Archive, Trash, restore, and export workflows function;
-- restart persistence succeeds;
-- monitoring reports the expected service state; and
-- backup coverage includes the Memos data and protected configuration paths.
-
-## Production approval gate
-
-I will not mark GoreeCloud Memos production-ready until all applicable gates pass:
-
-- frontend lint, unit tests, and production build pass on the exact release head;
-- the GoreeCloud container workflow passes on the exact release head;
-- the upgrade-smoke suite passes on the exact release head, including SQLite, MySQL, PostgreSQL, release-image upgrade, and entrypoint-secret checks;
-- a release image is published and its exact immutable tag-and-digest reference and source commit are recorded;
-- Compose renders with Memos target names, the approved immutable image, and no backend host-port publication;
-- private DNS, Caddy, NetBird access, TLS, and monitoring are validated for `memos.goreecloud.com`;
-- administrator bootstrap and registration lockout are validated;
-- quick capture, titles, pinning, labels, checklists, attachments, colors, Archive, Trash, restore, and export are validated;
-- backup and isolated restore succeed;
-- desktop and Android/PWA behavior are accepted; and
-- PR #1 receives final review before merge or stable tagging.
+Repository CI alone is never sufficient evidence of live production acceptance.
