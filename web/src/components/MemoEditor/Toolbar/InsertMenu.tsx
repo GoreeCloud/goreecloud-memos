@@ -159,7 +159,17 @@ const InsertMenu = (props: InsertMenuProps) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="secondary" size="icon" disabled={insertionDisabled} aria-label={t("common.add")} />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              className="size-11 sm:size-8"
+              variant="secondary"
+              size="icon"
+              disabled={insertionDisabled}
+              aria-label={t("common.add")}
+            />
+          }
+        >
           {isUploading ? <LoaderIcon className="size-4 animate-spin" /> : <PlusIcon className="size-4" />}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -178,52 +188,50 @@ const InsertMenu = (props: InsertMenuProps) => {
           <DropdownMenuItem onClick={onToggleFormattingToolbar}>
             <TypeIcon className="w-4 h-4" />
             {t("editor.formatting-toolbar")}
-            {isFormattingToolbarVisible && <CheckIcon className="w-4 h-4 ml-auto" />}
+            {isFormattingToolbarVisible && <CheckIcon className="ml-auto w-4 h-4 text-primary" />}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Hidden file input */}
       <input
-        className="hidden"
         ref={fileInputRef}
-        disabled={insertionDisabled}
-        onChange={handleFileInputChange}
         type="file"
-        multiple={true}
-        accept=""
-      />
-
-      <input
         className="hidden"
-        ref={inlineImageInputRef}
+        multiple
+        onChange={handleFileInputChange}
         disabled={insertionDisabled}
-        onChange={handleInlineImageInputChange}
+      />
+      <input
+        ref={inlineImageInputRef}
         type="file"
-        multiple={true}
+        className="hidden"
         accept="image/*"
+        multiple
+        onChange={handleInlineImageInputChange}
+        disabled={insertionDisabled}
       />
 
       <LinkMemoDialog
         open={linkDialogOpen}
         onOpenChange={setLinkDialogOpen}
-        searchText={linkMemo.searchText}
-        onSearchChange={linkMemo.setSearchText}
-        filteredMemos={linkMemo.filteredMemos}
-        isFetching={linkMemo.isFetching}
-        onSelectMemo={linkMemo.addMemoRelation}
-        isAlreadyLinked={linkMemo.isAlreadyLinked}
+        searchQuery={linkMemo.searchQuery}
+        onSearchQueryChange={linkMemo.setSearchQuery}
+        availableMemos={linkMemo.availableMemos}
+        isLoading={linkMemo.isLoading}
+        onLinkMemo={linkMemo.linkMemo}
       />
 
       <LocationDialog
         open={locationDialogOpen}
         onOpenChange={setLocationDialogOpen}
-        state={locationState}
+        position={locationState.position}
+        placeholder={locationState.placeholder}
+        coordinate={locationState.coordinate}
         onPositionChange={handleLocationPositionChange}
-        onUpdateCoordinate={updateCoordinate}
+        onCoordinateChange={updateCoordinate}
         onPlaceholderChange={setPlaceholder}
-        onCancel={handleLocationCancel}
         onConfirm={handleLocationConfirm}
+        onCancel={handleLocationCancel}
       />
     </>
   );
