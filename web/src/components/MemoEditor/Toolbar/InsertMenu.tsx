@@ -188,50 +188,52 @@ const InsertMenu = (props: InsertMenuProps) => {
           <DropdownMenuItem onClick={onToggleFormattingToolbar}>
             <TypeIcon className="w-4 h-4" />
             {t("editor.formatting-toolbar")}
-            {isFormattingToolbarVisible && <CheckIcon className="ml-auto w-4 h-4 text-primary" />}
+            {isFormattingToolbarVisible && <CheckIcon className="w-4 h-4 ml-auto" />}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Hidden file input */}
       <input
+        className="hidden"
         ref={fileInputRef}
-        type="file"
-        className="hidden"
-        multiple
+        disabled={insertionDisabled}
         onChange={handleFileInputChange}
-        disabled={insertionDisabled}
-      />
-      <input
-        ref={inlineImageInputRef}
         type="file"
+        multiple={true}
+        accept=""
+      />
+
+      <input
         className="hidden"
-        accept="image/*"
-        multiple
-        onChange={handleInlineImageInputChange}
+        ref={inlineImageInputRef}
         disabled={insertionDisabled}
+        onChange={handleInlineImageInputChange}
+        type="file"
+        multiple={true}
+        accept="image/*"
       />
 
       <LinkMemoDialog
         open={linkDialogOpen}
         onOpenChange={setLinkDialogOpen}
-        searchQuery={linkMemo.searchQuery}
-        onSearchQueryChange={linkMemo.setSearchQuery}
-        availableMemos={linkMemo.availableMemos}
-        isLoading={linkMemo.isLoading}
-        onLinkMemo={linkMemo.linkMemo}
+        searchText={linkMemo.searchText}
+        onSearchChange={linkMemo.setSearchText}
+        filteredMemos={linkMemo.filteredMemos}
+        isFetching={linkMemo.isFetching}
+        onSelectMemo={linkMemo.addMemoRelation}
+        isAlreadyLinked={linkMemo.isAlreadyLinked}
       />
 
       <LocationDialog
         open={locationDialogOpen}
         onOpenChange={setLocationDialogOpen}
-        position={locationState.position}
-        placeholder={locationState.placeholder}
-        coordinate={locationState.coordinate}
+        state={locationState}
         onPositionChange={handleLocationPositionChange}
-        onCoordinateChange={updateCoordinate}
+        onUpdateCoordinate={updateCoordinate}
         onPlaceholderChange={setPlaceholder}
-        onConfirm={handleLocationConfirm}
         onCancel={handleLocationCancel}
+        onConfirm={handleLocationConfirm}
       />
     </>
   );
