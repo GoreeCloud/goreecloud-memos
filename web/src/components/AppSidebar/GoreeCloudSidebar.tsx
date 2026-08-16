@@ -33,7 +33,7 @@ import TagsSection from "./TagsSection";
 
 type NavIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
-const NotesNavRow = ({
+const SidebarNavRow = ({
   to,
   label,
   icon: Icon,
@@ -72,7 +72,7 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
   const { data: tagCount = {} } = useTagCounts(true);
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((notification) => notification.status === UserNotification_Status.UNREAD).length;
-  const notesActive = location.pathname === ROUTES.HOME || location.pathname.startsWith("/memos/") || location.pathname.startsWith("/u/");
+  const memosActive = location.pathname === ROUTES.HOME || location.pathname.startsWith("/memos/") || location.pathname.startsWith("/u/");
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -93,7 +93,7 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
             closeMobile();
             setQuickFindOpen(true);
           }}
-          aria-label="Search notes"
+          aria-label="Search memos"
         >
           <SearchIcon className="size-[18px]" strokeWidth={1.8} />
         </Button>
@@ -101,16 +101,16 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
 
       <div className="px-3 pb-2">
         <div className="gc-nav-kicker px-2 pb-2">Workspace</div>
-        <nav className="flex shrink-0 flex-col gap-1" aria-label="Notes navigation">
-          <NotesNavRow to={ROUTES.HOME} label="Notes" icon={LightbulbIcon} active={notesActive} onClick={closeMobile} />
-          <NotesNavRow
+        <nav className="flex shrink-0 flex-col gap-1" aria-label="Memos navigation">
+          <SidebarNavRow to={ROUTES.HOME} label="Memos" icon={LightbulbIcon} active={memosActive} onClick={closeMobile} />
+          <SidebarNavRow
             to={ROUTES.ARCHIVED}
             label="Archive"
             icon={ArchiveIcon}
             active={location.pathname === ROUTES.ARCHIVED}
             onClick={closeMobile}
           />
-          <NotesNavRow
+          <SidebarNavRow
             to={ROUTES.TRASH}
             label="Trash"
             icon={Trash2Icon}
@@ -130,8 +130,8 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
 
       <div className="px-3 py-3">
         <div className="gc-nav-kicker px-2 pb-2">Library</div>
-        <nav className="flex shrink-0 flex-col gap-1" aria-label="Notes library">
-          <NotesNavRow
+        <nav className="flex shrink-0 flex-col gap-1" aria-label="Memos library">
+          <SidebarNavRow
             to={ROUTES.ATTACHMENTS}
             label="Attachments"
             icon={PaperclipIcon}
@@ -139,7 +139,7 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
             onClick={closeMobile}
             compact
           />
-          <NotesNavRow
+          <SidebarNavRow
             to={ROUTES.INBOX}
             label="Inbox"
             icon={BellIcon}
@@ -152,7 +152,7 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
               {unreadCount} unread notifications
             </span>
           )}
-          <NotesNavRow
+          <SidebarNavRow
             to={ROUTES.SETTING}
             label="Settings"
             icon={Settings2Icon}
@@ -160,7 +160,7 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
             onClick={closeMobile}
             compact
           />
-          <NotesNavRow
+          <SidebarNavRow
             to={ROUTES.ABOUT}
             label="About"
             icon={InfoIcon}
@@ -193,14 +193,14 @@ const GoreeCloudSettingsSidebarContent = () => {
   const adminItems = [
     { key: "member", label: "Members", icon: UsersIcon },
     { key: "system", label: "System", icon: Settings2Icon },
-    { key: "memo", label: "Notes", icon: NotebookPenIcon },
+    { key: "memo", label: "Memos", icon: NotebookPenIcon },
     { key: "storage", label: "Storage", icon: HardDriveIcon },
     { key: "notification", label: "Notifications", icon: BellIcon },
   ];
 
   const renderSettingRows = (items: typeof personalItems) =>
     items.map((item) => (
-      <NotesNavRow
+      <SidebarNavRow
         key={item.key}
         to={`${ROUTES.SETTING}#${item.key}`}
         label={item.label}
@@ -228,7 +228,7 @@ const GoreeCloudSettingsSidebarContent = () => {
           className="gc-back-link flex h-10 items-center gap-2 rounded-xl px-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" strokeWidth={1.8} />
-          <span>Back to Notes</span>
+          <span>Back to Memos</span>
         </Link>
       </div>
 
@@ -300,7 +300,7 @@ export const GoreeCloudMobileAppHeader = () => {
           size="icon-sm"
           className="gc-icon-button size-10 rounded-xl"
           render={<Link to={ROUTES.HOME} />}
-          aria-label="Back to Notes"
+          aria-label="Back to Memos"
         >
           <ArrowLeftIcon className="size-5" />
         </Button>
@@ -315,7 +315,7 @@ export const GoreeCloudMobileAppHeader = () => {
         size="icon-sm"
         className="gc-icon-button size-10 rounded-xl"
         onClick={() => setMobileOpen(true)}
-        aria-label="Open navigation"
+        aria-label="Open Memos navigation"
       >
         <MenuIcon className="size-5" />
       </Button>
@@ -330,7 +330,7 @@ export const GoreeCloudMobileAppHeader = () => {
         size="icon-sm"
         className="gc-icon-button size-10 rounded-xl"
         onClick={() => setQuickFindOpen(true)}
-        aria-label="Search notes"
+        aria-label="Search memos"
       >
         <SearchIcon className="size-5" strokeWidth={1.8} />
       </Button>
