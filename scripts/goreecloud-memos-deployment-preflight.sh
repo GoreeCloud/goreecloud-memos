@@ -14,6 +14,8 @@ CONTAINER="${GOREECLOUD_MEMOS_CONTAINER:-goreecloud-memos}"
 COMPOSE_FILE="${GOREECLOUD_MEMOS_COMPOSE_FILE:-deploy/goreecloud/compose.yaml}"
 ENV_FILE="${GOREECLOUD_MEMOS_ENV_FILE:-deploy/goreecloud/.env}"
 EXPECTED_PRIVATE_IP="${GOREECLOUD_MEMOS_EXPECTED_PRIVATE_IP:-}"
+PRIVATE_DNS_SERVER="${GOREECLOUD_MEMOS_PRIVATE_DNS_SERVER:-}"
+HTTPS_TARGET_IP="${GOREECLOUD_MEMOS_HTTPS_TARGET_IP:-}"
 EXPECTED_IMAGE="${GOREECLOUD_MEMOS_EXPECTED_IMAGE:-}"
 EXPECTED_NETWORK="${GOREECLOUD_PROXY_NETWORK:-proxy}"
 
@@ -25,6 +27,10 @@ require_command() { command -v "$1" >/dev/null 2>&1 || fail "required command no
 for command_name in docker curl getent grep sed awk sort tr stat mktemp; do
   require_command "$command_name"
 done
+
+if [ -n "$PRIVATE_DNS_SERVER" ]; then
+  require_command dig
+fi
 
 [ -f "$COMPOSE_FILE" ] || fail "Compose file not found: $COMPOSE_FILE"
 [ -f "$ENV_FILE" ] || fail "environment file not found: $ENV_FILE"
@@ -88,19 +94,58 @@ networks_json="$(docker inspect --format '{{json .NetworkSettings.Networks}}' "$
 printf '%s\n' "$networks_json" | grep -F "\"$EXPECTED_NETWORK\"" >/dev/null || fail "container is not attached to Docker network: $EXPECTED_NETWORK"
 pass "container is attached to the approved proxy network"
 
-resolved_ips="$(getent ahostsv4 "$HOSTNAME" | awk '{print $1}' | sort -u | tr '\n' ' ')"
-[ -n "$resolved_ips" ] || fail "private DNS did not resolve $HOSTNAME"
-info "$HOSTNAME resolves to: $resolved_ips"
-if [ -n "$EXPECTED_PRIVATE_IP" ]; then
-  printf '%s\n' "$resolved_ips" | grep -F "$EXPECTED_PRIVATE_IP" >/dev/null || fail "$HOSTNAME does not resolve to expected private IP $EXPECTED_PRIVATE_IP"
-  pass "private DNS matches expected address"
+host_resolved_ips="$(getent ahostsv4 "$HOSTNAME" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ' || true)"
+if [ -n "$host_resolved_ips" ]; then
+  info "host resolver returns for $HOSTNAME: $host_resolved_ips"
+else
+  info "host resolver returned no IPv4 address for $HOSTNAME"
 fi
 
-health_body="$(curl --fail --silent --show-error --location --max-time 10 "https://${HOSTNAME}/healthz")" || fail "HTTPS health endpoint is not reachable"
+if [ -n "$PRIVATE_DNS_SERVER" ]; then
+  resolved_ips="$(dig @"$PRIVATE_DNS_SERVER" +short A "$HOSTNAME" | awk 'NF {print $1}' | sort -u | tr '\n' ' ')"
+  [ -n "$resolved_ips" ] || fail "private DNS server $PRIVATE_DNS_SERVER did not resolve $HOSTNAME"
+  info "$HOSTNAME via private DNS server $PRIVATE_DNS_SERVER resolves to: $resolved_ips"
+  pass "private DNS server returned an address for $HOSTNAME"
+else
+  resolved_ips="$host_resolved_ips"
+  [ -n "$resolved_ips" ] || fail "host resolver did not resolve $HOSTNAME"
+  info "using host resolver result for private-DNS validation"
+fi
+
+if [ -n "$EXPECTED_PRIVATE_IP" ]; then
+  printf '%s\n' "$resolved_ips" | grep -F "$EXPECTED_PRIVATE_IP" >/dev/null || fail "$HOSTNAME does not resolve to expected private IP $EXPECTED_PRIVATE_IP through the selected DNS validation path"
+  pass "private DNS validation matches expected address"
+fi
+
+if [ -z "$HTTPS_TARGET_IP" ]; then
+  if [ -n "$EXPECTED_PRIVATE_IP" ]; then
+    HTTPS_TARGET_IP="$EXPECTED_PRIVATE_IP"
+  elif [ -n "$PRIVATE_DNS_SERVER" ]; then
+    HTTPS_TARGET_IP="$(printf '%s\n' "$resolved_ips" | awk '{print $1}')"
+  fi
+fi
+
+https_get() {
+  path="$1"
+  if [ -n "$HTTPS_TARGET_IP" ]; then
+    curl --fail --silent --show-error --location --max-time 10 \
+      --resolve "${HOSTNAME}:443:${HTTPS_TARGET_IP}" \
+      "https://${HOSTNAME}${path}"
+  else
+    curl --fail --silent --show-error --location --max-time 10 \
+      "https://${HOSTNAME}${path}"
+  fi
+}
+
+if [ -n "$HTTPS_TARGET_IP" ]; then
+  info "HTTPS validation is pinned to private target $HTTPS_TARGET_IP"
+fi
+
+health_body="$(https_get /healthz)" || fail "HTTPS health endpoint is not reachable"
 printf '%s\n' "$health_body" | grep -F 'Service ready.' >/dev/null || fail "HTTPS health endpoint returned unexpected content"
 pass "Caddy/TLS path reaches the Memos health endpoint"
 
-page_body="$(curl --fail --silent --show-error --location --max-time 10 "https://${HOSTNAME}/")" || fail "application page is not reachable through HTTPS"
+page_body="$(https_get /)" || fail "application page is not reachable through HTTPS"
 printf '%s\n' "$page_body" | grep -F 'GoreeCloud Memos' >/dev/null || fail "application page does not identify as GoreeCloud Memos"
 pass "application page identifies as GoreeCloud Memos"
 
