@@ -1,18 +1,22 @@
-# GoreeCloud Notes Release-Candidate Validation
+# GoreeCloud Memos Release-Candidate Validation
 
-## RC1
+This record preserves the release-candidate evidence created while this repository was still used for the Notes-branded Memos implementation and separates that history from the current GoreeCloud Memos release line.
 
-Release candidate `goreecloud-v0.1.0-rc.1` validated the GoreeCloud private deployment architecture, SQLite persistence, non-root container execution, Docker `proxy` networking, private DNS, Caddy HTTPS routing, `/healthz`, and initial note creation.
+The historical RC1–RC3 artifacts remain valid engineering, deployment, persistence, portability, Glaze UI, and migration evidence. They are **not** Stable GoreeCloud Memos releases merely because the repository is now the continuing GoreeCloud Memos maintained fork.
 
-RC1 did **not** pass user-interface acceptance. The interface remained too close to upstream Memos and did not meet the intended GoreeCloud Notes experience. RC1 remains a validation artifact.
+## Historical Notes-Branded RC1
 
-## RC2
+Release candidate `goreecloud-v0.1.0-rc.1` validated the private deployment architecture, SQLite persistence, non-root container execution, Docker `proxy` networking, private DNS, Caddy HTTPS routing, `/healthz`, and initial note creation.
 
-Release candidate `goreecloud-v0.1.0-rc.2` delivered the first substantial Notes workspace redesign, responsive card wall, first-class Labels workflow, and preserved application state through an in-place private validation upgrade.
+RC1 did not pass user-interface acceptance. It remains a historical validation artifact.
 
-RC2 passed core workspace and Labels functional acceptance, but visual/product acceptance remained partial because terminology, Settings presentation, label display, search behavior, composer behavior, and card actions still needed product polish.
+## Historical Notes-Branded RC2
 
-## RC3
+Release candidate `goreecloud-v0.1.0-rc.2` delivered the first substantial GoreeCloud workspace redesign, responsive card wall, first-class Labels workflow, and preserved application state through an in-place private validation upgrade.
+
+RC2 passed core workspace and Labels functional acceptance, but product acceptance remained partial because terminology, Settings presentation, label display, search behavior, composer behavior, and card actions still needed polish.
+
+## Historical Notes-Branded RC3
 
 Release candidate `goreecloud-v0.1.0-rc.3` was published on August 12, 2026 at 6:09 PM CDT from validated commit `eaa7bcd71937aa2025c91d0d4f838f901448a01e`.
 
@@ -22,120 +26,84 @@ Published immutable image:
 
 Tag-triggered GoreeCloud Container run `31649812690` passed and published the release for `linux/amd64` and `linux/arm64`.
 
-RC3 implemented the primary product-polish corrections from RC2, including clean label presentation, direct desktop search, collapsed quick capture, direct card actions, GoreeCloud Notes Settings terminology, and stronger Glaze UI treatment.
+RC3 implemented the primary product-polish corrections from RC2, including clean label presentation, direct desktop search, collapsed quick capture, direct card actions, GoreeCloud Settings terminology, and stronger Glaze UI treatment.
 
-## RC3 Desktop Acceptance
+RC3 desktop visual/product acceptance passed on the private validation instance. Desktop acceptance did not establish Android/PWA acceptance or authorize a Stable GoreeCloud Memos release.
 
-RC3 desktop visual/product acceptance passed on the private GoreeCloud Notes validation instance.
+## Post-RC Stabilization Baseline
 
-Desktop acceptance covered the Notes workspace hierarchy, Glaze UI direction, composer behavior, direct search, responsive cards/actions, Labels, Notes/Archive/Trash workflows, Settings terminology, removal of ordinary user-facing Memos branding from the intended Notes workflow, and reviewed light/dark appearance behavior.
+After RC3, the repository received additional work intended to make the maintained fork safer, more portable, more responsive, and more release-ready. That work includes:
 
-Desktop acceptance does not imply Android/PWA acceptance.
+- shared Glaze UI surface treatment, focus feedback, reduced-motion behavior, and responsive/mobile refinements;
+- safe-area handling, mobile navigation and action touch-target improvements, browser zoom support, and installed-PWA identity improvements;
+- a focusable accessible pinned-item interaction and touch-safe hover behavior;
+- authenticated persistence smokes covering private memo content, attachment bytes, pinned state, Archive state, recoverable Trash state, and actual container restarts;
+- Markdown-aware label handling that avoids treating tag-looking text in opaque Markdown contexts as managed labels;
+- presentation guards that keep hidden GoreeCloud state markers out of rendered content;
+- restore-before-edit behavior for archived and trashed top-level memos;
+- full-library JSON portability work preserving documented attachment metadata while intentionally excluding attachment binary payloads; and
+- release-lineage hardening so historical or unpublished tags are not incorrectly treated as Stable-release predecessors.
 
-## Stable-Candidate Branch
+The major post-RC stabilization work has been merged into `main`. The current canonical source baseline at the start of this post-merge reconciliation pass is commit `181317ee0d8c32f5e0c2e625b7b293afdfc659c5` (`Fix stable release predecessor detection and unpublished-tag handling`).
 
-After the published RC3 image, the development branch received additional stable-target Glaze UI, terminology, mobile/PWA readiness, automated persistence validation, label-data-integrity hardening, state-view integrity hardening, and export-portability hardening.
+A merged source baseline does **not** by itself prove production readiness, real-device acceptance, backup/recovery readiness, or Stable-release authorization.
 
-The branch now includes:
+## Product-Boundary Reconciliation
 
-- shared Glaze surface tokens, selective translucency, softened depth, rounded geometry, focus feedback, and reduced-motion behavior;
-- additional note-oriented Settings terminology;
-- mobile safe-area handling for the header, slide-out navigation, and bottom navigation/gesture area;
-- browser zoom support and `viewport-fit=cover`;
-- one app-controlled mobile browser/PWA theme color synchronized by the existing Notes theme loader;
-- explicit installed-app manifest identity;
-- larger mobile header, slide-out navigation, search, note-card action, overflow-menu, and restore touch targets;
-- a focusable, accessible pinned-note unpin control;
-- fine-pointer-only hover elevation so touch interaction does not retain desktop hover effects;
-- small-screen Glaze background behavior tuned for mobile rendering;
-- automated regression coverage for the PWA shell and high-frequency mobile note actions;
-- isolated authenticated API smokes that prove private-note persistence, attachment binary persistence through the canonical authenticated file route, exact Markdown/checklist content, source-derived label recognition, GoreeCloud color metadata, actual pinned state, actual upstream Archive state, and the GoreeCloud Archive-to-Trash mutation state through actual Notes container restarts against the persistent data bind mount;
-- Markdown-aware label mutation that follows the same context-sensitive tag grammar used by the Notes renderer;
-- Archive/Trash state-view guards that keep hidden GoreeCloud state markers out of rendered top-level content and require restore before generic double-click editing; and
-- full-library JSON export that preserves the documented attachment metadata model, including normalized photo/video and motion-media metadata, while continuing to exclude attachment binary payloads intentionally.
+GoreeCloud Memos is now the continuing lightweight quick-note product. GoreeCloud Notes is the separate native full notes and knowledge-management application.
 
-Source-level Android/PWA review found and corrected conflicting media-scoped theme-color tags, undersized mobile navigation controls, undersized direct note-card actions, a 16 px overflow-menu trigger, and a pinned-note interaction attached to a non-focusable element. These corrections improve code readiness but do not replace real-device acceptance.
+Current Memos work must therefore optimize for:
 
-## Label and Markdown Integrity
+- fast note creation and editing;
+- compact, low-friction capture;
+- Markdown-friendly content and checklists;
+- labels/tags, pinning, simple filtering, Archive, Trash/recovery, and search;
+- attachments where they remain useful without making the product unnecessarily heavy;
+- private-by-default individual-user behavior;
+- responsive web/PWA operation;
+- portable exports;
+- Glaze UI consistency and accessibility; and
+- secure, reproducible self-hosted deployment.
 
-The earlier GoreeCloud label helper identified labels with raw token-oriented regular expressions. That could treat `#label` text inside opaque Markdown contexts as a managed label during lookup or mutation.
+Deep notebooks, knowledge graphs, broad research organization, extensive revision systems, and Evernote-class knowledge-management features belong primarily to GoreeCloud Notes unless a narrow Memos-specific need is separately justified.
 
-The stable candidate now routes label recognition through the same GFM and `remarkMemoSyntax` transformation used by GoreeCloud Notes rendering. Label normalization also requires the complete user-facing value to satisfy the canonical tag scanner.
+The approved target address for GoreeCloud Memos is `https://memos.goreecloud.com`. The historical Notes-branded publication path must not be treated as the permanent Memos product address.
 
-The corrected behavior excludes tag-looking text in contexts such as:
+## Preserved Automated Validation Evidence
 
-- inline code;
-- fenced code;
-- Markdown link destinations;
-- image destinations;
-- autolinks; and
-- HTML attributes/content that the renderer treats as opaque to tag extraction.
+Earlier exact-head automated evidence remains useful historical validation for the code it tested:
 
-Removal changes only source candidates proven to contribute a recognized Markdown tag. Addition verifies that the new tag is actually recognized and handles unclosed opaque Markdown without rewriting unrelated user text.
+- application-code head `5b3f266d443c98ebca08035ebf5c018f6c5e869d`: Frontend Tests run `31787838500` passed and GoreeCloud Container run `31787838506` passed;
+- validation-harness head `5aa3fdd05cbc6c110f19009829ec728783106953`: Frontend Tests run `31789535244` passed and GoreeCloud Container run `31789535238` passed the release-asset build, validation-image build, Compose rendering, isolated startup/health, authenticated restart-persistence smokes, logs, and cleanup.
 
-Regression coverage includes opaque-context examples, invalid complete-label grammar, unclosed fenced code, preservation of literal copies during removal, and spacing/data-integrity cases.
+Those runs prove the tested revisions, not every later commit automatically. Any Stable candidate must be validated again at its exact proposed source revision.
 
-## Archive and Trash State-View Integrity
-
-GoreeCloud note color and recoverable Trash state are intentionally stored as hidden Markdown metadata rather than new database fields.
-
-Top-level display content now removes the GoreeCloud color and Trash implementation markers before Markdown rendering. Stored memo content is not rewritten by this presentation change. This protects the user-facing display when malformed or unclosed Markdown would otherwise make a trailing implementation marker visible as ordinary source content.
-
-Archive and Trash also now share a consistent editing boundary. Their explicit action menus already withheld ordinary Edit behavior; the generic double-click path now follows the same model. Archived and trashed top-level notes must be restored before that generic edit path can modify them.
-
-`web/tests/goreecloud-trash-integrity.test.ts` guards both the hidden-marker display rule and the restore-before-edit state boundary.
-
-## Current Automated Validation
-
-The latest validated application-code head is:
-
-`5b3f266d443c98ebca08035ebf5c018f6c5e869d`
-
-Validation on that application-code head:
-
-- Frontend Tests run `31787838500` — passed, including lint, the full frontend unit suite with attachment-export metadata regressions, and the production frontend build.
-- GoreeCloud Container run `31787838506` — passed.
-
-That application head extends the GoreeCloud Notes JSON portability export so attachment records retain the normalized metadata already carried by the API, including motion-media family/role/group/presentation data, display dimensions, photo capture/location/camera/exposure fields, and video duration. Attachment binary content remains intentionally excluded from the JSON export.
-
-The later validation-harness head is:
-
-`5aa3fdd05cbc6c110f19009829ec728783106953`
-
-That head changes the isolated persistence smoke rather than application runtime source. Validation on that exact harness head:
-
-- Frontend Tests run `31789535244` — passed.
-- GoreeCloud Container run `31789535238` — passed the release-asset build, validation-image build, Compose rendering, isolated startup/health, both authenticated restart-persistence smokes, logs, and cleanup.
-
-The first smoke in `scripts/goreecloud-notes-ci-smoke.sh` bootstraps an ephemeral administrator, signs in through the real authentication API, creates and reads a private memo through the real memo API, creates a deterministic linked text attachment through the real attachment API, reads its exact bytes through the canonical authenticated `/file/attachments/...` route, verifies the SQLite database from the application container context, restarts only GoreeCloud Notes, waits for health to recover, signs in again, and verifies both the memo content and the attachment bytes survived the restart.
-
-The attachment check does not inspect or compare a storage file directly. It exercises the same file-serving route used by GoreeCloud Notes for locally stored attachments, so it proves isolated authenticated attachment-binary persistence across a real container restart for the tested database-backed validation configuration.
-
-The supplemental `scripts/goreecloud-notes-state-persistence-smoke.sh` reuses that isolated identity, creates richer private note fixtures, verifies exact Markdown/checklist content and the source-derived `ci-label`, verifies persisted GoreeCloud color metadata, then exercises the same `UpdateMemo` REST mutation model used by the application for pinning and state changes. It pins the note using the `pinned` update mask, archives it using the `state` update mask, moves a second note into Archive, and transitions that second note through the GoreeCloud Archive-to-Trash mutation shape using `content`, `state`, and `update_time`. After a second actual Notes restart, the smoke reauthenticates and proves the first note remains pinned and archived while the second retains the GoreeCloud Trash restore marker with its underlying memo state returned to `NORMAL`. The SQLite database remains present after the second restart.
-
-The runner sends PATCH requests directly to the isolated container's Docker-network address. No backend host port is published, and no curl package or other validation dependency is added to the production Notes image.
-
-These smokes materially strengthen restart-persistence evidence, including attachment binary persistence through the canonical authenticated file route, but they do not close the deployed browser/user-workflow acceptance gate. Browser interaction, attachment upload/open/download through the deployed user interface and private publication path, exports initiated and inspected through the deployed interface, the private Caddy/DNS/NetBird publication path itself, complete deployed state, Trash restore through the user interface, and Android/PWA behavior still require their respective acceptance checks.
-
-Documentation and validation-harness commits may be newer than the application-code validation head above. Those commits must not be interpreted as a new application runtime unless application code changes again.
+The persistence smokes materially strengthen evidence for private memo persistence and attachment-binary persistence through the canonical authenticated file route across container restarts. They do not replace deployed browser/user-workflow validation, real-device PWA acceptance, publication-path validation, or application-specific backup and restore acceptance.
 
 ## Remaining Gate Records
 
-The remaining first-release gates are defined separately so automated readiness is not confused with real-world acceptance:
+The remaining release gates are defined separately so source readiness is not confused with real-world acceptance:
 
-- `docs/goreecloud/android-pwa-validation.md` — source/code readiness is implemented and automated validation passes; real-device Android/PWA acceptance remains open.
-- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated restart persistence now covers note content/state plus attachment binary persistence through the canonical file route; deployed browser/user-workflow and complete full-state acceptance remain open.
-- `docs/goreecloud/backup-live-preflight.md` — defines a read-only live-source inspection; it does not prove that Notes is already in the active Kopia source scope.
-- `docs/goreecloud/backup-restore-validation.md` — GoreeCloud Notes application-specific backup and isolated restore acceptance remains open.
+- `docs/goreecloud/android-pwa-validation.md` — source/code readiness and automated checks do not replace real-device Android/PWA acceptance;
+- `docs/goreecloud/end-to-end-validation.md` — isolated authenticated persistence evidence does not replace deployed browser/user-workflow and complete-state acceptance;
+- `docs/goreecloud/backup-live-preflight.md` — read-only source inspection does not prove that the application is already protected by the approved long-term backup scope;
+- `docs/goreecloud/backup-restore-validation.md` — application-specific backup and isolated restore acceptance remains a separate gate.
 
 ## Stable Promotion Rule
 
-`goreecloud-v0.1.0` must not be created until all remaining applicable first-release gates pass:
+A Stable GoreeCloud Memos release must not be created merely because post-RC source work is merged.
 
-- real-device Android/PWA visual and functional acceptance;
-- deployed browser/user-workflow end-to-end validation and full-state restart-persistence acceptance;
-- confirmed application-data protection through the approved long-term backup path using an application-consistent method;
-- a real isolated restore test proving the restored application is usable; and
-- final pull-request review of the stable-candidate branch state.
+Before Stable promotion, the exact candidate revision must pass the applicable:
 
-RC3 desktop acceptance, mobile/PWA source readiness, Markdown-aware label hardening, state-view integrity hardening, export attachment-metadata preservation, and the current isolated automated validation are complete. PR #1 remains draft and unmerged until the remaining gates above are complete.
+- frontend lint, unit, and production-build checks;
+- container build and isolated runtime validation;
+- memo, attachment, state, export, and restart-persistence checks;
+- product-identity and Glaze UI review against the current Memos quick-capture scope;
+- real-device responsive/PWA visual and functional acceptance;
+- deployed browser/user-workflow end-to-end validation;
+- confirmed application-data protection through the approved long-term backup path;
+- real isolated restore testing;
+- controlled `memos.goreecloud.com` publication/cutover validation with DNS, Caddy, TLS, monitoring, data preservation, backup coverage, and rollback protection; and
+- final pull-request/release review of the exact Stable candidate.
+
+Historical Notes-branded RC3 desktop acceptance and the post-RC source validation remain useful evidence, but Stable status and production cutover require the current Memos-specific gates above to pass separately.
