@@ -105,14 +105,14 @@ const render = (ui: Parameters<typeof testingLibraryRender>[0]) =>
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{ui}</QueryClientProvider>,
   );
 
-describe("GoreeCloud Notes sidebar shell", () => {
+describe("GoreeCloud Memos sidebar shell", () => {
   beforeEach(() => {
     authState.currentUser = { name: "users/test" };
     authState.memoViews = [];
     sidebarState.memoScope = "home";
   });
 
-  it("uses a dedicated notes workspace instead of the Memos calendar sidebar", () => {
+  it("uses a dedicated Memos workspace instead of the upstream calendar sidebar", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <AppSidebar />
@@ -120,11 +120,11 @@ describe("GoreeCloud Notes sidebar shell", () => {
     );
 
     expect(screen.getByRole("link", { name: "Memos logo" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("navigation", { name: "Notes navigation" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Notes" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("navigation", { name: "Memos navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Memos" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Archive" })).toHaveAttribute("href", "/archived");
     expect(screen.getByRole("link", { name: "Trash" })).toHaveAttribute("href", "/trash");
-    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search memos" })).toBeInTheDocument();
     expect(screen.getByText("Labels")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("href", "/attachments");
     expect(screen.getByRole("link", { name: "Inbox" })).toHaveAttribute("href", "/inbox");
@@ -136,7 +136,7 @@ describe("GoreeCloud Notes sidebar shell", () => {
   it.each([
     ["/archived", "Archive"],
     ["/trash", "Trash"],
-  ])("marks %s as the active Notes destination", (path, label) => {
+  ])("marks %s as the active Memos destination", (path, label) => {
     render(
       <MemoryRouter initialEntries={[path]}>
         <AppSidebar />
@@ -158,7 +158,7 @@ describe("GoreeCloud Notes sidebar shell", () => {
     expect(screen.getByRole("link", { name: "common.explore" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "common.about" })).toHaveAttribute("href", "/about");
     expect(screen.getByRole("link", { name: "common.sign-in-to-memos" }).closest("footer")).not.toBeNull();
-    expect(screen.queryByRole("link", { name: "Notes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Memos" })).not.toBeInTheDocument();
   });
 
   it("keeps the GoreeCloud shell across authenticated library routes", () => {
@@ -168,27 +168,27 @@ describe("GoreeCloud Notes sidebar shell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("navigation", { name: "Notes navigation" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Notes library" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Memos navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Memos library" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attachments" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search memos" })).toBeInTheDocument();
     expect(screen.queryByText("Calendar")).not.toBeInTheDocument();
   });
 
-  it("uses the GoreeCloud Notes settings shell on Settings", () => {
+  it("uses the GoreeCloud Memos settings shell on Settings", () => {
     render(
       <MemoryRouter initialEntries={["/setting"]}>
         <AppSidebar />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("link", { name: "Back to Notes" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Back to Memos" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("navigation", { name: "Personal settings" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "My account" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Preferences" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Labels" })).toHaveAttribute("href", "/setting#tags");
     expect(screen.queryByRole("heading", { name: "common.basic", level: 2 })).not.toBeInTheDocument();
-    expect(screen.queryByRole("navigation", { name: "Notes navigation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Memos navigation" })).not.toBeInTheDocument();
   });
 
   it("keeps mobile navigation and search immediately accessible", () => {
@@ -198,8 +198,8 @@ describe("GoreeCloud Notes sidebar shell", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("button", { name: "Open navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Memos navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Memos logo" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("button", { name: "Search notes" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search memos" })).toBeInTheDocument();
   });
 });
