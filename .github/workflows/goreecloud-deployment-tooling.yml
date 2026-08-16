@@ -1,0 +1,34 @@
+name: GoreeCloud Deployment Tooling
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/goreecloud-deployment-tooling.yml"
+      - "deploy/goreecloud/**"
+      - "scripts/goreecloud-memos-deployment-preflight.sh"
+      - "scripts/goreecloud-memos-deployment-preflight-test.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate production deployment tooling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate shell syntax
+        run: |
+          sh -n scripts/goreecloud-memos-deployment-preflight.sh
+          sh -n scripts/goreecloud-memos-deployment-preflight-test.sh
+
+      - name: Validate private DNS and HTTPS preflight behavior
+        run: sh scripts/goreecloud-memos-deployment-preflight-test.sh
