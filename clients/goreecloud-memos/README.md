@@ -21,6 +21,16 @@ It intentionally does **not** create a second memo database, duplicate sync engi
 
 The native shell is deliberately small. Product UI, Glaze UI behavior, authentication, memo editing, labels, archive/trash behavior, and server communication remain in the maintained GoreeCloud Memos web application.
 
+## Product icon
+
+`../../web/public/goreecloud-memos.svg` is the canonical GoreeCloud Memos application icon source for every client surface.
+
+- Web uses the SVG directly as the primary favicon and committed raster derivatives for browser/PWA and Apple touch-icon compatibility.
+- Linux packaging runs Tauri's pinned `icon` command from that same SVG before creating AppImage and Debian bundles.
+- Android runs Tauri's pinned `icon` command after Android project initialization so launcher resources are generated from the same SVG rather than a framework or platform default.
+
+The icon is intentionally text-free and uses the Memos quick-capture document motif with GoreeCloud Glaze UI geometry and blue surface semantics. Platform launchers may apply their own icon mask, but the product symbol and source identity remain the same.
+
 ## Current limitations
 
 - The client requires network access to the GoreeCloud Memos service.
@@ -35,6 +45,7 @@ Install the current Tauri Linux prerequisites for your distribution, then run fr
 
 ```bash
 cargo install tauri-cli --version 2.11.4 --locked
+cargo tauri icon ../../web/public/goreecloud-memos.svg
 cargo test --manifest-path src-tauri/Cargo.toml
 cargo tauri build --bundles appimage,deb
 ```
@@ -53,6 +64,7 @@ Configure the Android SDK, NDK, Java, and Rust Android target first. Then run:
 ```bash
 cargo install tauri-cli --version 2.11.4 --locked
 cargo tauri android init --ci --skip-targets-install
+cargo tauri icon ../../web/public/goreecloud-memos.svg
 cargo tauri android build --debug --apk --target aarch64
 ```
 
@@ -62,6 +74,7 @@ The generated Android project is intentionally not committed. Tauri recreates it
 
 The `GoreeCloud Memos Clients` GitHub Actions workflow performs:
 
+- Native desktop/Android icon generation from the canonical GoreeCloud Memos SVG.
 - Rust unit tests for the client navigation boundary.
 - Linux AppImage and Debian package builds on Ubuntu 22.04.
 - Android target initialization.
