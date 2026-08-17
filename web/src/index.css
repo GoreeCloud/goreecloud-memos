@@ -3,6 +3,7 @@
 @import "./themes/default.css";
 @import "./themes/goreecloud-glaze.css";
 @import "./themes/goreecloud-glaze-polish.css";
+@import "./themes/goreecloud-glaze-adaptive.css";
 
 @layer base {
   * {
