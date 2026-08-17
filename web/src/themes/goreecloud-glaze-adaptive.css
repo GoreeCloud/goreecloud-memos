@@ -60,7 +60,7 @@
 /* Compact: phones and narrow embedded clients. */
 @media (max-width: 599px) {
   html {
-    font-size: 17px;
+    font-size: 18px;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
