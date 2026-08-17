@@ -11,6 +11,7 @@ It intentionally does **not** create a second memo database, duplicate sync engi
 ## Architecture
 
 - Framework: Tauri 2
+- Current client acceptance candidate: `0.1.1`
 - Linux target: AppImage and Debian package
 - Android target: APK
 - Application identifier: `com.goreecloud.memos`
@@ -21,6 +22,8 @@ It intentionally does **not** create a second memo database, duplicate sync engi
 
 The native shell is deliberately small. Product UI, Glaze UI behavior, authentication, memo editing, labels, archive/trash behavior, and server communication remain in the maintained GoreeCloud Memos web application.
 
+Because the shell loads the canonical live service, a client APK can be newer than the web runtime it displays. Device acceptance must therefore verify both the installed native client version and the GoreeCloud Memos build identity shown by the web application.
+
 ## Product icon
 
 `../../web/public/goreecloud-memos.svg` is the canonical GoreeCloud Memos application icon source for every client surface.
@@ -30,6 +33,8 @@ The native shell is deliberately small. Product UI, Glaze UI behavior, authentic
 - Android runs Tauri's pinned `icon` command after Android project initialization so launcher resources are generated from the same SVG rather than a framework or platform default.
 
 The icon is intentionally text-free and uses the Memos quick-capture document motif with GoreeCloud Glaze UI geometry and blue surface semantics. Platform launchers may apply their own icon mask, but the product symbol and source identity remain the same.
+
+The `0.1.1` acceptance candidate intentionally increments the native package version so Android treats it as a new application update and regenerates launcher resources from the canonical icon. If a launcher continues to show a cached older icon after updating, uninstalling the prior debug build before reinstalling is an acceptable test-only cache reset.
 
 ## Current limitations
 
@@ -69,6 +74,18 @@ cargo tauri android build --debug --apk --target aarch64
 ```
 
 The generated Android project is intentionally not committed. Tauri recreates it from the controlled Rust/configuration source, and CI uploads the resulting APK as a workflow artifact.
+
+## Device acceptance
+
+For an Android acceptance pass, verify at minimum:
+
+- The APK installs and launches as GoreeCloud Memos.
+- The launcher uses the canonical GoreeCloud Memos icon.
+- Sign-in, memo feed, drawer navigation, search, attachments, settings, Archive, and Trash render correctly.
+- The About surface reports the expected deployed GoreeCloud Memos build identity.
+- Draft labels and Trash `Delete all` are visible when the deployed server version contains those features.
+- Phone typography and touch targets are comfortable without system-level display scaling workarounds.
+- Keyboard resizing, Android Back behavior, lifecycle resume, attachment opening/downloading, and external-link handling are checked before Stable release approval.
 
 ## Validation
 
