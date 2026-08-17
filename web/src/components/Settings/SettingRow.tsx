@@ -16,7 +16,7 @@ const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, ch
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 gap-3",
+        "gc-setting-row flex w-full min-w-0 gap-3",
         vertical ? "flex-col" : "flex-col sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
