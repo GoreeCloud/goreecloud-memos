@@ -112,21 +112,16 @@ jobs:
         with:
           targets: aarch64-linux-android
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pinned Tauri CLI
-        run: npm install --global "@tauri-apps/cli@${TAURI_CLI_VERSION}"
+      - name: Install pinned Rust-native Tauri CLI
+        run: cargo install tauri-cli --version "${TAURI_CLI_VERSION}" --locked
 
       - name: Initialize generated Android project
         working-directory: clients/goreecloud-memos
-        run: tauri android init --ci --skip-targets-install
+        run: cargo tauri android init --ci --skip-targets-install
 
       - name: Build installable ARM64 debug APK
         working-directory: clients/goreecloud-memos
-        run: tauri android build --debug --apk --target aarch64
+        run: cargo tauri android build --debug --apk --target aarch64
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
