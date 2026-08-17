@@ -14,7 +14,7 @@ import { memoKeys, useMemos } from "@/hooks/useMemoQueries";
 import { userKeys } from "@/hooks/useUserQueries";
 import { handleError } from "@/lib/error";
 import { State } from "@/types/proto/api/v1/common_pb";
-import { type Memo, ListMemosRequestSchema } from "@/types/proto/api/v1/memo_service_pb";
+import { ListMemosRequestSchema, type Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { withTrashFilter } from "@/utils/noteTrash";
 
 const BULK_DELETE_PAGE_SIZE = 100;
