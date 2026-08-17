@@ -29,9 +29,6 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   const t = useTranslate();
   const { userTagsSetting } = useAuth();
   const { actions, dispatch } = useEditorContext();
-  // Subscribe to narrow/derived slices so typing (which only changes content)
-  // doesn't re-render the toolbar or the heavy InsertMenu it hosts. `valid`
-  // flips only on empty↔non-empty / loading transitions, not per keystroke.
   const valid = useEditorSelector((s) => validationService.canSave(s).valid);
   const blockedReason = useEditorSelector((s) => validationService.canSave(s).reason);
   const blockedReasonDetail = useEditorSelector((s) => validationService.canSave(s).detail);
@@ -66,7 +63,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="mb-2 flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
@@ -140,7 +137,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
           ))}
       </div>
 
-      <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
+      <div className="gc-editor-toolbar-actions flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
         {onCancel && (
           <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" variant="ghost" onClick={onCancel} disabled={isSaving}>
             {t("common.cancel")}
