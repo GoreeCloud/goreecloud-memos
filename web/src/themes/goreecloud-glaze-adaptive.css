@@ -40,7 +40,9 @@
   background: var(--gc-surface-raised);
   border: 1px solid var(--gc-glaze-border);
   border-radius: var(--gc-glaze-radius);
-  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--gc-glaze-highlight),
+    var(--gc-glaze-shadow);
 }
 
 .gc-app-shell [data-slot="dropdown-menu-content"],
@@ -214,7 +216,9 @@
     border: 1px solid var(--gc-glaze-border);
     border-radius: var(--gc-glaze-radius);
     background: var(--gc-surface-raised);
-    box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+    box-shadow:
+      inset 0 1px 0 var(--gc-glaze-highlight),
+      var(--gc-glaze-shadow);
   }
 
   .gc-setting-row {
