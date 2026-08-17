@@ -45,6 +45,38 @@ export const hasNoteLabel = (content: string, value: string): boolean => {
 
 const TRAILING_LABEL_LINE = /(^|\n)(#[^\s#]+(?:[ \t]+#[^\s#]+)*)[ \t]*$/u;
 
+export interface NoteLabelFooterParts {
+  body: string;
+  labels: string[];
+}
+
+/**
+ * Split the canonical trailing label-only line from visible note content.
+ * GoreeCloud's label actions append managed labels to this line, so compact
+ * cards can render it outside the clamped body and keep labels visible even
+ * when a long note is collapsed behind Show more.
+ *
+ * Inline Markdown tags remain untouched. Only a final line consisting solely
+ * of recognized label tokens is promoted to the footer.
+ */
+export const splitTrailingNoteLabels = (content: string): NoteLabelFooterParts => {
+  const trimmed = content.trimEnd();
+  const match = TRAILING_LABEL_LINE.exec(trimmed);
+  if (!match) return { body: content, labels: [] };
+
+  const labels = (match[2] ?? "")
+    .split(/[ \t]+/u)
+    .map((token) => normalizeNoteLabel(token))
+    .filter(Boolean);
+
+  if (labels.length === 0) return { body: content, labels: [] };
+
+  return {
+    body: trimmed.slice(0, match.index).trimEnd(),
+    labels,
+  };
+};
+
 const stripGoreeCloudStateMetadata = (content: string) => stripNoteTrashMetadata(stripNoteColorMetadata(content));
 
 const restoreGoreeCloudStateMetadata = (content: string, originalContent: string): string => {
