@@ -45,6 +45,10 @@ export interface EditorToolbarProps {
   isFormattingToolbarVisible: boolean;
   onToggleFormattingToolbar: () => void;
   onInsertImages: (files: File[]) => void;
+  /** Selected labels for a memo that has not been created yet. */
+  draftLabels?: string[];
+  /** Present only for top-level create mode; toggles a label before first save. */
+  onToggleDraftLabel?: (label: string) => void;
 }
 
 export interface EditorMetadataProps {

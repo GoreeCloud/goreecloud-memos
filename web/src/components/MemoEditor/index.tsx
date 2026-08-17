@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { InstanceSetting_Key } from "@/types/proto/api/v1/instance_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { convertVisibilityFromString } from "@/utils/memo";
+import { addNoteLabel } from "@/utils/noteLabels";
 import { AudioRecorderPanel, EditorContent, EditorMetadata, FocusModeOverlay, NoteTitleField, TimestampPopover } from "./components";
 import { FOCUS_MODE_STYLES, FORMATTING_TOOLBAR_STORAGE_KEY } from "./constants";
 import {
@@ -59,6 +60,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   const { aiSetting, fetchSetting } = useInstance();
   const [isAudioRecorderOpen, setIsAudioRecorderOpen] = useState(false);
   const [isTranscribingAudio, setIsTranscribingAudio] = useState(false);
+  const [draftLabels, setDraftLabels] = useState<string[]>([]);
   const { createBlobUrl } = useBlobUrls();
   const saveMediaMetadata = userGeneralSetting?.saveMediaMetadata ?? false;
   const inlineImageUpload = useInlineImageUpload(editorRef);
@@ -67,6 +69,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   const [isFormattingToolbarVisible, setFormattingToolbarVisible] = useLocalStorage(FORMATTING_TOOLBAR_STORAGE_KEY, false);
 
   const memoName = memo?.name;
+  const canAssignDraftLabels = !memo && !parentMemoName;
   const canTranscribe = useMemo(() => {
     const providerId = aiSetting.transcription?.providerId ?? "";
     if (!providerId) return false;
@@ -220,6 +223,25 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     setFormattingToolbarVisible((visible) => !visible);
   }, [setFormattingToolbarVisible]);
 
+  const handleToggleDraftLabel = useCallback((label: string) => {
+    setDraftLabels((labels) => (labels.includes(label) ? labels.filter((item) => item !== label) : [...labels, label]));
+  }, []);
+
+  const applyDraftLabels = useCallback(
+    (content: string) => draftLabels.reduce((nextContent, label) => addNoteLabel(nextContent, label), content),
+    [draftLabels],
+  );
+
+  const handleSaveConfirm = useCallback(
+    (savedMemoName: string) => {
+      if (canAssignDraftLabels) {
+        setDraftLabels([]);
+      }
+      onConfirm?.(savedMemoName);
+    },
+    [canAssignDraftLabels, onConfirm],
+  );
+
   const handleStartAudioRecording = async () => {
     setIsAudioRecorderOpen(true);
     await audioRecorder.startRecording();
@@ -268,8 +290,9 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
     defaultVisibility,
     defaultCreateTime,
     discardDraft,
-    onConfirm,
+    onConfirm: handleSaveConfirm,
     onCancel: onCancel ? handleCancel : undefined,
+    contentTransform: canAssignDraftLabels && draftLabels.length > 0 ? applyDraftLabels : undefined,
   });
 
   return (
@@ -349,6 +372,8 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
             isFormattingToolbarVisible={isFormattingToolbarVisible}
             onToggleFormattingToolbar={handleToggleFormattingToolbar}
             onInsertImages={handleInsertImages}
+            draftLabels={canAssignDraftLabels ? draftLabels : undefined}
+            onToggleDraftLabel={canAssignDraftLabels ? handleToggleDraftLabel : undefined}
           />
         </div>
       </div>
