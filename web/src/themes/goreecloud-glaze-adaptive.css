@@ -209,7 +209,7 @@
     gap: 0.9rem;
   }
 
-  .gc-setting-group-surface {
+  .gc-settings-route .gc-setting-group {
     padding: 1rem;
     border: 1px solid var(--gc-glaze-border);
     border-radius: var(--gc-glaze-radius);
@@ -225,7 +225,8 @@
     width: 100%;
   }
 
-  .gc-notification-setting [data-slot="input"] {
+  .gc-settings-route .gc-setting-row [data-slot="input"],
+  .gc-settings-route .gc-setting-row [data-slot="select-trigger"] {
     width: 100%;
     max-width: none;
   }
@@ -349,6 +350,7 @@
   .gc-editor-surface,
   .gc-settings-panel,
   .gc-setting-table-card,
+  .gc-settings-route .gc-setting-group,
   .gc-app-shell [data-slot="dialog-content"],
   .gc-app-shell [data-slot="sheet-content"],
   .gc-app-shell [data-slot="popover-content"],
