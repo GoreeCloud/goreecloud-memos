@@ -32,7 +32,7 @@ const SettingTable = <T extends Record<string, unknown>>({
 
   return (
     <div className={cn("w-full min-w-0", className)}>
-      <div className="gc-setting-table-compact" aria-label="Settings list">
+      <div className="gc-setting-table-compact">
         {data.length === 0 ? (
           <div className="gc-setting-table-card px-4 py-5 text-center text-sm text-muted-foreground">{emptyMessage}</div>
         ) : (
