@@ -7,7 +7,7 @@ const memoActionMenu = readFileSync(join(process.cwd(), "src/components/MemoActi
 const memoHeader = readFileSync(join(process.cwd(), "src/components/MemoView/components/MemoHeader.tsx"), "utf8");
 const noteTag = readFileSync(join(process.cwd(), "src/components/MemoContent/Tag.tsx"), "utf8");
 
-describe("GoreeCloud Notes mobile note actions", () => {
+describe("GoreeCloud Memos mobile note actions", () => {
   it("keeps primary card actions touch-sized on small screens", () => {
     expect(cardActions).toContain('"size-11 rounded-full');
     expect(cardActions).toContain('md:size-8";');
