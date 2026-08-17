@@ -1,6 +1,7 @@
 import { EyeIcon } from "lucide-react";
 import { useMemo } from "react";
 import ClampedSection from "@/components/ClampedSection";
+import { Tag } from "@/components/MemoContent/Tag";
 import { AttachmentListView, LocationDisplayView, RelationListView } from "@/components/MemoMetadata";
 import { isReferenceRelation } from "@/components/MemoMetadata/Relation/relationHelpers";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import { useTranslate } from "@/utils/i18n";
 import { filterInlineManagedAttachments } from "@/utils/managed-attachment";
 import { stripNoteColorMetadata } from "@/utils/noteColor";
+import { splitTrailingNoteLabels } from "@/utils/noteLabels";
 import { isNoteTrashed, stripNoteTrashMetadata } from "@/utils/noteTrash";
 import MemoContent from "../../MemoContent";
 import { MemoReactionListView } from "../../MemoReactionListView";
@@ -40,10 +42,11 @@ const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
   const trashed = !memo.parent && isNoteTrashed(memo.content);
   const editingDisabled = readonly || archived || trashed;
   const displayContent = memo.parent ? memo.content : stripNoteTrashMetadata(stripNoteColorMetadata(memo.content));
+  const { body: displayBody, labels: footerLabels } = splitTrailingNoteLabels(displayContent);
 
   // Archive and Trash are state-management surfaces. A top-level note must be
-  // restored before the generic double-click edit path can modify it, matching
-  // the explicit action menus which intentionally hide Edit in those views.
+  // restored before the generic click edit path can modify it, matching the
+  // explicit action menus which intentionally hide Edit in those views.
   const { handleMemoContentClick, handleMemoContentDoubleClick } = useMemoHandlers({
     readonly: editingDisabled,
     openEditor,
@@ -65,12 +68,14 @@ const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
           blurred && !showBlurredContent && "blur-lg transition-all duration-200",
         )}
       >
-        {/* Compact bounds the whole body — attachments included — behind one Show more.
-            Reactions stay outside so they never hide under the fade. */}
+        {/* Compact bounds the note body and attachments behind one Show more.
+            The canonical trailing label line is promoted below the clamp so
+            labels stay visible on long collapsed cards. Reactions also remain
+            outside so neither metadata surface disappears under the fade. */}
         <ClampedSection enabled={Boolean(compact)}>
           <MemoContent
             memoName={memo.name}
-            content={displayContent}
+            content={displayBody}
             attachments={memo.attachments}
             onClick={handleMemoContentClick}
             onDoubleClick={handleMemoContentDoubleClick}
@@ -80,6 +85,15 @@ const MemoBody: React.FC<MemoBodyProps> = ({ compact }) => {
           <RelationListView relations={referencedMemos} currentMemoName={memo.name} parentPage={parentPage} />
           {memo.location && <LocationDisplayView location={memo.location} />}
         </ClampedSection>
+
+        {footerLabels.length > 0 && (
+          <div className="flex w-full flex-wrap items-center gap-1.5 pt-1" data-memo-label-footer>
+            {footerLabels.map((label) => (
+              <Tag key={label} data-tag={label} />
+            ))}
+          </div>
+        )}
+
         <MemoReactionListView memo={memo} reactions={memo.reactions} />
       </div>
 
