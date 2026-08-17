@@ -26,6 +26,7 @@ concurrency:
 
 env:
   TAURI_CLI_VERSION: "2.11.4"
+  NODE_VERSION: "24"
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -53,15 +54,17 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install pinned Tauri CLI
-        run: cargo install tauri-cli --version "${TAURI_CLI_VERSION}" --locked
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Run client unit tests
-        run: cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml --locked || cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml
+        run: cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml
 
       - name: Build Linux bundles
         working-directory: clients/goreecloud-memos
-        run: cargo tauri build --bundles appimage,deb
+        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" build --bundles appimage,deb
 
       - name: Upload Linux client artifacts
         uses: actions/upload-artifact@v6
@@ -106,16 +109,18 @@ jobs:
         with:
           targets: aarch64-linux-android
 
-      - name: Install pinned Tauri CLI
-        run: cargo install tauri-cli --version "${TAURI_CLI_VERSION}" --locked
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Initialize generated Android project
         working-directory: clients/goreecloud-memos
-        run: cargo tauri android init --ci --skip-targets-install
+        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" android init --ci --skip-targets-install
 
       - name: Build installable ARM64 debug APK
         working-directory: clients/goreecloud-memos
-        run: cargo tauri android build --debug --apk --target aarch64
+        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" android build --debug --apk --target aarch64
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
