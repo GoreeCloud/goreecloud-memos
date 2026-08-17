@@ -27,7 +27,7 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   });
 
   it("keeps compact controls readable, touch-sized, and safe-area aware", () => {
-    expect(adaptiveCss).toContain("font-size: 17px");
+    expect(adaptiveCss).toContain("font-size: 18px");
     expect(adaptiveCss).toContain("--gc-target-min: 2.75rem");
     expect(adaptiveCss).toContain("env(safe-area-inset-top)");
     expect(adaptiveCss).toContain("env(safe-area-inset-bottom)");
