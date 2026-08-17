@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import { isEqual } from "lodash-es";
 import { useEffect, useState } from "react";
-import { memoEditTriggerFromSetting, enableDoubleClickEditFromTrigger, type MemoEditTrigger } from "@/components/MemoView/editTrigger";
+import { enableDoubleClickEditFromTrigger, type MemoEditTrigger, memoEditTriggerFromSetting } from "@/components/MemoView/editTrigger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
