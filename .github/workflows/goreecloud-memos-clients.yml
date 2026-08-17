@@ -59,12 +59,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install pinned Tauri CLI
+        run: npm install --global "@tauri-apps/cli@${TAURI_CLI_VERSION}"
+
       - name: Run client unit tests
         run: cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml
 
       - name: Build Linux bundles
         working-directory: clients/goreecloud-memos
-        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" build --bundles appimage,deb
+        run: tauri build --bundles appimage,deb
 
       - name: Upload Linux client artifacts
         uses: actions/upload-artifact@v6
@@ -114,13 +117,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install pinned Tauri CLI
+        run: npm install --global "@tauri-apps/cli@${TAURI_CLI_VERSION}"
+
       - name: Initialize generated Android project
         working-directory: clients/goreecloud-memos
-        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" android init --ci --skip-targets-install
+        run: tauri android init --ci --skip-targets-install
 
       - name: Build installable ARM64 debug APK
         working-directory: clients/goreecloud-memos
-        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" android build --debug --apk --target aarch64
+        run: tauri android build --debug --apk --target aarch64
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
