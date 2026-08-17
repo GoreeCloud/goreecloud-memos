@@ -25,7 +25,11 @@ vi.mock("@/components/MemoContent/MentionResolutionContext", () => ({
 }));
 
 vi.mock("@/components/MemoContent/MemoMarkdownRenderer", () => ({
-  MemoMarkdownRenderer: ({ content }: { content: string }) => <div>{content}</div>,
+  MemoMarkdownRenderer: ({ content }: { content: string }) => <div data-testid="memo-markdown">{content}</div>,
+}));
+
+vi.mock("@/components/MemoContent/Tag", () => ({
+  Tag: ({ "data-tag": dataTag }: { "data-tag"?: string }) => <span data-testid="memo-label">{dataTag}</span>,
 }));
 
 vi.mock("@/components/MemoMetadata", () => ({
@@ -93,6 +97,20 @@ describe("<MemoBody /> compact body clamp", () => {
     rerender(<MemoBody compact={true} />);
 
     expect(screen.getByRole("button", { name: /memo\.show-less/ })).toBeInTheDocument();
+  });
+
+  it("keeps trailing labels visible while a long compact body is collapsed", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(CLAMP_TRIGGER_HEIGHT_PX + 100);
+
+    mockState.memo = createMemo("Long note body that should fold.\n\n#Research #Agent");
+    render(<MemoBody compact={true} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /memo\.show-more/ })).toBeInTheDocument());
+
+    expect(screen.getAllByTestId("memo-label").map((node) => node.textContent)).toEqual(["Research", "Agent"]);
+    expect(screen.getByTestId("memo-markdown")).toHaveTextContent("Long note body that should fold.");
+    expect(screen.getByTestId("memo-markdown")).not.toHaveTextContent("#Research");
+    expect(screen.getByTestId("memo-markdown")).not.toHaveTextContent("#Agent");
   });
 
   it("renders no clamp when compact is off", () => {

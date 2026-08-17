@@ -7,10 +7,11 @@ const memoBody = readFileSync(join(process.cwd(), "src/components/MemoView/compo
 describe("GoreeCloud Notes state-view integrity", () => {
   it("keeps internal state metadata out of rendered top-level note content", () => {
     expect(memoBody).toContain("stripNoteTrashMetadata(stripNoteColorMetadata(memo.content))");
-    expect(memoBody).toContain("content={displayContent}");
+    expect(memoBody).toContain("splitTrailingNoteLabels(displayContent)");
+    expect(memoBody).toContain("content={displayBody}");
   });
 
-  it("requires state-view notes to be restored before double-click editing", () => {
+  it("requires state-view notes to be restored before click editing", () => {
     expect(memoBody).toContain("const archived = memo.state === State.ARCHIVED;");
     expect(memoBody).toContain("const trashed = !memo.parent && isNoteTrashed(memo.content);");
     expect(memoBody).toContain("const editingDisabled = readonly || archived || trashed;");
