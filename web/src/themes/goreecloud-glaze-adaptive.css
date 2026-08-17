@@ -1,0 +1,379 @@
+/*
+ * GoreeCloud Memos — Glaze UI 1.0 adaptive and resilience layer.
+ *
+ * This layer implements the GoreeCloud Compact / Medium / Expanded / Wide
+ * contract without changing the Memos data model or quick-capture product scope.
+ */
+
+:root {
+  --gc-surface-canvas: var(--background);
+  --gc-surface-solid: var(--card);
+  --gc-surface-raised: var(--gc-glaze-surface-strong);
+  --gc-surface-glaze: var(--gc-glaze-surface);
+  --gc-surface-overlay: color-mix(in oklch, var(--card) 96%, transparent);
+  --gc-target-min: 2.75rem;
+  --gc-motion-instant: 90ms;
+  --gc-motion-fast: 160ms;
+  --gc-motion-standard: 220ms;
+  --gc-motion-emphasized: 320ms;
+  --gc-focus-width: 3px;
+  --gc-focus-color: color-mix(in oklch, var(--primary) 22%, transparent);
+  --gc-compact-gutter: 1rem;
+}
+
+.gc-setting-table-compact {
+  display: none;
+}
+
+.gc-setting-table-expanded {
+  display: block;
+}
+
+.gc-setting-section,
+.gc-setting-group,
+.gc-setting-row,
+.gc-setting-table-card {
+  min-width: 0;
+}
+
+.gc-setting-table-card {
+  background: var(--gc-surface-raised);
+  border: 1px solid var(--gc-glaze-border);
+  border-radius: var(--gc-glaze-radius);
+  box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+}
+
+.gc-app-shell [data-slot="dropdown-menu-content"],
+.gc-app-shell [data-slot="popover-content"],
+.gc-app-shell [data-slot="select-content"] {
+  max-height: min(32rem, calc(100dvh - 2rem));
+  overscroll-behavior: contain;
+}
+
+.gc-app-shell :is(button, a, input, select, textarea, [role="button"], [role="menuitem"]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--gc-focus-width) var(--gc-focus-color);
+}
+
+/* Compact: phones and narrow embedded clients. */
+@media (max-width: 599px) {
+  html {
+    font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-attachment: scroll;
+  }
+
+  .gc-main-shell::before {
+    inset: 0;
+  }
+
+  .gc-mobile-topbar {
+    min-height: calc(4rem + env(safe-area-inset-top));
+    height: calc(4rem + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
+
+  .gc-mobile-topbar .gc-icon-button {
+    min-width: var(--gc-target-min);
+    min-height: var(--gc-target-min);
+  }
+
+  .gc-route-page,
+  .gc-settings-route {
+    padding-left: max(var(--gc-compact-gutter), env(safe-area-inset-left));
+    padding-right: max(var(--gc-compact-gutter), env(safe-area-inset-right));
+    padding-bottom: max(3rem, calc(2rem + env(safe-area-inset-bottom)));
+  }
+
+  .gc-route-page {
+    padding-top: 1rem;
+  }
+
+  .gc-route-hero,
+  .gc-workspace-intro {
+    margin-bottom: 1rem;
+    border-radius: 1.15rem;
+  }
+
+  .gc-route-hero {
+    padding: 1.1rem;
+  }
+
+  .gc-workspace-intro {
+    padding: 1.15rem;
+  }
+
+  .gc-workspace-intro h1,
+  .gc-route-hero h1 {
+    line-height: 1.18;
+  }
+
+  .gc-workspace-intro p,
+  .gc-route-hero p,
+  .gc-setting-section p,
+  .gc-setting-group p,
+  .gc-setting-row p {
+    line-height: 1.55;
+  }
+
+  .gc-composer-collapsed {
+    min-height: 4rem;
+    padding-inline: 1rem;
+  }
+
+  .gc-composer-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .gc-editor-surface,
+  .gc-app-shell article.group,
+  .gc-note-card {
+    border-radius: 1.15rem;
+  }
+
+  .gc-app-shell [data-slot="button"],
+  .gc-app-shell [data-slot="input"],
+  .gc-app-shell [data-slot="select-trigger"],
+  .gc-app-shell [role="menuitem"],
+  .gc-app-shell [role="option"] {
+    min-height: var(--gc-target-min);
+  }
+
+  .gc-app-shell [role="menuitem"],
+  .gc-app-shell [role="option"] {
+    padding-block: 0.65rem;
+  }
+
+  .gc-app-shell [data-slot="dialog-content"],
+  .gc-app-shell [data-slot="alert-dialog-content"],
+  .gc-app-shell [data-slot="popover-content"],
+  .gc-app-shell [data-slot="dropdown-menu-content"],
+  .gc-app-shell [data-slot="select-content"] {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .gc-app-shell [data-slot="sheet-content"] {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .gc-sidebar-brand {
+    min-height: 4.75rem;
+  }
+
+  .gc-sidebar .gc-nav-row {
+    min-height: 3rem;
+    font-size: 0.95rem;
+  }
+
+  .gc-sidebar .gc-nav-kicker {
+    font-size: 0.7rem;
+  }
+
+  .gc-settings-route {
+    background: transparent;
+  }
+
+  .gc-setting-section {
+    gap: 1.1rem;
+    padding-top: 0.25rem;
+  }
+
+  .gc-setting-section-header {
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .gc-setting-section-title {
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+
+  .gc-setting-section-actions {
+    width: 100%;
+  }
+
+  .gc-setting-section-actions > * {
+    min-height: var(--gc-target-min);
+  }
+
+  .gc-setting-group {
+    gap: 0.9rem;
+  }
+
+  .gc-setting-group-surface {
+    padding: 1rem;
+    border: 1px solid var(--gc-glaze-border);
+    border-radius: var(--gc-glaze-radius);
+    background: var(--gc-surface-raised);
+    box-shadow: inset 0 1px 0 var(--gc-glaze-highlight), var(--gc-glaze-shadow);
+  }
+
+  .gc-setting-row {
+    gap: 0.75rem;
+  }
+
+  .gc-setting-row > :last-child {
+    width: 100%;
+  }
+
+  .gc-notification-setting [data-slot="input"] {
+    width: 100%;
+    max-width: none;
+  }
+
+  .gc-setting-table-expanded {
+    display: none;
+  }
+
+  .gc-setting-table-compact {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .gc-setting-table-card {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .gc-setting-table-card-field {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .gc-setting-table-card-label {
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .gc-setting-table-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--gc-glaze-border);
+  }
+
+  .gc-setting-table-card-actions [data-slot="button"] {
+    min-width: var(--gc-target-min);
+  }
+
+  .gc-member-identity,
+  .gc-member-summary {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .gc-editor-toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .gc-editor-toolbar-actions > [data-slot="button"],
+  .gc-editor-toolbar-actions > span,
+  .gc-editor-toolbar-actions > span [data-slot="button"] {
+    width: 100%;
+  }
+}
+
+/* Medium: tablets and compact desktop windows. */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .gc-route-page,
+  .gc-settings-route {
+    padding-inline: 1.5rem;
+  }
+
+  .gc-app-shell [data-slot="button"],
+  .gc-app-shell [role="menuitem"] {
+    min-height: 2.625rem;
+  }
+
+  .gc-route-hero,
+  .gc-workspace-intro {
+    border-radius: 1.2rem;
+  }
+}
+
+/* Expanded: ordinary desktop composition. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .gc-route-page,
+  .gc-settings-route {
+    --gc-adaptive-density: 1;
+  }
+}
+
+/* Wide: preserve breathing room rather than stretching content indefinitely. */
+@media (min-width: 1440px) {
+  .gc-route-page > .mx-auto,
+  .gc-settings-route > .mx-auto {
+    width: min(100%, var(--gc-page-max-width, 76rem));
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --gc-glaze-border: color-mix(in oklch, var(--foreground) 32%, var(--border));
+    --gc-glaze-border-strong: color-mix(in oklch, var(--foreground) 48%, var(--border));
+  }
+
+  .gc-nav-row[data-active="true"],
+  .gc-route-hero,
+  .gc-composer-collapsed,
+  .gc-editor-surface,
+  .gc-settings-panel,
+  .gc-setting-table-card {
+    border-width: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  .gc-sidebar,
+  .gc-topbar,
+  .gc-mobile-topbar,
+  .gc-route-hero,
+  .gc-workspace-intro,
+  .gc-composer-collapsed,
+  .gc-editor-surface,
+  .gc-settings-panel,
+  .gc-setting-table-card,
+  .gc-app-shell [data-slot="dialog-content"],
+  .gc-app-shell [data-slot="sheet-content"],
+  .gc-app-shell [data-slot="popover-content"],
+  .gc-app-shell [data-slot="dropdown-menu-content"] {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .gc-app-shell :is(button, a, input, select, textarea, [role="button"], [role="menuitem"]):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-app-shell *,
+  .gc-app-shell *::before,
+  .gc-app-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
