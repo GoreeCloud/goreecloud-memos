@@ -18,6 +18,8 @@ interface UseMemoSaveOptions {
   discardDraft: () => void;
   onConfirm?: (memoName: string) => void;
   onCancel?: () => void;
+  /** Optional create-time transformation applied after validation and before persistence. */
+  contentTransform?: (content: string) => string;
 }
 
 /**
@@ -33,6 +35,7 @@ export function useMemoSave({
   discardDraft,
   onConfirm,
   onCancel,
+  contentTransform,
 }: UseMemoSaveOptions): () => Promise<void> {
   const t = useTranslate();
   const queryClient = useQueryClient();
@@ -50,7 +53,8 @@ export function useMemoSave({
     dispatch(actions.setLoading("saving", true));
 
     try {
-      const result = await memoService.save(state, { memoName, parentMemoName });
+      const stateToSave = contentTransform ? { ...state, content: contentTransform(state.content) } : state;
+      const result = await memoService.save(stateToSave, { memoName, parentMemoName });
 
       if (!result.hasChanges) {
         toast.error(t("editor.no-changes-detected"));
@@ -97,6 +101,7 @@ export function useMemoSave({
     }
   }, [
     actions,
+    contentTransform,
     defaultCreateTime,
     defaultVisibility,
     discardDraft,
