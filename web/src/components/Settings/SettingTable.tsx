@@ -45,7 +45,10 @@ const SettingTable = <T extends Record<string, unknown>>({
                   return (
                     <div
                       key={column.key}
-                      className={cn("gc-setting-table-card-field text-sm text-muted-foreground", !hasHeader && "gc-setting-table-card-actions")}
+                      className={cn(
+                        "gc-setting-table-card-field text-sm text-muted-foreground",
+                        !hasHeader && "gc-setting-table-card-actions",
+                      )}
                     >
                       {hasHeader ? <div className="gc-setting-table-card-label">{column.header}</div> : null}
                       <div className="min-w-0">{renderCell(column, row)}</div>
