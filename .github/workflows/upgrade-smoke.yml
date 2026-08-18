@@ -23,6 +23,8 @@ on:
       - "store/test/migrator*_test.go"
       - "store/test/store.go"
       - "server/server.go"
+      - "go.mod"
+      - "go.sum"
       - "scripts/Dockerfile"
       - "scripts/entrypoint.sh"
       - "scripts/release_smoke_test.sh"
@@ -33,7 +35,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.26.2"
+  GO_VERSION: "1.26.6"
   NODE_VERSION: "24"
   PNPM_VERSION: "11.0.1"
 
