@@ -1,12 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GoreeCloud Memos">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="GoreeCloud Memos app icon">
   <defs>
-    <linearGradient id="g" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#315f8d"/>
-      <stop offset="1" stop-color="#18324d"/>
+    <linearGradient id="tile" x1="128" y1="96" x2="896" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EDF5FC"/>
+      <stop offset="0.48" stop-color="#DCEAF6"/>
+      <stop offset="1" stop-color="#C8DCEC"/>
     </linearGradient>
+    <linearGradient id="paper" x1="338" y1="286" x2="704" y2="756" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F7F8F7"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="390" y1="354" x2="660" y2="690" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3D74A6"/>
+      <stop offset="1" stop-color="#24537F"/>
+    </linearGradient>
+    <clipPath id="tileClip"><rect x="64" y="64" width="896" height="896" rx="238"/></clipPath>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#365975" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#365975" flood-opacity="0.13"/>
+    </filter>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="17" fill="url(#g)"/>
-  <path d="M19 15h26a4 4 0 0 1 4 4v19L36 51H19a4 4 0 0 1-4-4V19a4 4 0 0 1 4-4Z" fill="#fbfaf6" fill-opacity=".96"/>
-  <path d="M36 51V41a3 3 0 0 1 3-3h10" fill="none" stroke="#9db7cf" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M23 26h18M23 33h14M23 40h9" fill="none" stroke="#315f8d" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Glaze UI product tile. The transparent corner treatment is intentional for web/Linux;
+       Android launchers apply their own adaptive mask to the generated asset. -->
+  <rect x="64" y="64" width="896" height="896" rx="238" fill="url(#tile)"/>
+  <g clip-path="url(#tileClip)">
+    <circle cx="780" cy="236" r="210" fill="#FFFFFF" fill-opacity="0.22"/>
+    <circle cx="250" cy="808" r="230" fill="#FFFFFF" fill-opacity="0.14"/>
+  </g>
+
+  <!-- A second memo sheet communicates a collection of quick notes without adding detail. -->
+  <g filter="url(#softShadow)" opacity="0.78">
+    <rect x="292" y="252" width="380" height="484" rx="84" fill="#F7FBFE"/>
+    <rect x="292" y="252" width="380" height="484" rx="84" fill="none" stroke="#B8CFE1" stroke-width="14"/>
+  </g>
+
+  <!-- Primary memo sheet. -->
+  <g filter="url(#shadow)">
+    <path d="M366 284h264c55 0 100 45 100 100v236L588 762H366c-55 0-100-45-100-100V384c0-55 45-100 100-100Z" fill="url(#paper)"/>
+    <path d="M588 762V666c0-52 42-94 94-94h48" fill="#E8F1F8"/>
+    <path d="M588 762V666c0-52 42-94 94-94h48" fill="none" stroke="#9DBBD2" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M366 284h264c55 0 100 45 100 100v236L588 762H366c-55 0-100-45-100-100V384c0-55 45-100 100-100Z" fill="none" stroke="#6F9ABC" stroke-width="18" stroke-linejoin="round"/>
+
+    <!-- Quick-capture mark and memo lines. -->
+    <circle cx="397" cy="421" r="40" fill="#E5F0F9"/>
+    <path d="M397 398v46M374 421h46" stroke="url(#ink)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M474 412h150M370 512h254M370 590h194" fill="none" stroke="url(#ink)" stroke-width="22" stroke-linecap="round"/>
+  </g>
 </svg>
