@@ -72,12 +72,38 @@ jobs:
         working-directory: clients/goreecloud-memos
         run: tauri icon ../../web/public/goreecloud-memos.svg
 
+      - name: Verify Linux icon generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for icon in \
+            clients/goreecloud-memos/src-tauri/icons/32x32.png \
+            clients/goreecloud-memos/src-tauri/icons/128x128.png \
+            clients/goreecloud-memos/src-tauri/icons/128x128@2x.png \
+            clients/goreecloud-memos/src-tauri/icons/icon.png; do
+            test -s "$icon"
+          done
+          sha256sum web/public/goreecloud-memos.svg > clients/goreecloud-memos/goreecloud-memos-canonical-icon.sha256
+
       - name: Run client unit tests
         run: cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml
 
       - name: Build Linux bundles
         working-directory: clients/goreecloud-memos
         run: tauri build --bundles appimage,deb
+
+      - name: Generate Linux package checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          find \
+            clients/goreecloud-memos/src-tauri/target/release/bundle/appimage \
+            clients/goreecloud-memos/src-tauri/target/release/bundle/deb \
+            -type f \( -name '*.AppImage' -o -name '*.deb' \) -print0 \
+            | sort -z \
+            | xargs -0 -r sha256sum \
+            > clients/goreecloud-memos/goreecloud-memos-linux-x86_64.sha256
+          test -s clients/goreecloud-memos/goreecloud-memos-linux-x86_64.sha256
 
       - name: Upload Linux client artifacts
         uses: actions/upload-artifact@v6
@@ -87,6 +113,8 @@ jobs:
           path: |
             clients/goreecloud-memos/src-tauri/target/release/bundle/appimage/*.AppImage
             clients/goreecloud-memos/src-tauri/target/release/bundle/deb/*.deb
+            clients/goreecloud-memos/goreecloud-memos-linux-x86_64.sha256
+            clients/goreecloud-memos/goreecloud-memos-canonical-icon.sha256
 
   android:
     name: Android ARM64 debug APK
@@ -133,13 +161,37 @@ jobs:
         working-directory: clients/goreecloud-memos
         run: cargo tauri icon ../../web/public/goreecloud-memos.svg
 
+      - name: Verify Android launcher icon generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESOURCE_ROOT="clients/goreecloud-memos/src-tauri/gen/android/app/src/main/res"
+          test -d "$RESOURCE_ROOT"
+          ICON_COUNT="$(find "$RESOURCE_ROOT" -type f \( -name 'ic_launcher*.png' -o -name 'ic_launcher*.xml' \) | wc -l)"
+          test "$ICON_COUNT" -ge 3
+          sha256sum web/public/goreecloud-memos.svg > clients/goreecloud-memos/goreecloud-memos-canonical-icon.sha256
+
       - name: Build installable ARM64 debug APK
         working-directory: clients/goreecloud-memos
         run: cargo tauri android build --debug --apk --target aarch64
+
+      - name: Generate Android package checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          find clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk \
+            -type f -name '*.apk' -print0 \
+            | sort -z \
+            | xargs -0 -r sha256sum \
+            > clients/goreecloud-memos/goreecloud-memos-android-arm64-debug.sha256
+          test -s clients/goreecloud-memos/goreecloud-memos-android-arm64-debug.sha256
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
         with:
           name: goreecloud-memos-android-arm64-debug
           if-no-files-found: error
-          path: clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          path: |
+            clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            clients/goreecloud-memos/goreecloud-memos-android-arm64-debug.sha256
+            clients/goreecloud-memos/goreecloud-memos-canonical-icon.sha256
