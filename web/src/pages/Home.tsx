@@ -37,7 +37,9 @@ const Home = () => {
       <section className="gc-route-hero gc-workspace-intro mx-auto mb-6 flex w-full max-w-6xl flex-col gap-4 px-5 py-5 max-[599px]:!mb-4 max-[599px]:!gap-3 max-[599px]:!p-4 sm:flex-row sm:items-end sm:justify-between sm:px-6">
         <div className="min-w-0">
           <div className="gc-eyebrow mb-1.5">Quick Notes</div>
-          <h1 className="text-2xl font-semibold tracking-[-0.035em] max-[599px]:!text-[1.35rem] sm:text-[1.75rem]">Capture what matters.</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.035em] max-[599px]:!text-[1.35rem] sm:text-[1.75rem]">
+            Capture what matters.
+          </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground max-[599px]:!mt-1 max-[599px]:!text-[0.9rem] max-[599px]:!leading-[1.45]">
             Fast capture with labels, attachments, Archive, and recoverable Trash in your private GoreeCloud workspace.
           </p>
