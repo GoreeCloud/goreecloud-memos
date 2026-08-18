@@ -63,7 +63,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:mb-1.5 max-[599px]:gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:sticky max-[599px]:bottom-[max(0.25rem,env(safe-area-inset-bottom))] max-[599px]:z-20 max-[599px]:mb-1 max-[599px]:gap-1.5 max-[599px]:rounded-xl max-[599px]:border max-[599px]:border-border/70 max-[599px]:bg-card/95 max-[599px]:p-1.5 max-[599px]:shadow-md max-[599px]:backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
