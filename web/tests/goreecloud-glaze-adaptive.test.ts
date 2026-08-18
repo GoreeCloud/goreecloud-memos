@@ -11,6 +11,8 @@ const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEdito
 const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
 const memosLogo = readFileSync(join(process.cwd(), "src/components/MemosLogo.tsx"), "utf8");
 const switchControl = readFileSync(join(process.cwd(), "src/components/ui/switch.tsx"), "utf8");
+const checkboxControl = readFileSync(join(process.cwd(), "src/components/ui/checkbox.tsx"), "utf8");
+const radioGroupControl = readFileSync(join(process.cwd(), "src/components/ui/radio-group.tsx"), "utf8");
 
 describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   it("loads the adaptive layer after the existing Glaze layers", () => {
@@ -62,11 +64,25 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(switchControl).toContain('data-slot="switch"');
     expect(switchControl).toContain('h-[1.15rem] w-8');
     expect(adaptiveCss.match(/\[data-slot="switch"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
-    expect(adaptiveCss).toContain('[data-slot="switch"]::after');
     expect(adaptiveCss).toContain("width: var(--gc-target-min)");
     expect(adaptiveCss).toContain("height: var(--gc-target-min)");
     expect(adaptiveCss).toContain("width: 2.625rem");
     expect(adaptiveCss).toContain("height: 2.625rem");
+    expect(adaptiveCss).toContain(":focus-visible");
+  });
+
+  it("keeps checkbox and radio controls visually compact while expanding touch and focus treatment", () => {
+    expect(checkboxControl).toContain('data-slot="checkbox"');
+    expect(checkboxControl).toContain("size-4");
+    expect(radioGroupControl).toContain('data-slot="radio-group-item"');
+    expect(radioGroupControl).toContain("size-4");
+    expect(adaptiveCss.match(/\[data-slot="checkbox"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
+    expect(adaptiveCss.match(/\[data-slot="radio-group-item"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
+    expect(adaptiveCss).toContain("width: var(--gc-target-min)");
+    expect(adaptiveCss).toContain("height: var(--gc-target-min)");
+    expect(adaptiveCss).toContain("width: 2.625rem");
+    expect(adaptiveCss).toContain("height: 2.625rem");
+    expect(adaptiveCss).toContain("@media (forced-colors: active)");
     expect(adaptiveCss).toContain(":focus-visible");
   });
 
