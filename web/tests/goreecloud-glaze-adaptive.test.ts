@@ -35,6 +35,7 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain("env(safe-area-inset-bottom)");
     expect(adaptiveCss).toContain("max-height: calc(100dvh");
     expect(adaptiveCss).toContain(".gc-main-shell > header:not(.gc-topbar)");
+    expect(adaptiveCss).toContain('[data-slot="sheet-content"] aside :is(a, button, [role="button"])');
     expect(adaptiveCss).toContain(".gc-composer-label");
     expect(memosLogo).toContain("gc-brand-mark");
     expect(memosLogo).toContain("gc-brand-title");

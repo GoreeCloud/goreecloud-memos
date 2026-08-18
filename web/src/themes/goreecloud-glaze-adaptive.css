@@ -75,8 +75,8 @@
 
   .gc-mobile-topbar,
   .gc-main-shell > header:not(.gc-topbar) {
-    min-height: calc(3.75rem + env(safe-area-inset-top));
-    height: calc(3.75rem + env(safe-area-inset-top));
+    min-height: calc(4rem + env(safe-area-inset-top));
+    height: calc(4rem + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
     padding-left: max(0.75rem, env(safe-area-inset-left));
     padding-right: max(0.75rem, env(safe-area-inset-right));
@@ -90,13 +90,14 @@
     height: var(--gc-target-min);
   }
 
-  .gc-main-shell > header:not(.gc-topbar) .gc-brand-mark {
+  .gc-main-shell > header:not(.gc-topbar) .gc-brand-mark,
+  .gc-app-shell [data-slot="sheet-content"] .gc-brand-mark {
     width: 2rem;
     height: 2rem;
   }
 
   .gc-main-shell > header:not(.gc-topbar) .gc-brand-title,
-  .gc-sidebar .gc-brand-title {
+  .gc-app-shell [data-slot="sheet-content"] .gc-brand-title {
     font-size: 1rem;
     line-height: 1.2;
   }
@@ -150,7 +151,7 @@
   }
 
   .gc-composer-collapsed {
-    min-height: 3.75rem;
+    min-height: 4rem;
     padding-inline: 1rem;
   }
 
@@ -216,17 +217,17 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .gc-sidebar-brand {
-    min-height: 4.75rem;
+  .gc-app-shell [data-slot="sheet-content"] > aside > div:first-child {
+    min-height: 4rem;
   }
 
-  .gc-sidebar .gc-nav-row {
-    min-height: 3.1rem;
+  .gc-app-shell [data-slot="sheet-content"] aside :is(a, button, [role="button"]) {
+    min-height: var(--gc-target-min);
     font-size: 1rem;
   }
 
-  .gc-sidebar .gc-nav-kicker {
-    font-size: 0.78rem;
+  .gc-app-shell [data-slot="sheet-content"] aside :is(.text-xs, .text-2xs) {
+    font-size: 0.82rem;
   }
 
   .gc-settings-route {
