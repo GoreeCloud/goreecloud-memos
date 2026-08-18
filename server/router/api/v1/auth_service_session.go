@@ -21,15 +21,31 @@ import (
 	"github.com/usememos/memos/store"
 )
 
+func logWardveilAuthEvent(ctx context.Context, level slog.Level, event string, userID int32, err error) {
+	attrs := []slog.Attr{
+		slog.String("security_identity", "wardveil"),
+		slog.String("event", event),
+	}
+	if userID != 0 {
+		attrs = append(attrs, slog.Int64("user_id", int64(userID)))
+	}
+	if err != nil {
+		attrs = append(attrs, slog.String("error", err.Error()))
+	}
+	slog.LogAttrs(ctx, level, "Wardveil Security authentication event", attrs...)
+}
+
 func (s *APIV1Service) doSignIn(ctx context.Context, user *store.User) (string, time.Time, error) {
-	// Generate refresh token
+	// Generate refresh token.
 	tokenID := util.GenUUID()
 	refreshToken, refreshExpiresAt, err := auth.GenerateRefreshToken(user.ID, tokenID, []byte(s.Secret))
 	if err != nil {
-		return "", time.Time{}, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_refresh_token_generation_failed", user.ID, err)
+		return "", time.Time{}, status.Error(codes.Internal, "failed to establish session")
 	}
 
-	// Store refresh token metadata
+	// Persist refresh-token metadata before a cookie is issued. A session that
+	// cannot be revoked or refreshed reliably must fail closed.
 	clientInfo := s.extractClientInfo(ctx)
 	refreshTokenRecord := &storepb.RefreshTokensUserSetting_RefreshToken{
 		TokenId:    tokenID,
@@ -38,16 +54,12 @@ func (s *APIV1Service) doSignIn(ctx context.Context, user *store.User) (string, 
 		ClientInfo: clientInfo,
 	}
 	if err := s.Store.AddUserRefreshToken(ctx, user.ID, refreshTokenRecord); err != nil {
-		slog.Error("failed to store refresh token", "error", err)
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_refresh_token_store_failed", user.ID, err)
+		return "", time.Time{}, status.Error(codes.Internal, "failed to establish session")
 	}
 
-	// Set refresh token cookie
-	refreshCookie := s.buildRefreshTokenCookie(ctx, refreshToken, refreshExpiresAt)
-	if err := SetResponseHeader(ctx, "Set-Cookie", refreshCookie); err != nil {
-		return "", time.Time{}, status.Errorf(codes.Internal, "failed to set refresh token cookie: %v", err)
-	}
-
-	// Generate access token
+	// Generate the access token before emitting the refresh cookie. If generation
+	// fails, roll back the stored refresh record so there is no orphaned session.
 	accessToken, accessExpiresAt, err := auth.GenerateAccessTokenV2(
 		user.ID,
 		user.Username,
@@ -56,9 +68,23 @@ func (s *APIV1Service) doSignIn(ctx context.Context, user *store.User) (string, 
 		[]byte(s.Secret),
 	)
 	if err != nil {
-		return "", time.Time{}, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+		if cleanupErr := s.Store.RemoveUserRefreshToken(ctx, user.ID, tokenID); cleanupErr != nil {
+			logWardveilAuthEvent(ctx, slog.LevelWarn, "session_refresh_token_rollback_failed", user.ID, cleanupErr)
+		}
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_access_token_generation_failed", user.ID, err)
+		return "", time.Time{}, status.Error(codes.Internal, "failed to establish session")
 	}
 
+	refreshCookie := s.buildRefreshTokenCookie(ctx, refreshToken, refreshExpiresAt)
+	if err := SetResponseHeader(ctx, "Set-Cookie", refreshCookie); err != nil {
+		if cleanupErr := s.Store.RemoveUserRefreshToken(ctx, user.ID, tokenID); cleanupErr != nil {
+			logWardveilAuthEvent(ctx, slog.LevelWarn, "session_refresh_token_rollback_failed", user.ID, cleanupErr)
+		}
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_cookie_write_failed", user.ID, err)
+		return "", time.Time{}, status.Error(codes.Internal, "failed to establish session")
+	}
+
+	logWardveilAuthEvent(ctx, slog.LevelInfo, "session_created", user.ID, nil)
 	return accessToken, accessExpiresAt, nil
 }
 
@@ -68,10 +94,8 @@ func (s *APIV1Service) doSignIn(ctx context.Context, user *store.User) (string, 
 // Authentication: Required (access token).
 // Returns: Empty response on success.
 func (s *APIV1Service) SignOut(ctx context.Context, _ *v1pb.SignOutRequest) (*emptypb.Empty, error) {
-	// Get user from access token claims
 	claims := auth.GetUserClaims(ctx)
 	if claims != nil {
-		// Revoke refresh token if we can identify it
 		refreshToken := ""
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if cookies := md.Get("cookie"); len(cookies) > 0 {
@@ -81,15 +105,23 @@ func (s *APIV1Service) SignOut(ctx context.Context, _ *v1pb.SignOutRequest) (*em
 		if refreshToken != "" {
 			refreshClaims, err := auth.ParseRefreshToken(refreshToken, []byte(s.Secret))
 			if err == nil {
-				// Remove refresh token from user_setting by token_id
-				_ = s.Store.RemoveUserRefreshToken(ctx, claims.UserID, refreshClaims.TokenID)
+				if err := s.Store.RemoveUserRefreshToken(ctx, claims.UserID, refreshClaims.TokenID); err != nil {
+					logWardveilAuthEvent(ctx, slog.LevelWarn, "session_revocation_store_failed", claims.UserID, err)
+				}
 			}
 		}
 	}
 
-	// Clear refresh token cookie
 	if err := s.clearAuthCookies(ctx); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to clear auth cookies, error: %v", err)
+		userID := int32(0)
+		if claims != nil {
+			userID = claims.UserID
+		}
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_cookie_clear_failed", userID, err)
+		return nil, status.Error(codes.Internal, "failed to sign out")
+	}
+	if claims != nil {
+		logWardveilAuthEvent(ctx, slog.LevelInfo, "session_signed_out", claims.UserID, nil)
 	}
 	return &emptypb.Empty{}, nil
 }
@@ -111,7 +143,6 @@ func (s *APIV1Service) SignOut(ctx context.Context, _ *v1pb.SignOutRequest) (*em
 // Authentication: Requires valid refresh token in cookie (public endpoint)
 // Returns: New access token and expiry timestamp.
 func (s *APIV1Service) RefreshToken(ctx context.Context, _ *v1pb.RefreshTokenRequest) (*v1pb.RefreshTokenResponse, error) {
-	// Extract refresh token from cookie
 	refreshToken := ""
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if cookies := md.Get("cookie"); len(cookies) > 0 {
@@ -120,50 +151,24 @@ func (s *APIV1Service) RefreshToken(ctx context.Context, _ *v1pb.RefreshTokenReq
 	}
 
 	if refreshToken == "" {
-		return nil, status.Errorf(codes.Unauthenticated, "refresh token not found")
+		logWardveilAuthEvent(ctx, slog.LevelInfo, "session_refresh_missing", 0, nil)
+		return nil, status.Error(codes.Unauthenticated, "refresh token not found")
 	}
 
-	// Validate refresh token and get old token ID for rotation
 	authenticator := auth.NewAuthenticator(s.Store, s.Secret)
 	user, oldTokenID, err := authenticator.AuthenticateByRefreshToken(ctx, refreshToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %v", err)
+		logWardveilAuthEvent(ctx, slog.LevelInfo, "session_refresh_rejected", 0, nil)
+		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
 	}
 
-	// --- Refresh Token Rotation ---
-	// Generate new refresh token with fresh 30-day expiry (sliding window)
 	newTokenID := util.GenUUID()
 	newRefreshToken, newRefreshExpiresAt, err := auth.GenerateRefreshToken(user.ID, newTokenID, []byte(s.Secret))
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_refresh_token_generation_failed", user.ID, err)
+		return nil, status.Error(codes.Internal, "failed to refresh session")
 	}
 
-	// Store new refresh token (add before remove to handle race conditions)
-	clientInfo := s.extractClientInfo(ctx)
-	newRefreshTokenRecord := &storepb.RefreshTokensUserSetting_RefreshToken{
-		TokenId:    newTokenID,
-		ExpiresAt:  timestamppb.New(newRefreshExpiresAt),
-		CreatedAt:  timestamppb.Now(),
-		ClientInfo: clientInfo,
-	}
-	if err := s.Store.AddUserRefreshToken(ctx, user.ID, newRefreshTokenRecord); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to store refresh token: %v", err)
-	}
-
-	// Remove old refresh token
-	if err := s.Store.RemoveUserRefreshToken(ctx, user.ID, oldTokenID); err != nil {
-		// Log but don't fail - old token will expire naturally
-		slog.Warn("failed to remove old refresh token", "error", err, "userID", user.ID, "tokenID", oldTokenID)
-	}
-
-	// Set new refresh token cookie
-	newRefreshCookie := s.buildRefreshTokenCookie(ctx, newRefreshToken, newRefreshExpiresAt)
-	if err := SetResponseHeader(ctx, "Set-Cookie", newRefreshCookie); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to set refresh token cookie: %v", err)
-	}
-	// --- End Rotation ---
-
-	// Generate new access token
 	accessToken, expiresAt, err := auth.GenerateAccessTokenV2(
 		user.ID,
 		user.Username,
@@ -172,9 +177,40 @@ func (s *APIV1Service) RefreshToken(ctx context.Context, _ *v1pb.RefreshTokenReq
 		[]byte(s.Secret),
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_access_token_generation_failed", user.ID, err)
+		return nil, status.Error(codes.Internal, "failed to refresh session")
 	}
 
+	clientInfo := s.extractClientInfo(ctx)
+	newRefreshTokenRecord := &storepb.RefreshTokensUserSetting_RefreshToken{
+		TokenId:    newTokenID,
+		ExpiresAt:  timestamppb.New(newRefreshExpiresAt),
+		CreatedAt:  timestamppb.Now(),
+		ClientInfo: clientInfo,
+	}
+	if err := s.Store.AddUserRefreshToken(ctx, user.ID, newRefreshTokenRecord); err != nil {
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_refresh_token_store_failed", user.ID, err)
+		return nil, status.Error(codes.Internal, "failed to refresh session")
+	}
+
+	// Write the replacement cookie before revoking the old token. If the response
+	// header cannot be written, remove the new record and leave the old session
+	// usable rather than stranding the user between two invalid states.
+	newRefreshCookie := s.buildRefreshTokenCookie(ctx, newRefreshToken, newRefreshExpiresAt)
+	if err := SetResponseHeader(ctx, "Set-Cookie", newRefreshCookie); err != nil {
+		if cleanupErr := s.Store.RemoveUserRefreshToken(ctx, user.ID, newTokenID); cleanupErr != nil {
+			logWardveilAuthEvent(ctx, slog.LevelWarn, "session_refresh_token_rollback_failed", user.ID, cleanupErr)
+		}
+		logWardveilAuthEvent(ctx, slog.LevelError, "session_cookie_write_failed", user.ID, err)
+		return nil, status.Error(codes.Internal, "failed to refresh session")
+	}
+
+	if err := s.Store.RemoveUserRefreshToken(ctx, user.ID, oldTokenID); err != nil {
+		// The old token expires naturally. Do not log the token identifier or cookie.
+		logWardveilAuthEvent(ctx, slog.LevelWarn, "session_old_token_revocation_failed", user.ID, err)
+	}
+
+	logWardveilAuthEvent(ctx, slog.LevelInfo, "session_rotated", user.ID, nil)
 	return &v1pb.RefreshTokenResponse{
 		AccessToken: accessToken,
 		ExpiresAt:   timestamppb.New(expiresAt),
@@ -182,12 +218,10 @@ func (s *APIV1Service) RefreshToken(ctx context.Context, _ *v1pb.RefreshTokenReq
 }
 
 func (s *APIV1Service) clearAuthCookies(ctx context.Context) error {
-	// Clear refresh token cookie
 	refreshCookie := s.buildRefreshTokenCookie(ctx, "", time.Time{})
 	if err := SetResponseHeader(ctx, "Set-Cookie", refreshCookie); err != nil {
 		return errors.Wrap(err, "failed to set refresh cookie")
 	}
-
 	return nil
 }
 
@@ -230,8 +264,6 @@ func (*APIV1Service) buildRefreshTokenCookie(ctx context.Context, refreshToken s
 	if expireTime.IsZero() {
 		attrs = append(attrs, "Expires=Thu, 01 Jan 1970 00:00:00 GMT")
 	} else {
-		// RFC 6265 requires cookie expiration dates to use GMT timezone
-		// Convert to UTC and format with explicit "GMT" to ensure browser compatibility
 		attrs = append(attrs, "Expires="+expireTime.UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT"))
 	}
 
@@ -279,17 +311,14 @@ func (s *APIV1Service) fetchCurrentUser(ctx context.Context) (*store.User, error
 func (s *APIV1Service) extractClientInfo(ctx context.Context) *storepb.RefreshTokensUserSetting_ClientInfo {
 	clientInfo := &storepb.RefreshTokensUserSetting_ClientInfo{}
 
-	// Extract user agent from metadata if available
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if userAgents := md.Get("user-agent"); len(userAgents) > 0 {
 			userAgent := userAgents[0]
 			clientInfo.UserAgent = userAgent
-
-			// Parse user agent to extract device type, OS, browser info
 			s.parseUserAgent(userAgent, clientInfo)
 		}
 		if forwardedFor := md.Get("x-forwarded-for"); len(forwardedFor) > 0 {
-			ipAddress := strings.Split(forwardedFor[0], ",")[0] // Get the first IP in case of multiple
+			ipAddress := strings.Split(forwardedFor[0], ",")[0]
 			ipAddress = strings.TrimSpace(ipAddress)
 			clientInfo.IpAddress = ipAddress
 		} else if realIP := md.Get("x-real-ip"); len(realIP) > 0 {
@@ -316,7 +345,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 
 	userAgent = strings.ToLower(userAgent)
 
-	// Detect device type
 	if strings.Contains(userAgent, "ipad") || strings.Contains(userAgent, "tablet") {
 		clientInfo.DeviceType = "tablet"
 	} else if strings.Contains(userAgent, "mobile") || strings.Contains(userAgent, "android") ||
@@ -327,9 +355,7 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 		clientInfo.DeviceType = "desktop"
 	}
 
-	// Detect operating system
 	if strings.Contains(userAgent, "iphone os") || strings.Contains(userAgent, "cpu os") {
-		// Extract iOS version
 		if idx := strings.Index(userAgent, "cpu os "); idx != -1 {
 			versionStart := idx + 7
 			versionEnd := strings.Index(userAgent[versionStart:], " ")
@@ -352,7 +378,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 			clientInfo.Os = "iOS"
 		}
 	} else if strings.Contains(userAgent, "android") {
-		// Extract Android version
 		if idx := strings.Index(userAgent, "android "); idx != -1 {
 			versionStart := idx + 8
 			versionEnd := strings.Index(userAgent[versionStart:], ";")
@@ -377,7 +402,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 	} else if strings.Contains(userAgent, "windows") {
 		clientInfo.Os = "Windows"
 	} else if strings.Contains(userAgent, "mac os x") {
-		// Extract macOS version
 		if idx := strings.Index(userAgent, "mac os x "); idx != -1 {
 			versionStart := idx + 9
 			versionEnd := strings.Index(userAgent[versionStart:], ";")
@@ -399,9 +423,7 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 		clientInfo.Os = "Chrome OS"
 	}
 
-	// Detect browser
 	if strings.Contains(userAgent, "edg/") {
-		// Extract Edge version
 		if idx := strings.Index(userAgent, "edg/"); idx != -1 {
 			versionStart := idx + 4
 			versionEnd := strings.Index(userAgent[versionStart:], " ")
@@ -414,7 +436,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 			clientInfo.Browser = "Edge"
 		}
 	} else if strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "edg") {
-		// Extract Chrome version
 		if idx := strings.Index(userAgent, "chrome/"); idx != -1 {
 			versionStart := idx + 7
 			versionEnd := strings.Index(userAgent[versionStart:], " ")
@@ -427,7 +448,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 			clientInfo.Browser = "Chrome"
 		}
 	} else if strings.Contains(userAgent, "firefox/") {
-		// Extract Firefox version
 		if idx := strings.Index(userAgent, "firefox/"); idx != -1 {
 			versionStart := idx + 8
 			versionEnd := strings.Index(userAgent[versionStart:], " ")
@@ -440,7 +460,6 @@ func (*APIV1Service) parseUserAgent(userAgent string, clientInfo *storepb.Refres
 			clientInfo.Browser = "Firefox"
 		}
 	} else if strings.Contains(userAgent, "safari/") && !strings.Contains(userAgent, "chrome") && !strings.Contains(userAgent, "edg") {
-		// Extract Safari version
 		if idx := strings.Index(userAgent, "version/"); idx != -1 {
 			versionStart := idx + 8
 			versionEnd := strings.Index(userAgent[versionStart:], " ")
