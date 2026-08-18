@@ -45,18 +45,35 @@
     var(--gc-glaze-shadow);
 }
 
-.gc-app-shell [data-slot="dropdown-menu-content"],
-.gc-app-shell [data-slot="popover-content"],
-.gc-app-shell [data-slot="select-content"] {
+[data-slot="dropdown-menu-content"],
+[data-slot="popover-content"],
+[data-slot="select-content"] {
   max-height: min(32rem, calc(100dvh - 2rem));
   overscroll-behavior: contain;
 }
 
-.gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"]) {
+:where(
+    .gc-app-shell,
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"]
+  )
+  :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"]) {
   position: relative;
 }
 
-.gc-app-shell
+:where(
+    .gc-app-shell,
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"]
+  )
   :is(
     button,
     a,
@@ -64,6 +81,7 @@
     select,
     textarea,
     [role="button"],
+    [role="tab"],
     [role="menuitem"],
     [role="menuitemradio"],
     [role="menuitemcheckbox"],
@@ -110,13 +128,13 @@
   }
 
   .gc-main-shell > header:not(.gc-topbar) .gc-brand-mark,
-  .gc-app-shell [data-slot="sheet-content"] .gc-brand-mark {
+  [data-slot="sheet-content"] .gc-brand-mark {
     width: 2rem;
     height: 2rem;
   }
 
   .gc-main-shell > header:not(.gc-topbar) .gc-brand-title,
-  .gc-app-shell [data-slot="sheet-content"] .gc-brand-title {
+  [data-slot="sheet-content"] .gc-brand-title {
     font-size: 1rem;
     line-height: 1.2;
   }
@@ -198,28 +216,62 @@
     font-size: 0.85rem;
   }
 
-  .gc-app-shell [contenteditable="true"],
-  .gc-app-shell textarea,
-  .gc-app-shell input,
-  .gc-app-shell select {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is([contenteditable="true"], textarea, input, select) {
     font-size: 1rem;
   }
 
-  .gc-app-shell [data-slot="button"] {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    [data-slot="button"] {
     font-size: 0.95rem;
   }
 
-  .gc-app-shell [data-slot="button"],
-  .gc-app-shell [data-slot="input"],
-  .gc-app-shell [data-slot="select-trigger"],
-  .gc-app-shell [role="menuitem"],
-  .gc-app-shell [role="menuitemradio"],
-  .gc-app-shell [role="menuitemcheckbox"],
-  .gc-app-shell [role="option"] {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is(
+      [data-slot="button"],
+      [data-slot="dialog-close"],
+      [data-slot="sheet-close"],
+      [data-slot="input"],
+      [data-slot="select-trigger"],
+      [role="tab"],
+      [role="menuitem"],
+      [role="menuitemradio"],
+      [role="menuitemcheckbox"],
+      [role="option"]
+    ) {
     min-height: var(--gc-target-min);
   }
 
-  .gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: var(--gc-target-min);
@@ -229,37 +281,70 @@
     transform: translate(-50%, -50%);
   }
 
-  .gc-app-shell [role="menuitem"],
-  .gc-app-shell [role="menuitemradio"],
-  .gc-app-shell [role="menuitemcheckbox"],
-  .gc-app-shell [role="option"] {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is([role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], [role="option"]) {
     padding-block: 0.65rem;
   }
 
-  .gc-app-shell [data-slot="dialog-content"],
-  .gc-app-shell [data-slot="alert-dialog-content"],
-  .gc-app-shell [data-slot="popover-content"],
-  .gc-app-shell [data-slot="dropdown-menu-content"],
-  .gc-app-shell [data-slot="select-content"] {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    [data-slot="tabs-list"] {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    [data-slot="tabs-trigger"] {
+    flex: 0 0 auto;
+    scroll-margin-inline: 0.5rem;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"] {
     max-width: calc(100vw - 2rem);
     max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 
-  .gc-app-shell [data-slot="sheet-content"] {
+  [data-slot="sheet-content"] {
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .gc-app-shell [data-slot="sheet-content"] > aside > div:first-child {
+  [data-slot="sheet-content"] > aside > div:first-child {
     min-height: 4rem;
   }
 
-  .gc-app-shell [data-slot="sheet-content"] aside :is(a, button, [role="button"]) {
+  [data-slot="sheet-content"] aside :is(a, button, [role="button"]) {
     min-height: var(--gc-target-min);
     font-size: 1rem;
   }
 
-  .gc-app-shell [data-slot="sheet-content"] aside :is(.text-xs, .text-2xs) {
+  [data-slot="sheet-content"] aside :is(.text-xs, .text-2xs) {
     font-size: 0.82rem;
   }
 
@@ -384,15 +469,36 @@
     padding-inline: 1.5rem;
   }
 
-  .gc-app-shell [data-slot="button"],
-  .gc-app-shell [role="menuitem"],
-  .gc-app-shell [role="menuitemradio"],
-  .gc-app-shell [role="menuitemcheckbox"],
-  .gc-app-shell [role="option"] {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is(
+      [data-slot="button"],
+      [data-slot="dialog-close"],
+      [data-slot="sheet-close"],
+      [role="tab"],
+      [role="menuitem"],
+      [role="menuitemradio"],
+      [role="menuitemcheckbox"],
+      [role="option"]
+    ) {
     min-height: 2.625rem;
   }
 
-  .gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"]
+    )
+    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: 2.625rem;
@@ -451,11 +557,12 @@
   .gc-settings-panel,
   .gc-setting-table-card,
   .gc-settings-route .gc-setting-group,
-  .gc-app-shell [data-slot="dialog-content"],
-  .gc-app-shell [data-slot="sheet-content"],
-  .gc-app-shell [data-slot="popover-content"],
-  .gc-app-shell [data-slot="dropdown-menu-content"],
-  .gc-app-shell [data-slot="select-content"] {
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"],
+  [data-slot="tooltip-content"] {
     background: Canvas;
     border: 1px solid CanvasText;
     box-shadow: none;
@@ -463,7 +570,20 @@
     -webkit-backdrop-filter: none;
   }
 
-  .gc-app-shell
+  [data-slot="tabs-trigger"][data-state="active"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"],
+      [data-slot="tooltip-content"]
+    )
     :is(
       button,
       a,
@@ -471,6 +591,7 @@
       select,
       textarea,
       [role="button"],
+      [role="tab"],
       [role="menuitem"],
       [role="menuitemradio"],
       [role="menuitemcheckbox"],
@@ -486,9 +607,45 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gc-app-shell *,
-  .gc-app-shell *::before,
-  .gc-app-shell *::after {
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"],
+      [data-slot="tooltip-content"]
+    ),
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"],
+      [data-slot="tooltip-content"]
+    )
+    *,
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"],
+      [data-slot="tooltip-content"]
+    )
+    *::before,
+  :where(
+      .gc-app-shell,
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="select-content"],
+      [data-slot="tooltip-content"]
+    )
+    *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
