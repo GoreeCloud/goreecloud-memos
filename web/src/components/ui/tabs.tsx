@@ -63,34 +63,87 @@ interface TabsProps extends Omit<React.ComponentProps<"div">, "onChange"> {
 function Tabs({ value, onValueChange, variant = "segmented", children, ...props }: TabsProps) {
   return (
     <TabsContext.Provider value={{ value, onValueChange, variant }}>
-      <div {...props}>{children}</div>
+      <div data-slot="tabs" {...props}>
+        {children}
+      </div>
     </TabsContext.Provider>
   );
 }
 
 function TabsList({ className, ...props }: React.ComponentProps<"div">) {
   const { variant } = useTabsContext();
-  return <div role="tablist" className={cn(tabsListVariants({ variant }), className)} {...props} />;
+  return (
+    <div
+      role="tablist"
+      aria-orientation="horizontal"
+      data-slot="tabs-list"
+      className={cn(tabsListVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 interface TabsTriggerProps extends Omit<React.ComponentProps<"button">, "value"> {
   value: string;
 }
 
-function TabsTrigger({ value, className, onClick, ...props }: TabsTriggerProps) {
+function TabsTrigger({ value, className, onClick, onKeyDown, ...props }: TabsTriggerProps) {
   const { value: activeValue, onValueChange, variant } = useTabsContext();
   const active = activeValue === value;
+
   return (
     <button
+      {...props}
       type="button"
       role="tab"
+      data-slot="tabs-trigger"
+      data-state={active ? "active" : "inactive"}
       aria-selected={active}
+      tabIndex={active ? 0 : -1}
       onClick={(event) => {
         onValueChange(value);
         onClick?.(event);
       }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (event.defaultPrevented) {
+          return;
+        }
+
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+          return;
+        }
+
+        const tabList = event.currentTarget.closest<HTMLElement>('[role="tablist"]');
+        if (!tabList) {
+          return;
+        }
+
+        const enabledTabs = Array.from(tabList.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)'));
+        const currentIndex = enabledTabs.indexOf(event.currentTarget);
+        if (currentIndex < 0 || enabledTabs.length < 2) {
+          return;
+        }
+
+        event.preventDefault();
+
+        let targetIndex = currentIndex;
+        if (event.key === "Home") {
+          targetIndex = 0;
+        } else if (event.key === "End") {
+          targetIndex = enabledTabs.length - 1;
+        } else {
+          const isRtl = window.getComputedStyle(tabList).direction === "rtl";
+          const forward = event.key === "ArrowRight" ? 1 : -1;
+          const direction = isRtl ? -forward : forward;
+          targetIndex = (currentIndex + direction + enabledTabs.length) % enabledTabs.length;
+        }
+
+        const nextTab = enabledTabs[targetIndex];
+        nextTab.focus();
+        nextTab.click();
+      }}
       className={cn(tabsTriggerVariants({ variant, active }), className)}
-      {...props}
     />
   );
 }
