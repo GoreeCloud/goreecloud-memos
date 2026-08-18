@@ -36,14 +36,14 @@ const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, ch
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      className="gc-setting-help size-8 rounded-full text-muted-foreground"
+                      className="gc-setting-help size-11 rounded-full text-muted-foreground md:size-8"
                       aria-label={tooltipLabel}
                     />
                   }
                 >
                   <HelpCircleIcon className="size-4" aria-hidden />
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="gc-setting-help-tooltip max-w-[calc(100vw-2rem)]">
                   <p className="max-w-xs">{tooltip}</p>
                 </TooltipContent>
               </Tooltip>
