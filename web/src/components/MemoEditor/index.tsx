@@ -312,7 +312,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-xl border border-border gap-2 max-[599px]:px-3 max-[599px]:pt-2.5 max-[599px]:gap-1.5",
+          "gc-editor-container group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-xl border border-border gap-2 max-[599px]:scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] max-[599px]:scroll-mb-[calc(7rem+env(safe-area-inset-bottom))] max-[599px]:px-3 max-[599px]:pt-2.5 max-[599px]:gap-1.5",
           FOCUS_MODE_STYLES.transition,
           isFocusMode && cn(FOCUS_MODE_STYLES.container.base, FOCUS_MODE_STYLES.container.spacing),
           !isFocusMode && className,
