@@ -4,8 +4,8 @@ import { useInstance } from "./contexts/InstanceContext";
 import useNavigateTo from "./hooks/useNavigateTo";
 import { useUserLocale } from "./hooks/useUserLocale";
 import { useUserTheme } from "./hooks/useUserTheme";
-import { cleanupExpiredOAuthState } from "./utils/oauth";
 import { GOREECLOUD_MEMOS_DEFAULT_TITLE, resolveInstanceLogoUrl } from "./utils/instance-branding";
+import { cleanupExpiredOAuthState } from "./utils/oauth";
 
 const App = () => {
   const navigateTo = useNavigateTo();
