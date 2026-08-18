@@ -77,7 +77,15 @@ I preserve or implement:
 - safe-area handling for mobile sheets, clients, and installed PWAs;
 - readable solid fallbacks when layered visual effects are not suitable.
 
-Glaze UI does not add analytics, trackers, remote font delivery, remote icon delivery, or other presentation-only third-party telemetry.
+## Security and privacy boundary
+
+GoreeCloud Memos does not execute the inherited instance `additional_script` or `additional_style` fields in the browser. The GoreeCloud Settings interface does not expose arbitrary-code editors, and the API rejects nonempty values for those fields. This intentionally prevents stored administrative customization from becoming arbitrary JavaScript execution, UI spoofing, unreviewed remote-resource loading, or a bypass around the Glaze UI presentation contract.
+
+Instance branding remains customizable within a bounded local-asset model. Custom logos must use a root-relative path served by the current Memos origin; absolute URLs, protocol-relative URLs, backslash-based paths, `data:`/`javascript:`-style values, and other externally resolved assets are rejected. Unsafe legacy values fail closed in the client to the canonical `/goreecloud-memos.svg` asset. Profile title, description, and logo-path lengths are bounded in both the user interface and server validation.
+
+The repository includes a dedicated `GoreeCloud Security` workflow. It performs a production-only pnpm advisory audit at HIGH severity or above, Go reachable-vulnerability analysis with a pinned `govulncheck`, a pinned Trivy filesystem scan for HIGH/CRITICAL vulnerabilities, secrets, and misconfigurations, and CycloneDX SBOM generation. Designated findings fail the workflow rather than being treated as informational only.
+
+Glaze UI does not add analytics, trackers, remote font delivery, remote icon delivery, advertising, or presentation-only third-party telemetry. New remote integrations remain outside the presentation layer and require separate functional, privacy, and security review.
 
 ## Memos-specific usability
 
@@ -93,20 +101,22 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings switches retain their compact visual dimensions while receiving Compact/Medium hit-target and focus treatment, checkbox and radio primitives retain their compact visual dimensions while receiving the same adaptive hit-target and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, dialog/sheet/popover/dropdown/select/tooltip portal surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts` and `web/tests/goreecloud-security-hardening.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, and profile customization remains bounded to local GoreeCloud assets.
 
-Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and container validation remain required alongside this conformance regression.
+Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted.
+
+Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, and security validation remain required alongside this conformance evidence.
 
 ## Manual visual acceptance gates
 
 Before a new Stable source release or production deployment, I still require manual visual acceptance for the affected source revision on representative supported surfaces:
 
-- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, tabs, switches, menus, selects, dialogs, sheets, keyboard resize, and safe areas.
-- Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
-- Web/PWA: favicon/install identity, responsive breakpoints, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
+- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, tabs, switches, menus, selects, dialogs, sheets, local profile branding, keyboard resize, and safe areas.
+- Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, local profile branding, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
+- Web/PWA: canonical/local favicon identity, responsive breakpoints, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
 
 The accepted GoreeCloud Memos application icon must remain unchanged unless a later explicit branding decision replaces the canonical product identity.
 
 ## Stable-release boundary
 
-I will not call a revision Glaze-complete merely because it has rounded cards or glass effects. Stable acceptance requires exact-head frontend and container validation, manual visual acceptance on the affected form factors, no unresolved material regressions, preserved product identity and quick-capture scope, and a separately controlled production deployment when production is intended to change.
+I will not call a revision Glaze-complete or security-ready merely because it has rounded cards, glass effects, or a scanner workflow. Stable acceptance requires exact-head frontend, backend, container, and security validation; manual visual acceptance on the affected form factors; no unresolved material security findings or regressions; preserved product identity and quick-capture scope; and a separately controlled production deployment when production is intended to change.
