@@ -12,24 +12,25 @@ on:
       - ".github/workflows/goreecloud-lock-refresh.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   refresh-locks:
-    name: Generate dependency lockfiles
+    name: Generate and apply dependency lockfiles
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Trace remaining libpq imports
+      - name: Verify libpq source removal
         run: |
-          matches="$(grep -R --line-number --include='*.go' 'github.com/lib/pq' . || true)"
-          if [ -n "$matches" ]; then
-            printf '%s\n' "$matches"
-          else
-            echo "No lib/pq source imports remain."
+          if grep -R --line-number --include='*.go' 'github.com/lib/pq' .; then
+            echo "lib/pq source imports remain; refusing lock refresh." >&2
+            exit 1
           fi
+          echo "No lib/pq source imports remain."
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -55,14 +56,24 @@ jobs:
       - name: Refresh Go module metadata
         run: go mod tidy
 
-      - name: Upload regenerated dependency metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: goreecloud-memos-refreshed-locks
-          path: |
-            go.mod
-            go.sum
-            web/package.json
-            web/pnpm-lock.yaml
-          if-no-files-found: error
-          retention-days: 1
+      - name: Verify regenerated manifests
+        run: |
+          ! grep -q 'github.com/lib/pq' go.mod
+          grep -q 'github.com/jackc/pgx/v5 v5.10.0' go.mod
+          grep -q 'react-router-dom@7.18.2' web/pnpm-lock.yaml
+          grep -q 'react-router@7.18.2' web/pnpm-lock.yaml
+          grep -q 'vite@8.0.16' web/pnpm-lock.yaml
+          grep -q 'nanoid@3.3.18' web/pnpm-lock.yaml
+          grep -Eq 'postcss@8\.5\.(1[89]|[2-9][0-9])' web/pnpm-lock.yaml
+
+      - name: Commit regenerated dependency metadata
+        run: |
+          if git diff --quiet -- go.mod go.sum web/package.json web/pnpm-lock.yaml; then
+            echo "Dependency metadata is already current."
+            exit 0
+          fi
+          git config user.name "GoreeCloud"
+          git config user.email "295260680+GoreeCloud@users.noreply.github.com"
+          git add go.mod go.sum web/package.json web/pnpm-lock.yaml
+          git commit -m "Refresh patched dependency metadata"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
