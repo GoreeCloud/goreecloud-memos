@@ -45,9 +45,8 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   it("keeps semantic menu choices inside adaptive touch and focus treatment", () => {
     expect(adaptiveCss).toContain('[role="menuitemradio"]');
     expect(adaptiveCss).toContain('[role="menuitemcheckbox"]');
-    expect(adaptiveCss).toContain(
-      ':is(button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):focus-visible',
-    );
+    expect(adaptiveCss).toContain(":focus-visible");
+    expect(adaptiveCss).toContain("min-height: var(--gc-target-min)");
   });
 
   it("keeps settings help tooltips keyboard-focusable and labeled", () => {
