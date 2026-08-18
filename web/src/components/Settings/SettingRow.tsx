@@ -1,5 +1,6 @@
 import { HelpCircleIcon } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,8 @@ interface SettingRowProps {
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, children, className, vertical = false }) => {
+  const tooltipLabel = typeof label === "string" ? `More information about ${label}` : "More information about this setting";
+
   return (
     <div
       className={cn(
@@ -27,7 +30,19 @@ const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, ch
           {tooltip && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger render={<HelpCircleIcon className="w-4 h-4 text-muted-foreground cursor-help" />} />
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="gc-setting-help size-8 rounded-full text-muted-foreground"
+                      aria-label={tooltipLabel}
+                    />
+                  }
+                >
+                  <HelpCircleIcon className="size-4" aria-hidden />
+                </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">{tooltip}</p>
                 </TooltipContent>
