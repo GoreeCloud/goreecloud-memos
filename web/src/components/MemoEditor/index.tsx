@@ -312,7 +312,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-xl border border-border gap-2",
+          "group relative w-full flex flex-col justify-between items-start bg-card px-4 pt-3 pb-1 rounded-xl border border-border gap-2 max-[599px]:px-3 max-[599px]:pt-2.5 max-[599px]:gap-1.5",
           FOCUS_MODE_STYLES.transition,
           isFocusMode && cn(FOCUS_MODE_STYLES.container.base, FOCUS_MODE_STYLES.container.spacing),
           !isFocusMode && className,
@@ -357,7 +357,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
         )}
 
         {/* Metadata and toolbar grouped together at bottom */}
-        <div className="w-full flex flex-col gap-2">
+        <div className="w-full flex flex-col gap-2 max-[599px]:gap-1.5">
           <EditorMetadata
             memoName={memoName}
             uploadingLocalFileURLs={inlineImageUpload.uploadingLocalFileURLs}
