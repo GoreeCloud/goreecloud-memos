@@ -5,16 +5,17 @@ import useNavigateTo from "./hooks/useNavigateTo";
 import { useUserLocale } from "./hooks/useUserLocale";
 import { useUserTheme } from "./hooks/useUserTheme";
 import { cleanupExpiredOAuthState } from "./utils/oauth";
+import { GOREECLOUD_MEMOS_DEFAULT_TITLE, resolveInstanceLogoUrl } from "./utils/instance-branding";
 
 const App = () => {
   const navigateTo = useNavigateTo();
   const { profile: instanceProfile, profileLoaded, generalSetting: instanceGeneralSetting } = useInstance();
 
-  // Apply user preferences reactively
+  // Apply user preferences reactively.
   useUserLocale();
   useUserTheme();
 
-  // Clean up expired OAuth states on app initialization
+  // Clean up expired OAuth states on app initialization.
   useEffect(() => {
     cleanupExpiredOAuthState();
   }, []);
@@ -29,32 +30,22 @@ const App = () => {
     }
   }, [profileLoaded, instanceProfile.needsSetup, navigateTo]);
 
-  useEffect(() => {
-    if (instanceGeneralSetting.additionalStyle) {
-      const styleEl = document.createElement("style");
-      styleEl.innerHTML = instanceGeneralSetting.additionalStyle;
-      styleEl.setAttribute("type", "text/css");
-      document.body.insertAdjacentElement("beforeend", styleEl);
-    }
-  }, [instanceGeneralSetting.additionalStyle]);
+  // GoreeCloud intentionally does not execute the inherited additionalScript or
+  // additionalStyle instance fields. Stored arbitrary code would run in every
+  // signed-in browser context, can alter security-relevant UI, and can cause
+  // unreviewed third-party network requests. The server also rejects new values.
 
+  // Keep instance metadata customizable while resolving branding assets only
+  // from the current Memos origin. Unsafe legacy logo URLs fail closed to the
+  // canonical GoreeCloud Memos asset.
   useEffect(() => {
-    if (instanceGeneralSetting.additionalScript) {
-      const scriptEl = document.createElement("script");
-      scriptEl.innerHTML = instanceGeneralSetting.additionalScript;
-      document.head.appendChild(scriptEl);
-    }
-  }, [instanceGeneralSetting.additionalScript]);
+    const customProfile = instanceGeneralSetting.customProfile;
+    document.title = customProfile?.title?.trim() || GOREECLOUD_MEMOS_DEFAULT_TITLE;
 
-  // Dynamic update metadata with customized profile
-  useEffect(() => {
-    if (!instanceGeneralSetting.customProfile) {
-      return;
+    const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (link) {
+      link.href = resolveInstanceLogoUrl(customProfile?.logoUrl);
     }
-
-    document.title = instanceGeneralSetting.customProfile.title;
-    const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-    link.href = instanceGeneralSetting.customProfile.logoUrl || "/logo.webp";
   }, [instanceGeneralSetting.customProfile]);
 
   return (
