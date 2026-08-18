@@ -47,6 +47,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            appstream \
             libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
@@ -91,6 +92,38 @@ jobs:
       - name: Build Linux bundles
         working-directory: clients/goreecloud-memos
         run: tauri build --bundles appimage,deb
+
+      - name: Validate Debian installer metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB="$(find clients/goreecloud-memos/src-tauri/target/release/bundle/deb -type f -name '*.deb' -print -quit)"
+          test -n "$DEB"
+
+          EXPECTED_VERSION="$(python3 -c 'import json; print(json.load(open("clients/goreecloud-memos/src-tauri/tauri.conf.json"))["version"])')"
+          test "$(dpkg-deb -f "$DEB" Version)" = "$EXPECTED_VERSION"
+          test "$(dpkg-deb -f "$DEB" Maintainer)" = "GoreeCloud"
+          test "$(dpkg-deb -f "$DEB" Homepage)" = "https://memos.goreecloud.com"
+
+          EXTRACT_ROOT="$(mktemp -d)"
+          trap 'rm -rf "$EXTRACT_ROOT"' EXIT
+          dpkg-deb -x "$DEB" "$EXTRACT_ROOT"
+
+          METAINFO="$EXTRACT_ROOT/usr/share/metainfo/com.goreecloud.memos.metainfo.xml"
+          DESKTOP="$EXTRACT_ROOT/usr/share/applications/GoreeCloud Memos.desktop"
+          test -s "$METAINFO"
+          test -s "$DESKTOP"
+          appstreamcli validate --no-net "$METAINFO"
+          grep -Fq '<id>com.goreecloud.memos</id>' "$METAINFO"
+          grep -Fq '<project_license>MIT</project_license>' "$METAINFO"
+          grep -Fq '<icon type="stock">goreecloud-memos-client</icon>' "$METAINFO"
+          grep -Fq '<launchable type="desktop-id">GoreeCloud Memos.desktop</launchable>' "$METAINFO"
+          grep -Fq "<release version=\"$EXPECTED_VERSION\"" "$METAINFO"
+          grep -Fxq 'Name=GoreeCloud Memos' "$DESKTOP"
+          grep -Fxq 'Icon=goreecloud-memos-client' "$DESKTOP"
+          find "$EXTRACT_ROOT/usr/share/icons/hicolor" \
+            -type f -path '*/apps/goreecloud-memos-client.png' -size +0c \
+            | grep -q .
 
       - name: Generate Linux package checksums
         shell: bash
