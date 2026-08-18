@@ -1,0 +1,58 @@
+name: GoreeCloud Lock Refresh
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "web/package.json"
+      - "web/pnpm-lock.yaml"
+      - ".github/workflows/goreecloud-lock-refresh.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-locks:
+    name: Generate dependency lockfiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: "11.0.1"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Refresh pnpm lockfile
+        working-directory: web
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.6"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Refresh Go module metadata
+        run: go mod tidy
+
+      - name: Upload regenerated dependency metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: goreecloud-memos-refreshed-locks
+          path: |
+            go.mod
+            go.sum
+            web/package.json
+            web/pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 1
