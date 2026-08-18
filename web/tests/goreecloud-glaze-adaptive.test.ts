@@ -49,12 +49,13 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain("min-height: var(--gc-target-min)");
   });
 
-  it("keeps settings help tooltips keyboard-focusable and labeled", () => {
+  it("keeps settings help tooltips keyboard-focusable, touch-sized, labeled, and viewport-safe", () => {
     expect(settingRow).toContain('import { Button } from "@/components/ui/button"');
     expect(settingRow).toContain('type="button"');
-    expect(settingRow).toContain('className="gc-setting-help');
+    expect(settingRow).toContain('className="gc-setting-help size-11 rounded-full text-muted-foreground md:size-8"');
     expect(settingRow).toContain("aria-label={tooltipLabel}");
     expect(settingRow).toContain('<HelpCircleIcon className="size-4" aria-hidden />');
+    expect(settingRow).toContain('className="gc-setting-help-tooltip max-w-[calc(100vw-2rem)]"');
   });
 
   it("starts Home quick capture as a clean transient draft", () => {
