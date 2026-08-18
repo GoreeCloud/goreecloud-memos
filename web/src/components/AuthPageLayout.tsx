@@ -58,10 +58,10 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
   const productTitle = generalSetting.customProfile?.title || "GoreeCloud Memos";
 
   return (
-    <div className="min-h-svh w-full flex flex-col items-center px-4 py-4 sm:py-8">
-      <div className="w-full grow flex flex-col justify-center items-center">
-        <div className="gc-route-hero w-90 max-w-full rounded-2xl p-7 shadow-md">
-          <div className="mb-6 flex items-center gap-2.5">
+    <div className="gc-auth-page min-h-svh w-full flex flex-col items-center px-4 py-4 max-[599px]:pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:py-8">
+      <div className="gc-auth-main w-full grow flex flex-col justify-center items-center max-[599px]:justify-start max-[599px]:pt-[9svh]">
+        <div className="gc-route-hero gc-auth-card w-90 max-w-full rounded-2xl p-7 shadow-md max-[599px]:!p-5">
+          <div className="mb-4 flex items-center gap-2.5 sm:mb-6">
             <GoreeCloudMemosMark className="size-7" logoUrl={generalSetting.customProfile?.logoUrl} />
             <div className="min-w-0">
               <span className="block truncate text-sm font-semibold tracking-[-0.01em] text-foreground">{productTitle}</span>
@@ -70,10 +70,10 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
           </div>
           {chip && <div className="mb-2">{chip}</div>}
           <h1 className="text-lg font-semibold tracking-tight text-foreground">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
-          <div className="mt-6 w-full">{children}</div>
+          {subtitle && <p className="mt-1 text-sm text-muted-foreground max-[599px]:!text-[0.9rem]">{subtitle}</p>}
+          <div className="mt-5 w-full sm:mt-6">{children}</div>
           {showExplore && (
-            <div className="-mx-7 -mb-7 mt-6 rounded-b-2xl border-t border-border bg-background/45">
+            <div className="-mx-7 -mb-7 mt-6 rounded-b-2xl border-t border-border bg-background/45 max-[599px]:-mx-5 max-[599px]:-mb-5 max-[599px]:mt-5">
               <Link
                 to={ROUTES.EXPLORE}
                 className="group flex items-center justify-center gap-2 px-7 py-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
