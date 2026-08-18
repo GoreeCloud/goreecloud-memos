@@ -29,6 +29,11 @@
       "icons/icon.png"
     ],
     "linux": {
+      "appimage": {
+        "files": {
+          "/usr/share/metainfo/com.goreecloud.memos.metainfo.xml": "linux/com.goreecloud.memos.metainfo.xml"
+        }
+      },
       "deb": {
         "files": {
           "/usr/share/metainfo/com.goreecloud.memos.metainfo.xml": "linux/com.goreecloud.memos.metainfo.xml"
