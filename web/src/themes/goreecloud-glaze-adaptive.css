@@ -52,7 +52,8 @@
   overscroll-behavior: contain;
 }
 
-.gc-app-shell :is(button, a, input, select, textarea, [role="button"], [role="menuitem"]):focus-visible {
+.gc-app-shell
+  :is(button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):focus-visible {
   outline: none;
   box-shadow: 0 0 0 var(--gc-focus-width) var(--gc-focus-color);
 }
@@ -194,11 +195,15 @@
   .gc-app-shell [data-slot="input"],
   .gc-app-shell [data-slot="select-trigger"],
   .gc-app-shell [role="menuitem"],
+  .gc-app-shell [role="menuitemradio"],
+  .gc-app-shell [role="menuitemcheckbox"],
   .gc-app-shell [role="option"] {
     min-height: var(--gc-target-min);
   }
 
   .gc-app-shell [role="menuitem"],
+  .gc-app-shell [role="menuitemradio"],
+  .gc-app-shell [role="menuitemcheckbox"],
   .gc-app-shell [role="option"] {
     padding-block: 0.65rem;
   }
@@ -352,7 +357,9 @@
   }
 
   .gc-app-shell [data-slot="button"],
-  .gc-app-shell [role="menuitem"] {
+  .gc-app-shell [role="menuitem"],
+  .gc-app-shell [role="menuitemradio"],
+  .gc-app-shell [role="menuitemcheckbox"] {
     min-height: 2.625rem;
   }
 
@@ -416,7 +423,8 @@
     -webkit-backdrop-filter: none;
   }
 
-  .gc-app-shell :is(button, a, input, select, textarea, [role="button"], [role="menuitem"]):focus-visible {
+  .gc-app-shell
+    :is(button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):focus-visible {
     outline: 2px solid Highlight;
     outline-offset: 2px;
     box-shadow: none;
