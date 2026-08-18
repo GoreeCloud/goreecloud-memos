@@ -18,7 +18,7 @@ I map the Glaze UI hierarchy into Memos as follows:
 - **Solid** — content-first surfaces that prioritize readability.
 - **Raised** — memo cards, compact settings cards, and supporting panels.
 - **Glaze** — navigation, hero, search, composer, and selected contextual surfaces that benefit from restrained translucency.
-- **Overlay** — dialogs, sheets, menus, popovers, and selects with the strongest separation.
+- **Overlay** — dialogs, sheets, menus, popovers, selects, and tooltips with the strongest separation.
 
 The Glaze layers retain solid and forced-color fallbacks so content does not depend on blur or translucency.
 
@@ -33,9 +33,13 @@ I use the official Glaze UI adaptive ranges:
 
 Compact is treated as a real phone layout rather than a scaled-down desktop layout. The Compact source rules increase the base reading size, preserve practical touch targets, apply safe-area insets, constrain overlays to the viewport, enlarge mobile navigation, stack editor actions, make settings controls full-width where appropriate, and transform settings tables into card/list presentations instead of requiring horizontal scrolling.
 
+Portaled Overlay surfaces are explicit adaptive scopes. Dialog, sheet, popover, dropdown-menu, select, and tooltip content can be mounted outside the `.gc-app-shell` DOM subtree by Base UI, so Compact/Medium interaction sizing, focus treatment, viewport containment, forced-colors fallbacks, and reduced-motion behavior do not depend on physical nesting beneath the application shell. Dialog content and dialog/sheet close controls expose stable `data-slot` hooks so the same Glaze contract reaches the actual rendered popup controls.
+
 Semantic menu choices remain part of the same adaptive contract. Plain menu items, radio menu items, and checkbox menu items receive the same Compact/Medium target sizing and focus treatment so accessibility semantics do not reduce touch usability or keyboard visibility.
 
 Semantic select options follow the same rule. `option` roles retain Compact and Medium target sizing, visible keyboard focus, and forced-colors focus treatment, while select overlay content receives the same forced-colors Canvas fallback as menu and popover surfaces.
+
+Shared tab lists also transform for narrow layouts. Compact tab lists remain horizontally contained and scrollable rather than compressing labels or forcing page-level horizontal overflow, while each tab remains a stable target inside the Glaze Compact/Medium sizing contract.
 
 Settings switches preserve the compact visual pill while receiving an invisible centered hit area that expands to the Compact and Medium interaction targets. The switch itself is also included explicitly in normal and forced-colors focus treatment, so increasing touch usability does not require visually enlarging every toggle.
 
@@ -52,21 +56,25 @@ I preserve or implement:
 - visible `:focus-visible` treatment;
 - practical Compact touch targets;
 - keyboard-operable controls and semantic buttons/links;
+- shared Tabs with one active tab stop, `ArrowLeft`/`ArrowRight` navigation, `Home`/`End`, cyclic movement, RTL-aware direction, focus movement, and automatic activation;
 - semantic radio state for note-color selection;
 - semantic checkbox state for note-label assignment;
 - adaptive focus and target-size coverage for `menuitem`, `menuitemradio`, and `menuitemcheckbox` roles;
 - adaptive target-size and focus coverage for semantic `option` roles on Compact and Medium surfaces;
 - forced-colors Canvas/focus treatment for select content and options;
+- forced-colors selected-state treatment for the active shared tab;
 - visually compact Settings switches with expanded Compact/Medium hit targets and explicit focus treatment;
 - visually compact checkbox and radio controls with expanded Compact/Medium hit targets and explicit normal/forced-colors focus treatment;
 - keyboard-focusable, explicitly labeled Settings help buttons instead of SVG-only tooltip triggers;
 - enlarged Compact Settings help targets with desktop-density restoration;
 - viewport-safe Settings help tooltip width;
-- reduced-motion behavior that removes nonessential motion;
+- portal-safe dialog, sheet, menu, popover, select, and tooltip resilience even when Base UI mounts the surface outside `.gc-app-shell`;
+- Compact/Medium dialog and sheet close controls inside the same practical target contract as other interactive controls;
+- reduced-motion behavior that removes nonessential motion on both portaled popup elements and their descendants;
 - increased-contrast treatment;
-- forced-colors support;
+- forced-colors support with Canvas-backed portaled Overlay surfaces;
 - viewport-safe dialog/menu/popover/select sizing;
-- safe-area handling for mobile clients and installed PWAs;
+- safe-area handling for mobile sheets, clients, and installed PWAs;
 - readable solid fallbacks when layered visual effects are not suitable.
 
 Glaze UI does not add analytics, trackers, remote font delivery, remote icon delivery, or other presentation-only third-party telemetry.
@@ -85,7 +93,7 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings switches retain their compact visual dimensions while receiving Compact/Medium hit-target and focus treatment, checkbox and radio primitives retain their compact visual dimensions while receiving the same adaptive hit-target and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings switches retain their compact visual dimensions while receiving Compact/Medium hit-target and focus treatment, checkbox and radio primitives retain their compact visual dimensions while receiving the same adaptive hit-target and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, dialog/sheet/popover/dropdown/select/tooltip portal surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
 
 Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and container validation remain required alongside this conformance regression.
 
@@ -93,9 +101,9 @@ Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and 
 
 Before a new Stable source release or production deployment, I still require manual visual acceptance for the affected source revision on representative supported surfaces:
 
-- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, switches, menus, selects, dialogs, keyboard resize, and safe areas.
-- Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, light/dark appearance, resize/maximize/restore, and pointer/keyboard focus behavior.
-- Web/PWA: favicon/install identity, responsive breakpoints, light/dark appearance, keyboard access, and the same source behaviors used by the native shells.
+- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, tabs, switches, menus, selects, dialogs, sheets, keyboard resize, and safe areas.
+- Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
+- Web/PWA: favicon/install identity, responsive breakpoints, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
 
 The accepted GoreeCloud Memos application icon must remain unchanged unless a later explicit branding decision replaces the canonical product identity.
 
