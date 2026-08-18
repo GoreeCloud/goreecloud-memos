@@ -142,7 +142,7 @@ func (in *LoggingInterceptor) log(ctx context.Context, procedure string, err err
 
 func (*LoggingInterceptor) classifyError(err error) (slog.Level, string, string) {
 	if err == nil {
-		return slog.LevelInfo, "RPC request completed", connect.CodeOK.String()
+		return slog.LevelInfo, "RPC request completed", "ok"
 	}
 
 	var connectErr *connect.Error
