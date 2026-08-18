@@ -41,6 +41,14 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(memosLogo).toContain("gc-brand-title");
   });
 
+  it("keeps semantic menu choices inside adaptive touch and focus treatment", () => {
+    expect(adaptiveCss).toContain('[role="menuitemradio"]');
+    expect(adaptiveCss).toContain('[role="menuitemcheckbox"]');
+    expect(adaptiveCss).toContain(
+      ':is(button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):focus-visible',
+    );
+  });
+
   it("starts Home quick capture as a clean transient draft", () => {
     expect(homePage).toContain('placeholder="Take a note…"');
     expect(homePage).toContain("onCancel={() => setComposerOpen(false)}");
