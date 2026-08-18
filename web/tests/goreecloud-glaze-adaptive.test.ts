@@ -8,7 +8,12 @@ const settingTable = readFileSync(join(process.cwd(), "src/components/Settings/S
 const settingRow = readFileSync(join(process.cwd(), "src/components/Settings/SettingRow.tsx"), "utf8");
 const memberSection = readFileSync(join(process.cwd(), "src/components/Settings/MemberSection.tsx"), "utf8");
 const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEditor/Toolbar/EditorToolbar.tsx"), "utf8");
+const memoEditor = readFileSync(join(process.cwd(), "src/components/MemoEditor/index.tsx"), "utf8");
+const memoContent = readFileSync(join(process.cwd(), "src/components/MemoContent/index.tsx"), "utf8");
+const memoCardConstants = readFileSync(join(process.cwd(), "src/components/MemoView/constants.ts"), "utf8");
 const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
+const aboutPage = readFileSync(join(process.cwd(), "src/pages/About.tsx"), "utf8");
+const authPageLayout = readFileSync(join(process.cwd(), "src/components/AuthPageLayout.tsx"), "utf8");
 const memosLogo = readFileSync(join(process.cwd(), "src/components/MemosLogo.tsx"), "utf8");
 const switchControl = readFileSync(join(process.cwd(), "src/components/ui/switch.tsx"), "utf8");
 const checkboxControl = readFileSync(join(process.cwd(), "src/components/ui/checkbox.tsx"), "utf8");
@@ -46,6 +51,24 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain(".gc-composer-label");
     expect(memosLogo).toContain("gc-brand-mark");
     expect(memosLogo).toContain("gc-brand-title");
+  });
+
+  it("keeps compact reading density deliberate without shrinking interaction targets", () => {
+    expect(homePage).toContain("max-[599px]:!text-[1.35rem]");
+    expect(homePage).toContain("max-[599px]:!text-[0.9rem]");
+    expect(homePage).toContain("max-[599px]:!min-h-[3.25rem]");
+    expect(memoContent).toContain("max-[599px]:text-[0.92rem]");
+    expect(memoContent).toContain("max-[599px]:[&>h1:first-child]:text-[1.08rem]");
+    expect(memoCardConstants).toContain("px-3 py-3");
+    expect(memoCardConstants).toContain("sm:px-4");
+    expect(memoEditor).toContain("max-[599px]:px-3");
+    expect(memoEditor).toContain("max-[599px]:gap-1.5");
+    expect(editorToolbar).toContain("max-[599px]:!border-border/80");
+    expect(aboutPage).toContain("max-[599px]:!p-4");
+    expect(aboutPage).toContain("max-[599px]:!text-[1.2rem]");
+    expect(authPageLayout).toContain("max-[599px]:pt-[9svh]");
+    expect(authPageLayout).toContain("gc-auth-card");
+    expect(adaptiveCss).toContain("--gc-target-min: 2.75rem");
   });
 
   it("keeps semantic menu choices inside adaptive touch and focus treatment", () => {
