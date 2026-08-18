@@ -15,8 +15,8 @@ import {
   InstanceSetting_Key,
   InstanceSettingSchema,
 } from "@/types/proto/api/v1/instance_service_pb";
-import { GOREECLOUD_MEMOS_DEFAULT_TITLE, resolveInstanceLogoUrl } from "@/utils/instance-branding";
 import { useTranslate } from "@/utils/i18n";
+import { GOREECLOUD_MEMOS_DEFAULT_TITLE, resolveInstanceLogoUrl } from "@/utils/instance-branding";
 import UpdateCustomizedProfileDialog from "../UpdateCustomizedProfileDialog";
 import SettingGroup from "./SettingGroup";
 import { SettingList, SettingListItem } from "./SettingList";
