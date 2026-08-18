@@ -8,7 +8,16 @@ This conformance record is a source-readiness artifact. It does not by itself pr
 
 ## Product identity
 
-I preserve GoreeCloud Memos as the lightweight quick-capture application rather than expanding it into the deeper GoreeCloud Notes product role. The canonical GoreeCloud Memos icon remains `web/public/goreecloud-memos.svg` and is the shared source for web, Linux, and Android application identity.
+I preserve GoreeCloud Memos as the lightweight quick-capture application rather than expanding it into the deeper GoreeCloud Notes product role.
+
+`web/public/goreecloud-memos.svg` is the single canonical GoreeCloud Memos application-icon source. The icon is text-free, uses the quick-capture memo-sheet motif, and applies Glaze UI geometry and restrained GoreeCloud blue surface semantics. The same underlying identity is required across supported delivery surfaces:
+
+- the web shell uses the canonical SVG as its primary favicon and uses committed raster derivatives for browser/PWA and Apple touch-icon compatibility;
+- the PWA manifest references the canonical SVG plus the matching 192×192 and 512×512 raster derivatives;
+- Linux client CI regenerates the Tauri launcher/bundle icon set from the canonical SVG before AppImage and Debian packaging;
+- Android client CI initializes the generated Android project and regenerates Android launcher resources from the same canonical SVG before APK creation.
+
+Platform launchers may apply their required shape/mask, but a platform-specific default, unrelated symbol, or independently maintained icon is not an acceptable GoreeCloud Memos identity.
 
 ## Surface hierarchy
 
@@ -77,11 +86,27 @@ I preserve or implement:
 - safe-area handling for mobile sheets, clients, and installed PWAs;
 - readable solid fallbacks when layered visual effects are not suitable.
 
+## Wardveil Security identity
+
+**Wardveil Security by GoreeCloud** is the security identity used for relevant GoreeCloud Memos protection experiences. It is not presented as a substitute for the underlying technical controls and it is not a blanket claim that every condition is automatically safe.
+
+The My Account surface uses a bounded Glaze Wardveil group to identify three evidenced protection areas in this build:
+
+- **Session safeguards** — HttpOnly refresh sessions, token rotation, server-side revocation records, fail-closed persistence, and concurrency-safe refresh-token updates.
+- **Trusted presentation** — stored arbitrary script/style execution is refused and instance branding is limited to approved local assets.
+- **Release security** — candidate revisions are gated by dependency, reachable-vulnerability, secret, and misconfiguration scanning with SBOM evidence.
+
+The source regression explicitly rejects a generic `Protected by Wardveil` label so Wardveil remains evidence-scoped rather than decorative.
+
 ## Security and privacy boundary
 
 GoreeCloud Memos does not execute the inherited instance `additional_script` or `additional_style` fields in the browser. The GoreeCloud Settings interface does not expose arbitrary-code editors, and the API rejects nonempty values for those fields. This intentionally prevents stored administrative customization from becoming arbitrary JavaScript execution, UI spoofing, unreviewed remote-resource loading, or a bypass around the Glaze UI presentation contract.
 
 Instance branding remains customizable within a bounded local-asset model. Custom logos must use a root-relative path served by the current Memos origin; absolute URLs, protocol-relative URLs, backslash-based paths, `data:`/`javascript:`-style values, and other externally resolved assets are rejected. Unsafe legacy values fail closed in the client to the canonical `/goreecloud-memos.svg` asset. Profile title, description, and logo-path lengths are bounded in both the user interface and server validation.
+
+Refresh-session lifecycle changes are fail-closed. A sign-in does not emit a refresh cookie unless the corresponding server-side refresh-token record has been persisted. Access-token generation and response-cookie failures roll back newly created refresh records. Rotation creates and stores the replacement session, generates the replacement access token, and writes the replacement cookie before revoking the old token so a header-write failure does not strand a valid user between two invalid sessions. Refresh-token read/modify/write operations are serialized and use detached protobuf copies instead of mutating cached state in place.
+
+Wardveil authentication events use structured logging with bounded internal context. They record a stable event name and, when known, the internal user ID. They do not record JWTs, refresh cookies, refresh-token IDs, usernames, email addresses, client IP addresses, or user-agent strings. Connect request telemetry records transport, method, outcome, RPC code, and duration. Expected client-error text is intentionally omitted because it may contain user-provided values; server errors retain diagnostic error text, and full stack traces remain restricted to Demo mode.
 
 The dependency baseline is fail-closed rather than advisory-only. The frontend lock resolves the patched GoreeCloud-selected React Router, Vite, Nano ID, and PostCSS releases required by the current security gate. The backend uses Go 1.26.6 and fixed networking, text, image, and gRPC modules. PostgreSQL access no longer depends on `lib/pq`; production and integration-test `database/sql` paths use `pgx/v5/stdlib`, and retryable PostgreSQL transaction errors use `pgconn.PgError` SQLSTATE handling. Migration and upgrade helpers retain their complete SQLite/MySQL/PostgreSQL coverage after the driver replacement.
 
@@ -90,6 +115,12 @@ The GoreeCloud container defaults to the fixed unprivileged `nonroot` identity i
 The repository includes a dedicated `GoreeCloud Security` workflow. It performs a production-only pnpm advisory audit at HIGH severity or above, Go reachable-vulnerability analysis with a pinned `govulncheck`, a pinned Trivy filesystem scan for HIGH/CRITICAL vulnerabilities, secrets, and misconfigurations, and CycloneDX SBOM generation. Designated findings fail the workflow rather than being treated as informational only. Backend and upgrade workflows use the same patched Go toolchain baseline so a scanner requirement cannot diverge from the compiler and migration gates.
 
 Glaze UI does not add analytics, trackers, remote font delivery, remote icon delivery, advertising, or presentation-only third-party telemetry. New remote integrations remain outside the presentation layer and require separate functional, privacy, and security review.
+
+## Native client security boundary
+
+The first-party Linux and Android clients remain intentionally thin Tauri shells around the canonical `https://memos.goreecloud.com` application origin. They do not create a second data store, authentication model, sync engine, or native memo API.
+
+The shell permits top-level navigation only to the canonical HTTPS Memos host plus `about:blank`, denies unrequested new webview windows, does not expose native IPC commands to the remote Memos content, and depends on the same server authorization/data-protection boundary as the web client. Android Stable distribution requires protected release signing; debug APK artifacts remain acceptance-only and are not represented as Stable packages.
 
 ## Memos-specific usability
 
@@ -105,22 +136,24 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts` and `web/tests/goreecloud-security-hardening.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, and profile customization remains bounded to local GoreeCloud assets.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`, `web/tests/goreecloud-security-hardening.test.ts`, and `web/tests/goreecloud-application-identity.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, profile customization remains bounded to local GoreeCloud assets, Wardveil presentation remains tied to evidenced protections, and web/PWA/Tauri/Linux/Android application identity remains anchored to the canonical Memos icon source.
 
-Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted. PostgreSQL integration and retryable-transaction tests exercise the pgx driver path while Upgrade Smoke retains migration/fresh-install coverage for SQLite, MySQL, and PostgreSQL.
+Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted. PostgreSQL integration and retryable-transaction tests exercise the pgx driver path while Upgrade Smoke retains migration/fresh-install coverage for SQLite, MySQL, and PostgreSQL. The backend race-enabled server shard exercises concurrent first-time SSO sign-in, and refresh-token Store operations are hardened specifically so concurrent sessions cannot mutate shared cached protobuf state or silently overwrite one another.
 
-Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, security, and upgrade validation remain required alongside this conformance evidence.
+`GoreeCloud Memos Clients` CI regenerates native icon assets from the canonical SVG, runs Rust navigation-boundary tests, builds Linux AppImage/Debian artifacts, initializes the Android target, regenerates Android launcher resources, builds the ARM64 acceptance APK, and uploads the resulting packages for device validation.
+
+Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, security, client-package, and upgrade validation remain required alongside this conformance evidence.
 
 ## Manual visual acceptance gates
 
 Before a new Stable source release or production deployment, I still require manual visual acceptance for the affected source revision on representative supported surfaces:
 
-- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, tabs, switches, menus, selects, dialogs, sheets, local profile branding, keyboard resize, and safe areas.
-- Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, local profile branding, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
-- Web/PWA: canonical/local favicon identity, responsive breakpoints, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
+- Compact Android device: launcher icon, Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, Wardveil account group, tabs, switches, menus, selects, dialogs, sheets, local profile branding, keyboard resize, and safe areas.
+- Linux desktop client: application icon, feed/grid, Archive, Trash, Attachments, Settings, About, Wardveil account group, local profile branding, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
+- Web/PWA: canonical favicon/PWA icon identity, responsive breakpoints, Wardveil account group, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
 
 The accepted GoreeCloud Memos application icon must remain unchanged unless a later explicit branding decision replaces the canonical product identity.
 
 ## Stable-release boundary
 
-I will not call a revision Glaze-complete or security-ready merely because it has rounded cards, glass effects, or a scanner workflow. Stable acceptance requires exact-head frontend, backend, container, security, and upgrade validation; manual visual acceptance on the affected form factors; no unresolved material security findings or regressions; preserved product identity and quick-capture scope; and a separately controlled production deployment when production is intended to change.
+I will not call a revision Glaze-complete or security-ready merely because it has rounded cards, glass effects, or a scanner workflow. Stable acceptance requires exact-head frontend, backend, container, security, native-client, and upgrade validation; manual visual acceptance on the affected form factors; protected Android release signing before Stable Android distribution; no unresolved material security findings or regressions; preserved product identity and quick-capture scope; and a separately controlled production deployment when production is intended to change.
