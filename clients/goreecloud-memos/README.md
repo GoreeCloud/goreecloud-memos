@@ -11,7 +11,7 @@ It intentionally does **not** create a second memo database, duplicate sync engi
 ## Architecture
 
 - Framework: Tauri 2
-- Current client acceptance candidate: `0.1.1`
+- Current client acceptance candidate: `0.1.2`
 - Linux target: AppImage and Debian package
 - Android target: APK
 - Application identifier: `com.goreecloud.memos`
@@ -36,7 +36,19 @@ Because the shell loads the canonical live service, a client APK can be newer th
 
 The icon is intentionally text-free and uses the Memos quick-capture document motif with GoreeCloud Glaze UI geometry and blue surface semantics. Platform launchers may apply their own icon mask, but the product symbol and source identity remain the same.
 
-The `0.1.1` acceptance candidate intentionally increments the native package version so Android treats it as a new application update and regenerates launcher resources from the canonical icon. If a launcher continues to show a cached older icon after updating, uninstalling the prior debug build before reinstalling is an acceptable test-only cache reset.
+The `0.1.2` acceptance candidate also increments the native package version so desktop software centers and Android launchers do not reuse the earlier `0.1.1` package identity when validating updated icon and metadata behavior. If a launcher continues to show a cached older icon after updating, uninstalling the prior debug/acceptance build before reinstalling is an acceptable test-only cache reset.
+
+## Linux package metadata
+
+Linux installer/catalog presentation is part of the same application-identity contract as the installed launcher.
+
+- `src-tauri/linux/com.goreecloud.memos.metainfo.xml` is the first-party AppStream component metadata for GoreeCloud Memos.
+- Debian and AppImage bundles include that metadata at `/usr/share/metainfo/com.goreecloud.memos.metainfo.xml`.
+- The AppStream component declares the canonical `com.goreecloud.memos` identity, MIT project license, GoreeCloud developer identity, canonical homepage, desktop launchable, canonical installed icon name, Office classification, content rating, and release information.
+- Tauri bundle metadata explicitly declares GoreeCloud as publisher, `https://memos.goreecloud.com` as homepage, and MIT as the package license while bundling the repository license text.
+- Linux CI validates the generated `.deb` with `appstreamcli`, inspects the Debian control fields, confirms the AppStream release version matches the native client version, verifies the desktop entry points to `goreecloud-memos-client`, and requires nonempty installed hicolor icon resources.
+
+This prevents a software center from silently presenting a stale framework/default identity while the installed launcher uses a different GoreeCloud Memos identity.
 
 ## Security boundary
 
@@ -75,6 +87,8 @@ src-tauri/target/release/bundle/appimage/
 src-tauri/target/release/bundle/deb/
 ```
 
+For a Debian acceptance build, validate the generated AppStream metadata with the distribution `appstreamcli` tool before release.
+
 ## Android development and build
 
 Configure the Android SDK, NDK, Java, and Rust Android target first. Then run:
@@ -101,7 +115,12 @@ For an Android acceptance pass, verify at minimum:
 - Phone typography and touch targets are comfortable without system-level display scaling workarounds.
 - Keyboard resizing, Android Back behavior, lifecycle resume, attachment opening/downloading, and external-link handling are checked before Stable release approval.
 
-For Linux acceptance, verify the AppImage application/launcher icon, window identity, core quick-capture workflows, Wardveil account group, resize behavior, keyboard/pointer accessibility, and package checksum before Stable approval.
+For Linux acceptance, verify at minimum:
+
+- Opening the local `.deb` before installation shows the current GoreeCloud Memos product identity rather than a stale/default icon.
+- The installer reports the MIT license, GoreeCloud publisher/developer identity, homepage, current version, and release details from packaged metadata where the desktop software center exposes those fields.
+- The installed launcher and application window use the same canonical Memos icon.
+- AppImage behavior, core quick-capture workflows, Wardveil account group, resize behavior, keyboard/pointer accessibility, and package checksum are correct before Stable approval.
 
 ## Validation
 
@@ -111,6 +130,7 @@ The `GoreeCloud Memos Clients` GitHub Actions workflow performs:
 - Fail-closed verification that expected Linux and Android launcher resources were generated.
 - Rust unit tests for the client navigation boundary.
 - Linux AppImage and Debian package builds on Ubuntu 22.04.
+- Debian control/AppStream/desktop/icon package inspection and AppStream validation.
 - Android target initialization.
 - Android ARM64 debug APK build for direct device testing.
 - SHA-256 checksum generation for packaged artifacts and the canonical icon source.
