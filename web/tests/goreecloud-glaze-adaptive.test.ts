@@ -49,6 +49,14 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain("min-height: var(--gc-target-min)");
   });
 
+  it("keeps semantic select options inside adaptive touch, focus, and forced-color treatment", () => {
+    expect(adaptiveCss.match(/\[role="option"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
+    expect(adaptiveCss.match(/\[data-slot="select-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(adaptiveCss).toContain("@media (min-width: 600px) and (max-width: 1023px)");
+    expect(adaptiveCss).toContain("@media (forced-colors: active)");
+    expect(adaptiveCss).toContain(":focus-visible");
+  });
+
   it("keeps settings help tooltips keyboard-focusable, touch-sized, labeled, and viewport-safe", () => {
     expect(settingRow).toContain('import { Button } from "@/components/ui/button"');
     expect(settingRow).toContain('type="button"');
