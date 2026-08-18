@@ -12,14 +12,34 @@ const manifest = JSON.parse(readFileSync(join(webRoot, "public/site.webmanifest"
   short_name: string;
   icons: Array<{ src: string; sizes: string; type: string; purpose?: string }>;
 };
+const cargoManifestSource = readFileSync(
+  join(repoRoot, "clients/goreecloud-memos/src-tauri/Cargo.toml"),
+  "utf8",
+);
+const appStreamSource = readFileSync(
+  join(repoRoot, "clients/goreecloud-memos/src-tauri/linux/com.goreecloud.memos.metainfo.xml"),
+  "utf8",
+);
 const tauriConfig = JSON.parse(
   readFileSync(join(repoRoot, "clients/goreecloud-memos/src-tauri/tauri.conf.json"), "utf8"),
 ) as {
   productName: string;
+  version: string;
   identifier: string;
-  bundle: { icon: string[] };
+  bundle: {
+    homepage: string;
+    license: string;
+    licenseFile: string;
+    publisher: string;
+    icon: string[];
+    linux: {
+      appimage: { files: Record<string, string> };
+      deb: { files: Record<string, string> };
+    };
+  };
 };
 const clientWorkflowSource = readFileSync(join(repoRoot, ".github/workflows/goreecloud-memos-clients.yml"), "utf8");
+const cargoVersion = cargoManifestSource.match(/^version = "([^"]+)"$/m)?.[1];
 
 describe("GoreeCloud Memos application identity", () => {
   it("keeps one purpose-specific canonical Glaze app icon source", () => {
@@ -57,5 +77,34 @@ describe("GoreeCloud Memos application identity", () => {
       "icons/128x128@2x.png",
       "icons/icon.png",
     ]);
+  });
+
+  it("ships complete Linux installer metadata for the same product identity", () => {
+    const appStreamInstallPath = "/usr/share/metainfo/com.goreecloud.memos.metainfo.xml";
+    const appStreamSourcePath = "linux/com.goreecloud.memos.metainfo.xml";
+
+    expect(cargoVersion).toBeDefined();
+    expect(tauriConfig.version).toBe(cargoVersion);
+    expect(cargoManifestSource).toContain('license = "MIT"');
+    expect(cargoManifestSource).toContain('homepage = "https://memos.goreecloud.com"');
+    expect(tauriConfig.bundle.publisher).toBe("GoreeCloud");
+    expect(tauriConfig.bundle.homepage).toBe("https://memos.goreecloud.com");
+    expect(tauriConfig.bundle.license).toBe("MIT");
+    expect(tauriConfig.bundle.licenseFile).toBe("../../../LICENSE");
+    expect(tauriConfig.bundle.linux.deb.files[appStreamInstallPath]).toBe(appStreamSourcePath);
+    expect(tauriConfig.bundle.linux.appimage.files[appStreamInstallPath]).toBe(appStreamSourcePath);
+
+    expect(appStreamSource).toContain("<id>com.goreecloud.memos</id>");
+    expect(appStreamSource).toContain("<metadata_license>CC0-1.0</metadata_license>");
+    expect(appStreamSource).toContain("<project_license>MIT</project_license>");
+    expect(appStreamSource).toContain("<name>GoreeCloud Memos</name>");
+    expect(appStreamSource).toContain("<developer id=\"com.goreecloud\">");
+    expect(appStreamSource).toContain('<url type="homepage">https://memos.goreecloud.com</url>');
+    expect(appStreamSource).toContain('<launchable type="desktop-id">GoreeCloud Memos.desktop</launchable>');
+    expect(appStreamSource).toContain('<icon type="stock">goreecloud-memos-client</icon>');
+    expect(appStreamSource).toContain('<content_rating type="oars-1.1" />');
+    expect(appStreamSource).toContain(`<release version="${tauriConfig.version}"`);
+    expect(clientWorkflowSource).toContain("Validate Debian installer metadata");
+    expect(clientWorkflowSource).toContain("appstreamcli validate --no-net");
   });
 });
