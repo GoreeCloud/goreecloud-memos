@@ -219,8 +219,7 @@
     min-height: var(--gc-target-min);
   }
 
-  .gc-app-shell
-    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
+  .gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: var(--gc-target-min);
@@ -393,8 +392,7 @@
     min-height: 2.625rem;
   }
 
-  .gc-app-shell
-    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
+  .gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: 2.625rem;
