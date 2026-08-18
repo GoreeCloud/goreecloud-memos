@@ -15,7 +15,17 @@ import {
   InstanceSetting_Key,
   InstanceSettingSchema,
 } from "@/types/proto/api/v1/instance_service_pb";
+import {
+  GOREECLOUD_MEMOS_DEFAULT_LOGO_URL,
+  GOREECLOUD_MEMOS_DEFAULT_TITLE,
+  isSafeLocalBrandAssetPath,
+  resolveInstanceLogoUrl,
+} from "@/utils/instance-branding";
 import { useTranslate } from "@/utils/i18n";
+
+const MAX_PROFILE_TITLE_LENGTH = 80;
+const MAX_PROFILE_DESCRIPTION_LENGTH = 280;
+const MAX_PROFILE_LOGO_PATH_LENGTH = 2048;
 
 interface Props {
   open: boolean;
@@ -27,7 +37,10 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
   const t = useTranslate();
   const { generalSetting: instanceGeneralSetting, updateSetting } = useInstance();
   const [customProfile, setCustomProfile] = useState<InstanceSetting_GeneralSetting_CustomProfile>(
-    create(InstanceSetting_GeneralSetting_CustomProfileSchema, instanceGeneralSetting.customProfile || {}),
+    create(InstanceSetting_GeneralSetting_CustomProfileSchema, {
+      ...instanceGeneralSetting.customProfile,
+      logoUrl: resolveInstanceLogoUrl(instanceGeneralSetting.customProfile?.logoUrl),
+    }),
   );
 
   const [isLoading, setIsLoading] = useState(false);
@@ -40,27 +53,21 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
   };
 
   const handleNameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPartialState({
-      title: e.target.value as string,
-    });
+    setPartialState({ title: e.target.value });
   };
 
   const handleLogoUrlChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPartialState({
-      logoUrl: e.target.value as string,
-    });
+    setPartialState({ logoUrl: e.target.value });
   };
 
   const handleDescriptionChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPartialState({
-      description: e.target.value as string,
-    });
+    setPartialState({ description: e.target.value });
   };
 
   const handleRestoreButtonClick = () => {
     setPartialState({
-      title: "Memos",
-      logoUrl: "/logo.webp",
+      title: GOREECLOUD_MEMOS_DEFAULT_TITLE,
+      logoUrl: GOREECLOUD_MEMOS_DEFAULT_LOGO_URL,
       description: "",
     });
   };
@@ -70,8 +77,16 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
   };
 
   const handleSaveButtonClick = async () => {
-    if (customProfile.title === "") {
+    const title = customProfile.title.trim();
+    const description = customProfile.description.trim();
+    const logoUrl = customProfile.logoUrl.trim() || GOREECLOUD_MEMOS_DEFAULT_LOGO_URL;
+
+    if (!title) {
       toast.error("Title cannot be empty.");
+      return;
+    }
+    if (!isSafeLocalBrandAssetPath(logoUrl)) {
+      toast.error("Icon must use a local path beginning with / and cannot use a remote URL.");
       return;
     }
 
@@ -84,7 +99,14 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
             case: "generalSetting",
             value: {
               ...instanceGeneralSetting,
-              customProfile: customProfile,
+              additionalScript: "",
+              additionalStyle: "",
+              customProfile: {
+                ...customProfile,
+                title,
+                description,
+                logoUrl,
+              },
             },
           },
         }),
@@ -107,18 +129,36 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("setting.system.customize-server.title")}</DialogTitle>
-          <DialogDescription>Customize your instance appearance and settings.</DialogDescription>
+          <DialogDescription>Customize the local GoreeCloud Memos identity without loading third-party branding assets.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="server-name">{t("setting.system.server-name")}</Label>
-            <Input id="server-name" type="text" value={customProfile.title} onChange={handleNameChanged} placeholder="Enter server name" />
+            <Input
+              id="server-name"
+              type="text"
+              value={customProfile.title}
+              maxLength={MAX_PROFILE_TITLE_LENGTH}
+              onChange={handleNameChanged}
+              placeholder="Enter server name"
+            />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="icon-url">{t("setting.system.customize-server.icon-url")}</Label>
-            <Input id="icon-url" type="text" value={customProfile.logoUrl} onChange={handleLogoUrlChanged} placeholder="Enter icon URL" />
+            <Input
+              id="icon-url"
+              type="text"
+              value={customProfile.logoUrl}
+              maxLength={MAX_PROFILE_LOGO_PATH_LENGTH}
+              onChange={handleLogoUrlChanged}
+              placeholder={GOREECLOUD_MEMOS_DEFAULT_LOGO_URL}
+              aria-describedby="icon-url-help"
+            />
+            <p id="icon-url-help" className="text-xs leading-relaxed text-muted-foreground">
+              Use a local path such as {GOREECLOUD_MEMOS_DEFAULT_LOGO_URL}. Remote and protocol-relative URLs are blocked for privacy and security.
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -127,6 +167,7 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
               id="description"
               rows={3}
               value={customProfile.description}
+              maxLength={MAX_PROFILE_DESCRIPTION_LENGTH}
               onChange={handleDescriptionChanged}
               placeholder="Enter description"
             />
