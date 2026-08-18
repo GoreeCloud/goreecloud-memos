@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const adaptiveCss = readFileSync(join(process.cwd(), "src/themes/goreecloud-glaze-adaptive.css"), "utf8");
 const indexCss = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
 const settingTable = readFileSync(join(process.cwd(), "src/components/Settings/SettingTable.tsx"), "utf8");
+const settingRow = readFileSync(join(process.cwd(), "src/components/Settings/SettingRow.tsx"), "utf8");
 const memberSection = readFileSync(join(process.cwd(), "src/components/Settings/MemberSection.tsx"), "utf8");
 const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEditor/Toolbar/EditorToolbar.tsx"), "utf8");
 const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
@@ -47,6 +48,14 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain(
       ':is(button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):focus-visible',
     );
+  });
+
+  it("keeps settings help tooltips keyboard-focusable and labeled", () => {
+    expect(settingRow).toContain('import { Button } from "@/components/ui/button"');
+    expect(settingRow).toContain('type="button"');
+    expect(settingRow).toContain('className="gc-setting-help');
+    expect(settingRow).toContain("aria-label={tooltipLabel}");
+    expect(settingRow).toContain('<HelpCircleIcon className="size-4" aria-hidden />');
   });
 
   it("starts Home quick capture as a clean transient draft", () => {
