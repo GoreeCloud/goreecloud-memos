@@ -10,6 +10,7 @@ const memberSection = readFileSync(join(process.cwd(), "src/components/Settings/
 const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEditor/Toolbar/EditorToolbar.tsx"), "utf8");
 const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
 const memosLogo = readFileSync(join(process.cwd(), "src/components/MemosLogo.tsx"), "utf8");
+const switchControl = readFileSync(join(process.cwd(), "src/components/ui/switch.tsx"), "utf8");
 
 describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   it("loads the adaptive layer after the existing Glaze layers", () => {
@@ -54,6 +55,18 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss.match(/\[data-slot="select-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
     expect(adaptiveCss).toContain("@media (min-width: 600px) and (max-width: 1023px)");
     expect(adaptiveCss).toContain("@media (forced-colors: active)");
+    expect(adaptiveCss).toContain(":focus-visible");
+  });
+
+  it("keeps settings switches visually compact while expanding touch and focus treatment", () => {
+    expect(switchControl).toContain('data-slot="switch"');
+    expect(switchControl).toContain('h-[1.15rem] w-8');
+    expect(adaptiveCss.match(/\[data-slot="switch"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
+    expect(adaptiveCss).toContain('[data-slot="switch"]::after');
+    expect(adaptiveCss).toContain("width: var(--gc-target-min)");
+    expect(adaptiveCss).toContain("height: var(--gc-target-min)");
+    expect(adaptiveCss).toContain("width: 2.625rem");
+    expect(adaptiveCss).toContain("height: 2.625rem");
     expect(adaptiveCss).toContain(":focus-visible");
   });
 
