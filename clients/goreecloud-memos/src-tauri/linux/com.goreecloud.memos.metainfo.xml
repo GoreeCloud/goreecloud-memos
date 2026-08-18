@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.goreecloud.memos</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>GoreeCloud Memos</name>
+  <summary>Private quick-note capture for GoreeCloud</summary>
+  <description>
+    <p>GoreeCloud Memos is the first-party Linux client for the privacy-first, self-hosted GoreeCloud Memos service.</p>
+    <p>It provides a constrained native shell around the canonical GoreeCloud Memos web application while preserving the same Glaze UI experience, authentication, authorization, data protection, and Wardveil Security controls.</p>
+  </description>
+  <developer id="com.goreecloud">
+    <name>GoreeCloud</name>
+  </developer>
+  <url type="homepage">https://memos.goreecloud.com</url>
+  <url type="bugtracker">https://github.com/GoreeCloud/goreecloud-memos/issues</url>
+  <launchable type="desktop-id">GoreeCloud Memos.desktop</launchable>
+  <icon type="stock">goreecloud-memos-client</icon>
+  <categories>
+    <category>Office</category>
+  </categories>
+  <keywords>
+    <keyword>notes</keyword>
+    <keyword>memos</keyword>
+    <keyword>quick capture</keyword>
+    <keyword>GoreeCloud</keyword>
+  </keywords>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.2" date="2026-08-18">
+      <description>
+        <p>Unifies Debian installer metadata with the canonical GoreeCloud Memos app identity, adds complete AppStream license and release information, and retains the hardened Glaze UI, Wardveil Security, and native client boundary.</p>
+      </description>
+    </release>
+  </releases>
+</component>
