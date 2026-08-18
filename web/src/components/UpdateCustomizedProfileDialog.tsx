@@ -15,13 +15,13 @@ import {
   InstanceSetting_Key,
   InstanceSettingSchema,
 } from "@/types/proto/api/v1/instance_service_pb";
+import { useTranslate } from "@/utils/i18n";
 import {
   GOREECLOUD_MEMOS_DEFAULT_LOGO_URL,
   GOREECLOUD_MEMOS_DEFAULT_TITLE,
   isSafeLocalBrandAssetPath,
   resolveInstanceLogoUrl,
 } from "@/utils/instance-branding";
-import { useTranslate } from "@/utils/i18n";
 
 const MAX_PROFILE_TITLE_LENGTH = 80;
 const MAX_PROFILE_DESCRIPTION_LENGTH = 280;
@@ -159,7 +159,8 @@ function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props)
               aria-describedby="icon-url-help"
             />
             <p id="icon-url-help" className="text-xs leading-relaxed text-muted-foreground">
-              Use a local path such as {GOREECLOUD_MEMOS_DEFAULT_LOGO_URL}. Remote and protocol-relative URLs are blocked for privacy and security.
+              Use a local path such as {GOREECLOUD_MEMOS_DEFAULT_LOGO_URL}. Remote and protocol-relative URLs are blocked for privacy and
+              security.
             </p>
           </div>
 
