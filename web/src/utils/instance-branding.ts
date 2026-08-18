@@ -1,7 +1,11 @@
 export const GOREECLOUD_MEMOS_DEFAULT_TITLE = "GoreeCloud Memos";
 export const GOREECLOUD_MEMOS_DEFAULT_LOGO_URL = "/goreecloud-memos.svg";
 
-const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/;
+const containsControlCharacter = (value: string): boolean =>
+  Array.from(value).some((character) => {
+    const codePoint = character.codePointAt(0);
+    return codePoint !== undefined && (codePoint <= 31 || codePoint === 127);
+  });
 
 /**
  * GoreeCloud instance branding may use only root-relative assets served by the
@@ -17,7 +21,7 @@ export const isSafeLocalBrandAssetPath = (value: string | undefined): boolean =>
   if (!candidate.startsWith("/") || candidate.startsWith("//")) {
     return false;
   }
-  if (candidate.includes("\\") || CONTROL_CHARACTER_PATTERN.test(candidate)) {
+  if (candidate.includes("\\") || containsControlCharacter(candidate)) {
     return false;
   }
 
