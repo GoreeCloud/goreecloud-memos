@@ -36,10 +36,12 @@ interface Props {
 function UpdateCustomizedProfileDialog({ open, onOpenChange, onSuccess }: Props) {
   const t = useTranslate();
   const { generalSetting: instanceGeneralSetting, updateSetting } = useInstance();
+  const existingProfile = instanceGeneralSetting.customProfile;
   const [customProfile, setCustomProfile] = useState<InstanceSetting_GeneralSetting_CustomProfile>(
     create(InstanceSetting_GeneralSetting_CustomProfileSchema, {
-      ...instanceGeneralSetting.customProfile,
-      logoUrl: resolveInstanceLogoUrl(instanceGeneralSetting.customProfile?.logoUrl),
+      title: existingProfile?.title || GOREECLOUD_MEMOS_DEFAULT_TITLE,
+      description: existingProfile?.description || "",
+      logoUrl: resolveInstanceLogoUrl(existingProfile?.logoUrl),
     }),
   );
 
