@@ -52,6 +52,10 @@
   overscroll-behavior: contain;
 }
 
+.gc-app-shell [data-slot="switch"] {
+  position: relative;
+}
+
 .gc-app-shell
   :is(
     button,
@@ -63,7 +67,8 @@
     [role="menuitem"],
     [role="menuitemradio"],
     [role="menuitemcheckbox"],
-    [role="option"]
+    [role="option"],
+    [data-slot="switch"]
   ):focus-visible {
   outline: none;
   box-shadow: 0 0 0 var(--gc-focus-width) var(--gc-focus-color);
@@ -210,6 +215,16 @@
   .gc-app-shell [role="menuitemcheckbox"],
   .gc-app-shell [role="option"] {
     min-height: var(--gc-target-min);
+  }
+
+  .gc-app-shell [data-slot="switch"]::after {
+    content: "";
+    position: absolute;
+    width: var(--gc-target-min);
+    height: var(--gc-target-min);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .gc-app-shell [role="menuitem"],
@@ -375,6 +390,16 @@
     min-height: 2.625rem;
   }
 
+  .gc-app-shell [data-slot="switch"]::after {
+    content: "";
+    position: absolute;
+    width: 2.625rem;
+    height: 2.625rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   .gc-route-hero,
   .gc-workspace-intro {
     border-radius: 1.2rem;
@@ -447,7 +472,8 @@
       [role="menuitem"],
       [role="menuitemradio"],
       [role="menuitemcheckbox"],
-      [role="option"]
+      [role="option"],
+      [data-slot="switch"]
     ):focus-visible {
     outline: 2px solid Highlight;
     outline-offset: 2px;
