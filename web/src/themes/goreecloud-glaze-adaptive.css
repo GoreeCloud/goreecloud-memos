@@ -62,7 +62,8 @@
     [role="button"],
     [role="menuitem"],
     [role="menuitemradio"],
-    [role="menuitemcheckbox"]
+    [role="menuitemcheckbox"],
+    [role="option"]
   ):focus-visible {
   outline: none;
   box-shadow: 0 0 0 var(--gc-focus-width) var(--gc-focus-color);
@@ -369,7 +370,8 @@
   .gc-app-shell [data-slot="button"],
   .gc-app-shell [role="menuitem"],
   .gc-app-shell [role="menuitemradio"],
-  .gc-app-shell [role="menuitemcheckbox"] {
+  .gc-app-shell [role="menuitemcheckbox"],
+  .gc-app-shell [role="option"] {
     min-height: 2.625rem;
   }
 
@@ -425,7 +427,8 @@
   .gc-app-shell [data-slot="dialog-content"],
   .gc-app-shell [data-slot="sheet-content"],
   .gc-app-shell [data-slot="popover-content"],
-  .gc-app-shell [data-slot="dropdown-menu-content"] {
+  .gc-app-shell [data-slot="dropdown-menu-content"],
+  .gc-app-shell [data-slot="select-content"] {
     background: Canvas;
     border: 1px solid CanvasText;
     box-shadow: none;
@@ -443,7 +446,8 @@
       [role="button"],
       [role="menuitem"],
       [role="menuitemradio"],
-      [role="menuitemcheckbox"]
+      [role="menuitemcheckbox"],
+      [role="option"]
     ):focus-visible {
     outline: 2px solid Highlight;
     outline-offset: 2px;
