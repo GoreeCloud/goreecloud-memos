@@ -56,6 +56,10 @@ Checkbox and radio-group controls follow the same visual-density rule. Their com
 
 Settings help controls are also treated as Compact controls rather than desktop-sized icons. Their interactive button area remains deliberately enlarged on phones while returning to the accepted desktop density at the Medium/desktop breakpoint, and help tooltip content is constrained to the usable viewport width.
 
+Memo-card metadata follows the same density-versus-interaction rule. The timestamp/detail affordance and non-private visibility indicator are semantic buttons on Compact instead of tiny clickable text or passive tooltip spans. They retain 44-pixel-class touch targets and visible keyboard focus on phones, then restore the accepted compact desktop dimensions at the desktop breakpoint. This keeps metadata visually quiet without making its interaction area dependent on hover or pointer precision.
+
+Compact editor and authentication surfaces treat the **dynamic viewport** as the usable viewport. The memo editor exposes safe scroll margins around the fixed mobile top region and bottom keyboard/action region, and the Compact editor toolbar remains sticky above the safe-area bottom so Save and Cancel stay reachable while the soft keyboard reduces visible height. Authentication pages use `dvh`, vertical scrolling, overscroll containment, and bounded dynamic top spacing so sign-in, first-run setup, sign-up, language, and appearance controls remain reachable when the software keyboard is present instead of assuming a fixed full-screen phone viewport.
+
 Medium retains touch-friendly controls and additional horizontal breathing room. Expanded preserves the accepted desktop composition. Wide constrains readable content width instead of stretching the workspace indefinitely.
 
 ## Accessibility and resilience
@@ -65,6 +69,10 @@ I preserve or implement:
 - visible `:focus-visible` treatment;
 - practical Compact touch targets;
 - keyboard-operable controls and semantic buttons/links;
+- Compact memo timestamp/detail and visibility controls as real buttons with accessible labeling and desktop-density restoration;
+- Compact editor scroll margins that reserve practical top/bottom reveal space around mobile chrome and the software keyboard;
+- a Compact sticky Save/Cancel toolbar with safe-area-aware bottom positioning rather than actions that can become unreachable below the reduced visual viewport;
+- dynamic-viewport and scroll-contained authentication pages so focused credential fields, actions, and footer controls remain reachable while the software keyboard is open;
 - shared Tabs with one active tab stop, `ArrowLeft`/`ArrowRight` navigation, `Home`/`End`, cyclic movement, RTL-aware direction, focus movement, and automatic activation;
 - semantic radio state for note-color selection;
 - semantic checkbox state for note-label assignment;
@@ -83,7 +91,7 @@ I preserve or implement:
 - increased-contrast treatment;
 - forced-colors support with Canvas-backed portaled Overlay surfaces;
 - viewport-safe dialog/menu/popover/select sizing;
-- safe-area handling for mobile sheets, clients, and installed PWAs;
+- safe-area handling for mobile sheets, clients, installed PWAs, editor actions, and authentication surfaces;
 - readable solid fallbacks when layered visual effects are not suitable.
 
 ## Wardveil Security identity
@@ -132,11 +140,13 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 - labels, colors, pinning, Archive, recoverable Trash, and permanent Trash deletion;
 - compact attachments;
 - direct search and mobile navigation;
-- responsive Settings administration without desktop-table overflow on Compact screens.
+- responsive Settings administration without desktop-table overflow on Compact screens;
+- touch/keyboard-operable memo metadata without requiring hover;
+- software-keyboard-resilient quick capture with reachable Save and Cancel actions.
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`, `web/tests/goreecloud-security-hardening.test.ts`, and `web/tests/goreecloud-application-identity.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, profile customization remains bounded to local GoreeCloud assets, Wardveil presentation remains tied to evidenced protections, and web/PWA/Tauri/Linux/Android application identity remains anchored to the canonical Memos icon source.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`, `web/tests/goreecloud-security-hardening.test.ts`, and `web/tests/goreecloud-application-identity.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, Compact density does not collapse practical interaction targets, memo metadata remains semantic and touch-sized, editor actions remain sticky and safe-area-aware on Compact, authentication uses a scrollable dynamic viewport, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, profile customization remains bounded to local GoreeCloud assets, Wardveil presentation remains tied to evidenced protections, and web/PWA/Tauri/Linux/Android application identity remains anchored to the canonical Memos icon source.
 
 Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted. PostgreSQL integration and retryable-transaction tests exercise the pgx driver path while Upgrade Smoke retains migration/fresh-install coverage for SQLite, MySQL, and PostgreSQL. The backend race-enabled server shard exercises concurrent first-time SSO sign-in, and refresh-token Store operations are hardened specifically so concurrent sessions cannot mutate shared cached protobuf state or silently overwrite one another.
 
@@ -148,9 +158,9 @@ Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-act
 
 Before a new Stable source release or production deployment, I still require manual visual acceptance for the affected source revision on representative supported surfaces:
 
-- Compact Android device: launcher icon, Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, Wardveil account group, tabs, switches, menus, selects, dialogs, sheets, local profile branding, keyboard resize, and safe areas.
+- Compact Android device: launcher icon, Memos feed, drawer, new-memo composer with labels, sticky Save/Cancel behavior with the software keyboard open, timestamp/detail and visibility touch targets, Trash with Delete all, Settings, Members, Notifications, Wardveil account group, tabs, switches, menus, selects, dialogs, sheets, sign-in/sign-up/setup keyboard resizing and footer reachability, local profile branding, safe areas, and dynamic-viewport behavior.
 - Linux desktop client: application icon, feed/grid, Archive, Trash, Attachments, Settings, About, Wardveil account group, local profile branding, light/dark appearance, resize/maximize/restore, pointer/keyboard focus behavior, tab keyboard navigation, and portaled overlay presentation.
-- Web/PWA: canonical favicon/PWA icon identity, responsive breakpoints, Wardveil account group, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, and the same source behaviors used by the native shells.
+- Web/PWA: canonical favicon/PWA icon identity, responsive breakpoints, Wardveil account group, light/dark appearance, keyboard access, tab keyboard navigation, portaled overlay resilience, dynamic-viewport authentication/composer behavior on narrow windows, and the same source behaviors used by the native shells.
 
 The accepted GoreeCloud Memos application icon must remain unchanged unless a later explicit branding decision replaces the canonical product identity.
 
