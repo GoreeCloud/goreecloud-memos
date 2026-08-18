@@ -12,6 +12,8 @@ const instanceSettingsSource = readFileSync(join(process.cwd(), "src/components/
 const profileDialogSource = readFileSync(join(process.cwd(), "src/components/UpdateCustomizedProfileDialog.tsx"), "utf8");
 const normalizedProfileDialogSource = profileDialogSource.replace(/\s+/g, " ");
 const markSource = readFileSync(join(process.cwd(), "src/components/GoreeCloudMemosMark.tsx"), "utf8");
+const accountSource = readFileSync(join(process.cwd(), "src/components/Settings/MyAccountSection.tsx"), "utf8");
+const normalizedAccountSource = accountSource.replace(/\s+/g, " ");
 
 describe("GoreeCloud Memos security hardening", () => {
   it("never executes stored arbitrary instance code in the browser shell", () => {
@@ -52,5 +54,20 @@ describe("GoreeCloud Memos security hardening", () => {
     expect(profileDialogSource).toContain("MAX_PROFILE_LOGO_PATH_LENGTH = 2048");
     expect(normalizedProfileDialogSource).toContain("Remote and protocol-relative URLs are blocked for privacy and security.");
     expect(profileDialogSource).toContain("GOREECLOUD_MEMOS_DEFAULT_LOGO_URL");
+  });
+
+  it("uses Wardveil Security only for evidenced protections", () => {
+    expect(accountSource).toContain("Wardveil Security by GoreeCloud");
+    expect(accountSource).toContain('aria-label="Wardveil Security controls"');
+    expect(normalizedAccountSource).toContain(
+      "Refresh sessions use HttpOnly cookies, rotation, server-side revocation records, and concurrency-safe token updates.",
+    );
+    expect(normalizedAccountSource).toContain(
+      "Stored arbitrary scripts and styles are refused, and instance branding is restricted to approved local assets.",
+    );
+    expect(normalizedAccountSource).toContain(
+      "Release candidates are gated by dependency, reachable-vulnerability, secret, and misconfiguration scans with an SBOM.",
+    );
+    expect(accountSource).not.toContain("Protected by Wardveil");
   });
 });
