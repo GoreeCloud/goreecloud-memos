@@ -10,6 +10,7 @@ import {
 const appSource = readFileSync(join(process.cwd(), "src/App.tsx"), "utf8");
 const instanceSettingsSource = readFileSync(join(process.cwd(), "src/components/Settings/InstanceSection.tsx"), "utf8");
 const profileDialogSource = readFileSync(join(process.cwd(), "src/components/UpdateCustomizedProfileDialog.tsx"), "utf8");
+const normalizedProfileDialogSource = profileDialogSource.replace(/\s+/g, " ");
 const markSource = readFileSync(join(process.cwd(), "src/components/GoreeCloudMemosMark.tsx"), "utf8");
 
 describe("GoreeCloud Memos security hardening", () => {
@@ -49,7 +50,7 @@ describe("GoreeCloud Memos security hardening", () => {
     expect(profileDialogSource).toContain("MAX_PROFILE_TITLE_LENGTH = 80");
     expect(profileDialogSource).toContain("MAX_PROFILE_DESCRIPTION_LENGTH = 280");
     expect(profileDialogSource).toContain("MAX_PROFILE_LOGO_PATH_LENGTH = 2048");
-    expect(profileDialogSource).toContain("Remote and protocol-relative URLs are blocked for privacy and security.");
+    expect(normalizedProfileDialogSource).toContain("Remote and protocol-relative URLs are blocked for privacy and security.");
     expect(profileDialogSource).toContain("GOREECLOUD_MEMOS_DEFAULT_LOGO_URL");
   });
 });
