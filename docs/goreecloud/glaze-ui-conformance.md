@@ -35,6 +35,8 @@ Compact is treated as a real phone layout rather than a scaled-down desktop layo
 
 Semantic menu choices remain part of the same adaptive contract. Plain menu items, radio menu items, and checkbox menu items receive the same Compact/Medium target sizing and focus treatment so accessibility semantics do not reduce touch usability or keyboard visibility.
 
+Semantic select options follow the same rule. `option` roles retain Compact and Medium target sizing, visible keyboard focus, and forced-colors focus treatment, while select overlay content receives the same forced-colors Canvas fallback as menu and popover surfaces.
+
 Settings help controls are also treated as Compact controls rather than desktop-sized icons. Their interactive button area remains deliberately enlarged on phones while returning to the accepted desktop density at the Medium/desktop breakpoint, and help tooltip content is constrained to the usable viewport width.
 
 Medium retains touch-friendly controls and additional horizontal breathing room. Expanded preserves the accepted desktop composition. Wide constrains readable content width instead of stretching the workspace indefinitely.
@@ -49,13 +51,15 @@ I preserve or implement:
 - semantic radio state for note-color selection;
 - semantic checkbox state for note-label assignment;
 - adaptive focus and target-size coverage for `menuitem`, `menuitemradio`, and `menuitemcheckbox` roles;
+- adaptive target-size and focus coverage for semantic `option` roles on Compact and Medium surfaces;
+- forced-colors Canvas/focus treatment for select content and options;
 - keyboard-focusable, explicitly labeled Settings help buttons instead of SVG-only tooltip triggers;
 - enlarged Compact Settings help targets with desktop-density restoration;
 - viewport-safe Settings help tooltip width;
 - reduced-motion behavior that removes nonessential motion;
 - increased-contrast treatment;
 - forced-colors support;
-- viewport-safe dialog/menu/popover sizing;
+- viewport-safe dialog/menu/popover/select sizing;
 - safe-area handling for mobile clients and installed PWAs;
 - readable solid fallbacks when layered visual effects are not suitable.
 
@@ -75,7 +79,7 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
 
 Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and container validation remain required alongside this conformance regression.
 
@@ -83,7 +87,7 @@ Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and 
 
 Before a new Stable source release or production deployment, I still require manual visual acceptance for the affected source revision on representative supported surfaces:
 
-- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, menus, dialogs, keyboard resize, and safe areas.
+- Compact Android device: Memos feed, drawer, new-memo composer with labels, Trash with Delete all, Settings, Members, Notifications, menus, selects, dialogs, keyboard resize, and safe areas.
 - Linux desktop client: feed/grid, Archive, Trash, Attachments, Settings, About, light/dark appearance, resize/maximize/restore, and pointer/keyboard focus behavior.
 - Web/PWA: favicon/install identity, responsive breakpoints, light/dark appearance, keyboard access, and the same source behaviors used by the native shells.
 
