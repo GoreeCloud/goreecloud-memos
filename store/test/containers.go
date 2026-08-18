@@ -23,7 +23,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	// Database drivers for connection verification.
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -228,7 +228,7 @@ func GetPostgresDSN(t *testing.T) string {
 			t.Fatalf("failed to get PostgreSQL connection string: %v", err)
 		}
 
-		if err := waitForDB("postgres", dsn, 30*time.Second); err != nil {
+		if err := waitForDB("pgx", dsn, 30*time.Second); err != nil {
 			t.Fatalf("PostgreSQL not ready for connections: %v", err)
 		}
 
@@ -246,7 +246,7 @@ func GetPostgresDSN(t *testing.T) string {
 
 	// Create a fresh database for this test
 	dbName := fmt.Sprintf("memos_test_%d", dbCounter.Add(1))
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		t.Fatalf("failed to connect to PostgreSQL: %v", err)
 	}
@@ -288,100 +288,51 @@ type MemosContainerConfig struct {
 var MemosStartupWaitStrategy = wait.ForAll(
 	wait.ForLog("(started successfully|has been started on port)").AsRegexp(),
 	wait.ForListeningPort("5230/tcp"),
-).WithDeadline(180 * time.Second)
+)
 
-// StartMemosContainer starts a Memos container for migration testing.
-// For SQLite, it mounts the dataDir to /var/opt/memos.
-func StartMemosContainer(ctx context.Context, cfg MemosContainerConfig) (testcontainers.Container, error) {
-	env := map[string]string{
-		"MEMOS_MODE": "prod",
-	}
-
-	nw, err := requireTestNetwork(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var opts []testcontainers.ContainerCustomizer
-
-	switch cfg.Driver {
-	case "sqlite":
-		env["MEMOS_DRIVER"] = "sqlite"
-		opts = append(opts, testcontainers.WithHostConfigModifier(func(hc *container.HostConfig) {
-			hc.Binds = append(hc.Binds, fmt.Sprintf("%s:%s", cfg.DataDir, "/var/opt/memos"))
-		}))
-	case "mysql", "postgres":
-		if cfg.DSN == "" {
-			return nil, errors.Errorf("dsn is required for %s migration testing", cfg.Driver)
-		}
-		env["MEMOS_DRIVER"] = cfg.Driver
-		env["MEMOS_DSN"] = cfg.DSN
-	default:
-		return nil, errors.Errorf("unsupported driver for migration testing: %s", cfg.Driver)
-	}
-
-	req := testcontainers.ContainerRequest{
-		Image:        fmt.Sprintf("%s:%s", MemosDockerImage, cfg.Version),
-		Env:          env,
-		ExposedPorts: []string{"5230/tcp"},
-		WaitingFor:   MemosStartupWaitStrategy,
-		User:         fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
-	}
-
-	// Use local image if specified
-	if cfg.Version == "local" {
-		if os.Getenv("MEMOS_TEST_IMAGE_BUILT") == "1" {
-			req.Image = "memos-test:local"
-		} else {
-			req.Image = ""
-			req.FromDockerfile = testcontainers.FromDockerfile{
-				Context:    "../../",
-				Dockerfile: "scripts/Dockerfile",
-			}
-		}
-	}
-
-	genericReq := testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	}
-
-	// Apply options
-	opts = append(opts, network.WithNetwork(nil, nw))
-	for _, opt := range opts {
-		if err := opt.Customize(&genericReq); err != nil {
-			return nil, errors.Wrap(err, "failed to apply container option")
-		}
-	}
-
-	ctr, err := testcontainers.GenericContainer(ctx, genericReq)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start memos container")
-	}
-
-	return ctr, nil
-}
-
-func getContainerDSN(driver, hostDSN string) (string, error) {
+// GetContainerHost returns the container's hostname for use in container-to-container communication.
+// For MySQL/PostgreSQL, returns the network alias. For SQLite, returns empty string.
+func GetContainerHost(driver string) string {
 	switch driver {
 	case "mysql":
-		cfg, err := mysqldriver.ParseDSN(hostDSN)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to parse mysql dsn")
-		}
-		cfg.Net = "tcp"
-		cfg.Addr = net.JoinHostPort(mysqlNetworkAlias, "3306")
-		return cfg.FormatDSN(), nil
+		return mysqlNetworkAlias
 	case "postgres":
-		u, err := url.Parse(hostDSN)
+		return postgresNetworkAlias
+	default:
+		return ""
+	}
+}
+
+// GetContainerPort returns the container's internal port.
+func GetContainerPort(driver string) int {
+	switch driver {
+	case "mysql":
+		return 3306
+	case "postgres":
+		return 5432
+	default:
+		return 0
+	}
+}
+
+// RewriteDSNForContainer rewrites a host-accessible DSN to be accessible from another container.
+func RewriteDSNForContainer(driver, dsn string) (string, error) {
+	switch driver {
+	case "mysql":
+		config, err := mysqldriver.ParseDSN(dsn)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to parse postgres dsn")
+			return "", errors.Wrap(err, "failed to parse MySQL DSN")
+		}
+		config.Addr = fmt.Sprintf("%s:%d", mysqlNetworkAlias, 3306)
+		return config.FormatDSN(), nil
+	case "postgres":
+		u, err := url.Parse(dsn)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to parse PostgreSQL DSN")
 		}
 		u.Host = net.JoinHostPort(postgresNetworkAlias, "5432")
 		return u.String(), nil
-	case "sqlite":
-		return hostDSN, nil
 	default:
-		return "", errors.Errorf("unsupported driver for container dsn: %s", driver)
+		return dsn, nil
 	}
 }
