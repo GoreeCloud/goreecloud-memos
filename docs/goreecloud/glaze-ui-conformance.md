@@ -39,6 +39,8 @@ Semantic select options follow the same rule. `option` roles retain Compact and 
 
 Settings switches preserve the compact visual pill while receiving an invisible centered hit area that expands to the Compact and Medium interaction targets. The switch itself is also included explicitly in normal and forced-colors focus treatment, so increasing touch usability does not require visually enlarging every toggle.
 
+Checkbox and radio-group controls follow the same visual-density rule. Their compact `size-4` marks remain unchanged, but the adaptive layer provides the same centered Compact and Medium interaction envelope used for switches and explicitly includes both control slots in normal and forced-colors focus treatment.
+
 Settings help controls are also treated as Compact controls rather than desktop-sized icons. Their interactive button area remains deliberately enlarged on phones while returning to the accepted desktop density at the Medium/desktop breakpoint, and help tooltip content is constrained to the usable viewport width.
 
 Medium retains touch-friendly controls and additional horizontal breathing room. Expanded preserves the accepted desktop composition. Wide constrains readable content width instead of stretching the workspace indefinitely.
@@ -56,6 +58,7 @@ I preserve or implement:
 - adaptive target-size and focus coverage for semantic `option` roles on Compact and Medium surfaces;
 - forced-colors Canvas/focus treatment for select content and options;
 - visually compact Settings switches with expanded Compact/Medium hit targets and explicit focus treatment;
+- visually compact checkbox and radio controls with expanded Compact/Medium hit targets and explicit normal/forced-colors focus treatment;
 - keyboard-focusable, explicitly labeled Settings help buttons instead of SVG-only tooltip triggers;
 - enlarged Compact Settings help targets with desktop-density restoration;
 - viewport-safe Settings help tooltip width;
@@ -82,7 +85,7 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 ## Automated evidence
 
-The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings switches retain their compact visual dimensions while receiving Compact/Medium hit-target and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
+The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts`. It verifies that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic radio/checkbox menu choices remain inside adaptive touch and focus treatment, semantic select options remain inside Compact/Medium touch, keyboard-focus, and forced-colors treatment, Settings switches retain their compact visual dimensions while receiving Compact/Medium hit-target and focus treatment, checkbox and radio primitives retain their compact visual dimensions while receiving the same adaptive hit-target and focus treatment, Settings help tooltips remain keyboard-focusable, labeled, Compact-touch-sized, desktop-density-aware, and viewport-safe, accessibility/resilience fallbacks remain present, settings tables retain their Compact transformation, and draft-label/save controls remain connected to the adaptive editor toolbar.
 
 Existing GoreeCloud Memos frontend, Trash, draft-label, PWA, mobile-action, and container validation remain required alongside this conformance regression.
 
