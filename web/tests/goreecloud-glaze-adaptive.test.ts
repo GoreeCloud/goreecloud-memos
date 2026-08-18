@@ -13,6 +13,9 @@ const memosLogo = readFileSync(join(process.cwd(), "src/components/MemosLogo.tsx
 const switchControl = readFileSync(join(process.cwd(), "src/components/ui/switch.tsx"), "utf8");
 const checkboxControl = readFileSync(join(process.cwd(), "src/components/ui/checkbox.tsx"), "utf8");
 const radioGroupControl = readFileSync(join(process.cwd(), "src/components/ui/radio-group.tsx"), "utf8");
+const tabsControl = readFileSync(join(process.cwd(), "src/components/ui/tabs.tsx"), "utf8");
+const dialogControl = readFileSync(join(process.cwd(), "src/components/ui/dialog.tsx"), "utf8");
+const sheetControl = readFileSync(join(process.cwd(), "src/components/ui/sheet.tsx"), "utf8");
 
 describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   it("loads the adaptive layer after the existing Glaze layers", () => {
@@ -54,7 +57,7 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
 
   it("keeps semantic select options inside adaptive touch, focus, and forced-color treatment", () => {
     expect(adaptiveCss.match(/\[role="option"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
-    expect(adaptiveCss.match(/\[data-slot="select-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(adaptiveCss.match(/\[data-slot="select-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(6);
     expect(adaptiveCss).toContain("@media (min-width: 600px) and (max-width: 1023px)");
     expect(adaptiveCss).toContain("@media (forced-colors: active)");
     expect(adaptiveCss).toContain(":focus-visible");
@@ -84,6 +87,39 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(adaptiveCss).toContain("height: 2.625rem");
     expect(adaptiveCss).toContain("@media (forced-colors: active)");
     expect(adaptiveCss).toContain(":focus-visible");
+  });
+
+  it("keeps portaled overlays inside the adaptive resilience contract", () => {
+    expect(dialogControl).toContain('data-slot="dialog-content"');
+    expect(dialogControl).toContain('data-slot="dialog-close"');
+    expect(sheetControl).toContain('data-slot="sheet-content"');
+    expect(sheetControl).toContain("<SheetClose");
+    expect(adaptiveCss.match(/\[data-slot="dialog-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(7);
+    expect(adaptiveCss.match(/\[data-slot="sheet-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(10);
+    expect(adaptiveCss.match(/\[data-slot="dropdown-menu-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(7);
+    expect(adaptiveCss.match(/\[data-slot="popover-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(7);
+    expect(adaptiveCss.match(/\[data-slot="tooltip-content"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(4);
+    expect(adaptiveCss).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(adaptiveCss).toContain("@media (forced-colors: active)");
+  });
+
+  it("gives shared tabs roving keyboard semantics and adaptive target treatment", () => {
+    expect(tabsControl).toContain('role="tablist"');
+    expect(tabsControl).toContain('aria-orientation="horizontal"');
+    expect(tabsControl).toContain('data-slot="tabs-list"');
+    expect(tabsControl).toContain('data-slot="tabs-trigger"');
+    expect(tabsControl).toContain('data-state={active ? "active" : "inactive"}');
+    expect(tabsControl).toContain('tabIndex={active ? 0 : -1}');
+    expect(tabsControl).toContain('"ArrowLeft"');
+    expect(tabsControl).toContain('"ArrowRight"');
+    expect(tabsControl).toContain('"Home"');
+    expect(tabsControl).toContain('"End"');
+    expect(tabsControl).toContain("window.getComputedStyle(tabList).direction");
+    expect(tabsControl).toContain("nextTab.focus()");
+    expect(tabsControl).toContain("nextTab.click()");
+    expect(adaptiveCss.match(/\[role="tab"\]/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(adaptiveCss).toContain('[data-slot="tabs-list"]');
+    expect(adaptiveCss).toContain('[data-slot="tabs-trigger"][data-state="active"]');
   });
 
   it("keeps settings help tooltips keyboard-focusable, touch-sized, labeled, and viewport-safe", () => {
