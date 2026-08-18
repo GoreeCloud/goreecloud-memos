@@ -58,8 +58,8 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
   const productTitle = generalSetting.customProfile?.title || "GoreeCloud Memos";
 
   return (
-    <div className="gc-auth-page min-h-svh w-full flex flex-col items-center px-4 py-4 max-[599px]:pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:py-8">
-      <div className="gc-auth-main w-full grow flex flex-col justify-center items-center max-[599px]:justify-start max-[599px]:pt-[9svh]">
+    <div className="gc-auth-page min-h-dvh w-full flex flex-col items-center overflow-y-auto overscroll-y-contain px-4 py-4 max-[599px]:pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:min-h-svh sm:py-8">
+      <div className="gc-auth-main w-full grow flex flex-col justify-center items-center max-[599px]:grow-0 max-[599px]:justify-start max-[599px]:pt-[clamp(1.5rem,7dvh,4rem)]">
         <div className="gc-route-hero gc-auth-card w-90 max-w-full rounded-2xl p-7 shadow-md max-[599px]:!p-5">
           <div className="mb-4 flex items-center gap-2.5 sm:mb-6">
             <GoreeCloudMemosMark className="size-7" logoUrl={generalSetting.customProfile?.logoUrl} />
@@ -87,7 +87,7 @@ const AuthPageLayout = ({ chip, title, subtitle, hideExplore, children }: Props)
           )}
         </div>
       </div>
-      <AuthFooter />
+      <AuthFooter className="max-[599px]:mt-5 max-[599px]:shrink-0" />
     </div>
   );
 };
