@@ -60,7 +60,7 @@
 /* Compact: phones and narrow embedded clients. */
 @media (max-width: 599px) {
   html {
-    font-size: 18px;
+    font-size: 19px;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -73,17 +73,32 @@
     inset: 0;
   }
 
-  .gc-mobile-topbar {
-    min-height: calc(4rem + env(safe-area-inset-top));
-    height: calc(4rem + env(safe-area-inset-top));
+  .gc-mobile-topbar,
+  .gc-main-shell > header:not(.gc-topbar) {
+    min-height: calc(3.75rem + env(safe-area-inset-top));
+    height: calc(3.75rem + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
     padding-left: max(0.75rem, env(safe-area-inset-left));
     padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
-  .gc-mobile-topbar .gc-icon-button {
+  .gc-mobile-topbar .gc-icon-button,
+  .gc-main-shell > header:not(.gc-topbar) [data-slot="button"] {
     min-width: var(--gc-target-min);
     min-height: var(--gc-target-min);
+    width: var(--gc-target-min);
+    height: var(--gc-target-min);
+  }
+
+  .gc-main-shell > header:not(.gc-topbar) .gc-brand-mark {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .gc-main-shell > header:not(.gc-topbar) .gc-brand-title,
+  .gc-sidebar .gc-brand-title {
+    font-size: 1rem;
+    line-height: 1.2;
   }
 
   .gc-route-page,
@@ -113,6 +128,7 @@
 
   .gc-workspace-intro h1,
   .gc-route-hero h1 {
+    font-size: 1.55rem;
     line-height: 1.18;
   }
 
@@ -121,12 +137,26 @@
   .gc-setting-section p,
   .gc-setting-group p,
   .gc-setting-row p {
+    font-size: 1rem;
     line-height: 1.55;
   }
 
+  .gc-eyebrow {
+    font-size: 0.8rem;
+  }
+
+  .gc-privacy-badge {
+    font-size: 0.9rem;
+  }
+
   .gc-composer-collapsed {
-    min-height: 4rem;
+    min-height: 3.75rem;
     padding-inline: 1rem;
+  }
+
+  .gc-composer-label {
+    font-size: 1rem;
+    line-height: 1.35;
   }
 
   .gc-composer-icon {
@@ -138,6 +168,25 @@
   .gc-app-shell article.group,
   .gc-note-card {
     border-radius: 1.15rem;
+  }
+
+  .gc-app-shell article.group .text-sm {
+    font-size: 0.95rem;
+  }
+
+  .gc-app-shell article.group .text-xs {
+    font-size: 0.85rem;
+  }
+
+  .gc-app-shell [contenteditable="true"],
+  .gc-app-shell textarea,
+  .gc-app-shell input,
+  .gc-app-shell select {
+    font-size: 1rem;
+  }
+
+  .gc-app-shell [data-slot="button"] {
+    font-size: 0.95rem;
   }
 
   .gc-app-shell [data-slot="button"],
@@ -172,12 +221,12 @@
   }
 
   .gc-sidebar .gc-nav-row {
-    min-height: 3rem;
-    font-size: 0.95rem;
+    min-height: 3.1rem;
+    font-size: 1rem;
   }
 
   .gc-sidebar .gc-nav-kicker {
-    font-size: 0.7rem;
+    font-size: 0.78rem;
   }
 
   .gc-settings-route {
@@ -258,7 +307,7 @@
 
   .gc-setting-table-card-label {
     color: var(--muted-foreground);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;

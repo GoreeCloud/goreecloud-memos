@@ -7,6 +7,8 @@ const indexCss = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
 const settingTable = readFileSync(join(process.cwd(), "src/components/Settings/SettingTable.tsx"), "utf8");
 const memberSection = readFileSync(join(process.cwd(), "src/components/Settings/MemberSection.tsx"), "utf8");
 const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEditor/Toolbar/EditorToolbar.tsx"), "utf8");
+const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
+const memosLogo = readFileSync(join(process.cwd(), "src/components/MemosLogo.tsx"), "utf8");
 
 describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   it("loads the adaptive layer after the existing Glaze layers", () => {
@@ -27,11 +29,21 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   });
 
   it("keeps compact controls readable, touch-sized, and safe-area aware", () => {
-    expect(adaptiveCss).toContain("font-size: 18px");
+    expect(adaptiveCss).toContain("font-size: 19px");
     expect(adaptiveCss).toContain("--gc-target-min: 2.75rem");
     expect(adaptiveCss).toContain("env(safe-area-inset-top)");
     expect(adaptiveCss).toContain("env(safe-area-inset-bottom)");
     expect(adaptiveCss).toContain("max-height: calc(100dvh");
+    expect(adaptiveCss).toContain(".gc-main-shell > header:not(.gc-topbar)");
+    expect(adaptiveCss).toContain(".gc-composer-label");
+    expect(memosLogo).toContain("gc-brand-mark");
+    expect(memosLogo).toContain("gc-brand-title");
+  });
+
+  it("starts Home quick capture as a clean transient draft", () => {
+    expect(homePage).toContain('placeholder="Take a note…"');
+    expect(homePage).toContain("onCancel={() => setComposerOpen(false)}");
+    expect(homePage).not.toContain('cacheKey="home-memo-editor"');
   });
 
   it("provides accessibility and resilience fallbacks", () => {

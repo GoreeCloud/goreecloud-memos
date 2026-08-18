@@ -75,10 +75,10 @@ const Home = () => {
                     <MemoEditor
                       autoFocus
                       className={useGrid ? "gc-editor-surface shadow-md" : "gc-editor-surface mb-2 shadow-md"}
-                      cacheKey="home-memo-editor"
                       placeholder="Take a note…"
                       defaultCreateTime={defaultCreateTime}
                       onConfirm={() => setComposerOpen(false)}
+                      onCancel={() => setComposerOpen(false)}
                     />
                   ) : (
                     <button
@@ -90,7 +90,7 @@ const Home = () => {
                       <span className="gc-composer-icon flex size-9 shrink-0 items-center justify-center rounded-xl text-foreground transition-colors">
                         <PlusIcon className="size-4" strokeWidth={1.9} />
                       </span>
-                      <span className="font-medium">Take a note…</span>
+                      <span className="gc-composer-label font-medium">Take a note…</span>
                       <span className="ml-auto hidden text-xs text-muted-foreground/70 sm:inline">Quick capture</span>
                     </button>
                   )}
