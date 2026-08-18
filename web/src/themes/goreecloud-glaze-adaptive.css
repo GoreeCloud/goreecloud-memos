@@ -52,7 +52,7 @@
   overscroll-behavior: contain;
 }
 
-.gc-app-shell [data-slot="switch"] {
+.gc-app-shell :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"]) {
   position: relative;
 }
 
@@ -68,7 +68,9 @@
     [role="menuitemradio"],
     [role="menuitemcheckbox"],
     [role="option"],
-    [data-slot="switch"]
+    [data-slot="switch"],
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"]
   ):focus-visible {
   outline: none;
   box-shadow: 0 0 0 var(--gc-focus-width) var(--gc-focus-color);
@@ -217,7 +219,8 @@
     min-height: var(--gc-target-min);
   }
 
-  .gc-app-shell [data-slot="switch"]::after {
+  .gc-app-shell
+    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: var(--gc-target-min);
@@ -390,7 +393,8 @@
     min-height: 2.625rem;
   }
 
-  .gc-app-shell [data-slot="switch"]::after {
+  .gc-app-shell
+    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio-group-item"])::after {
     content: "";
     position: absolute;
     width: 2.625rem;
@@ -473,7 +477,9 @@
       [role="menuitemradio"],
       [role="menuitemcheckbox"],
       [role="option"],
-      [data-slot="switch"]
+      [data-slot="switch"],
+      [data-slot="checkbox"],
+      [data-slot="radio-group-item"]
     ):focus-visible {
     outline: 2px solid Highlight;
     outline-offset: 2px;
