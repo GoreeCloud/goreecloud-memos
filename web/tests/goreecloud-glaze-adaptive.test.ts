@@ -11,6 +11,7 @@ const editorToolbar = readFileSync(join(process.cwd(), "src/components/MemoEdito
 const memoEditor = readFileSync(join(process.cwd(), "src/components/MemoEditor/index.tsx"), "utf8");
 const memoContent = readFileSync(join(process.cwd(), "src/components/MemoContent/index.tsx"), "utf8");
 const memoCardConstants = readFileSync(join(process.cwd(), "src/components/MemoView/constants.ts"), "utf8");
+const memoHeader = readFileSync(join(process.cwd(), "src/components/MemoView/components/MemoHeader.tsx"), "utf8");
 const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
 const aboutPage = readFileSync(join(process.cwd(), "src/pages/About.tsx"), "utf8");
 const authPageLayout = readFileSync(join(process.cwd(), "src/components/AuthPageLayout.tsx"), "utf8");
@@ -66,9 +67,26 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
     expect(editorToolbar).toContain("max-[599px]:!border-border/80");
     expect(aboutPage).toContain("max-[599px]:!p-4");
     expect(aboutPage).toContain("max-[599px]:!text-[1.2rem]");
-    expect(authPageLayout).toContain("max-[599px]:pt-[9svh]");
+    expect(authPageLayout).toContain("max-[599px]:pt-[clamp(1.5rem,7dvh,4rem)]");
     expect(authPageLayout).toContain("gc-auth-card");
     expect(adaptiveCss).toContain("--gc-target-min: 2.75rem");
+  });
+
+  it("keeps compact memo metadata and editor actions reachable without hover or a fixed keyboard viewport", () => {
+    expect(memoHeader).toContain('type="button"');
+    expect(memoHeader).toContain("aria-label={visibilityLabel}");
+    expect(memoHeader).toContain("size-11");
+    expect(memoHeader).toContain("min-h-11");
+    expect(memoHeader).toContain("md:min-h-0");
+    expect(memoEditor).toContain("gc-editor-container");
+    expect(memoEditor).toContain("max-[599px]:scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]");
+    expect(memoEditor).toContain("max-[599px]:scroll-mb-[calc(7rem+env(safe-area-inset-bottom))]");
+    expect(editorToolbar).toContain("max-[599px]:sticky");
+    expect(editorToolbar).toContain("max-[599px]:bottom-[max(0.25rem,env(safe-area-inset-bottom))]");
+    expect(authPageLayout).toContain("min-h-dvh");
+    expect(authPageLayout).toContain("overflow-y-auto");
+    expect(authPageLayout).toContain("overscroll-y-contain");
+    expect(authPageLayout).toContain("sm:min-h-svh");
   });
 
   it("keeps semantic menu choices inside adaptive touch and focus treatment", () => {
