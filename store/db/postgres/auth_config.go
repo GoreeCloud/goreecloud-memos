@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pkg/errors"
 
 	"github.com/usememos/memos/store"
@@ -12,11 +12,11 @@ import (
 
 // IsRetryableAuthenticationMutationError reports whether err is a transient PostgreSQL transaction failure.
 func (*DB) IsRetryableAuthenticationMutationError(err error) bool {
-	var pqErr *pq.Error
-	if !errors.As(err, &pqErr) {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
 		return false
 	}
-	return pqErr.Code == "40001" || pqErr.Code == "40P01"
+	return pgErr.Code == "40001" || pgErr.Code == "40P01"
 }
 
 // ApplyAuthenticationConfigMutation validates and applies an auth mutation in a serializable transaction.
