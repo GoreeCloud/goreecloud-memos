@@ -6,6 +6,7 @@ on:
     paths:
       - "go.mod"
       - "go.sum"
+      - "store/**"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
       - ".github/workflows/goreecloud-lock-refresh.yml"
@@ -20,6 +21,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Trace remaining libpq imports
+        run: |
+          matches="$(grep -R --line-number --include='*.go' 'github.com/lib/pq' . || true)"
+          if [ -n "$matches" ]; then
+            printf '%s\n' "$matches"
+          else
+            echo "No lib/pq source imports remain."
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
