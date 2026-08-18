@@ -83,7 +83,11 @@ GoreeCloud Memos does not execute the inherited instance `additional_script` or 
 
 Instance branding remains customizable within a bounded local-asset model. Custom logos must use a root-relative path served by the current Memos origin; absolute URLs, protocol-relative URLs, backslash-based paths, `data:`/`javascript:`-style values, and other externally resolved assets are rejected. Unsafe legacy values fail closed in the client to the canonical `/goreecloud-memos.svg` asset. Profile title, description, and logo-path lengths are bounded in both the user interface and server validation.
 
-The repository includes a dedicated `GoreeCloud Security` workflow. It performs a production-only pnpm advisory audit at HIGH severity or above, Go reachable-vulnerability analysis with a pinned `govulncheck`, a pinned Trivy filesystem scan for HIGH/CRITICAL vulnerabilities, secrets, and misconfigurations, and CycloneDX SBOM generation. Designated findings fail the workflow rather than being treated as informational only.
+The dependency baseline is fail-closed rather than advisory-only. The frontend lock resolves the patched GoreeCloud-selected React Router, Vite, Nano ID, and PostCSS releases required by the current security gate. The backend uses Go 1.26.6 and fixed networking, text, image, and gRPC modules. PostgreSQL access no longer depends on `lib/pq`; production and integration-test `database/sql` paths use `pgx/v5/stdlib`, and retryable PostgreSQL transaction errors use `pgconn.PgError` SQLSTATE handling. Migration and upgrade helpers retain their complete SQLite/MySQL/PostgreSQL coverage after the driver replacement.
+
+The GoreeCloud container defaults to the fixed unprivileged `nonroot` identity instead of starting the application as root. The entrypoint retains its explicit privilege-drop path only for an operator who deliberately overrides the image user to root for a controlled legacy-volume ownership migration. This preserves normal least-privilege execution without silently removing the documented recovery path.
+
+The repository includes a dedicated `GoreeCloud Security` workflow. It performs a production-only pnpm advisory audit at HIGH severity or above, Go reachable-vulnerability analysis with a pinned `govulncheck`, a pinned Trivy filesystem scan for HIGH/CRITICAL vulnerabilities, secrets, and misconfigurations, and CycloneDX SBOM generation. Designated findings fail the workflow rather than being treated as informational only. Backend and upgrade workflows use the same patched Go toolchain baseline so a scanner requirement cannot diverge from the compiler and migration gates.
 
 Glaze UI does not add analytics, trackers, remote font delivery, remote icon delivery, advertising, or presentation-only third-party telemetry. New remote integrations remain outside the presentation layer and require separate functional, privacy, and security review.
 
@@ -103,9 +107,9 @@ The current quick-capture workflow keeps these Memos-specific behaviors first-cl
 
 The frontend regression suite includes `web/tests/goreecloud-glaze-adaptive.test.ts` and `web/tests/goreecloud-security-hardening.test.ts`. Together they verify that the adaptive layer is loaded after the base Glaze layers, the four official adaptive ranges are present, Compact readability/touch/safe-area requirements remain present, semantic controls remain inside adaptive focus/target treatment, Settings help remains viewport-safe and keyboard accessible, portaled Overlay surfaces retain Glaze adaptive and resilience coverage, shared Tabs retain roving keyboard semantics and Compact containment, the browser shell cannot recreate arbitrary instance script/style injection, unsafe branding URLs fail closed, and profile customization remains bounded to local GoreeCloud assets.
 
-Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted.
+Backend regression coverage verifies the corresponding General-setting policy: arbitrary custom code, remote/protocol-relative or malformed branding paths, empty profile titles, and oversized branding metadata are rejected while canonical/local root-relative assets remain accepted. PostgreSQL integration and retryable-transaction tests exercise the pgx driver path while Upgrade Smoke retains migration/fresh-install coverage for SQLite, MySQL, and PostgreSQL.
 
-Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, and security validation remain required alongside this conformance evidence.
+Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, security, and upgrade validation remain required alongside this conformance evidence.
 
 ## Manual visual acceptance gates
 
@@ -119,4 +123,4 @@ The accepted GoreeCloud Memos application icon must remain unchanged unless a la
 
 ## Stable-release boundary
 
-I will not call a revision Glaze-complete or security-ready merely because it has rounded cards, glass effects, or a scanner workflow. Stable acceptance requires exact-head frontend, backend, container, and security validation; manual visual acceptance on the affected form factors; no unresolved material security findings or regressions; preserved product identity and quick-capture scope; and a separately controlled production deployment when production is intended to change.
+I will not call a revision Glaze-complete or security-ready merely because it has rounded cards, glass effects, or a scanner workflow. Stable acceptance requires exact-head frontend, backend, container, security, and upgrade validation; manual visual acceptance on the affected form factors; no unresolved material security findings or regressions; preserved product identity and quick-capture scope; and a separately controlled production deployment when production is intended to change.
