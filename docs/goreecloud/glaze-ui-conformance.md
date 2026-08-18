@@ -152,6 +152,8 @@ Backend regression coverage verifies the corresponding General-setting policy: a
 
 `GoreeCloud Memos Clients` CI regenerates native icon assets from the canonical SVG, runs Rust navigation-boundary tests, builds Linux AppImage/Debian artifacts, initializes the Android target, regenerates Android launcher resources, builds the ARM64 acceptance APK, and uploads the resulting packages for device validation.
 
+The Compact interaction/viewport checkpoint at source head `7288b20f8d938bded97effb37cb268a958ce7650` passed the six permanent workflows: Frontend Tests #389 (`32198372988`), Backend Tests #80 (`32198372989`), GoreeCloud Security #64 (`32198372982`), GoreeCloud Container #355 (`32198373144`), Upgrade Smoke #74 (`32198372996`), and GoreeCloud Memos Clients #51 (`32198372999`). The client workflow rebuilt and uploaded both the Linux packages and ARM64 debug APK from the same exact head. Stable-only release/promotion paths remained gated off.
+
 Existing GoreeCloud Memos frontend, backend, Trash, draft-label, PWA, mobile-action, container, security, client-package, and upgrade validation remain required alongside this conformance evidence.
 
 ## Manual visual acceptance gates
