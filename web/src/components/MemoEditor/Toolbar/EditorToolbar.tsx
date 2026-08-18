@@ -63,7 +63,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:mb-1.5 max-[599px]:gap-1.5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
@@ -139,7 +139,12 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
 
       <div className="gc-editor-toolbar-actions flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
         {onCancel && (
-          <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" variant="ghost" onClick={onCancel} disabled={isSaving}>
+          <Button
+            className="min-h-11 px-4 max-[599px]:!border max-[599px]:!border-border/80 max-[599px]:!bg-background/55 sm:min-h-8 sm:px-3"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={isSaving}
+          >
             {t("common.cancel")}
           </Button>
         )}
