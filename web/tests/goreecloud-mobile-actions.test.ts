@@ -19,6 +19,15 @@ describe("GoreeCloud Memos mobile note actions", () => {
     expect(memoActionMenu).toContain('aria-label="More note actions"');
   });
 
+  it("exposes note colors and labels with semantic selection state", () => {
+    expect(cardActions).toContain("DropdownMenuRadioGroup");
+    expect(cardActions).toContain('aria-label="Note color"');
+    expect(cardActions).toContain("DropdownMenuRadioItem");
+    expect(cardActions).toContain("DropdownMenuCheckboxItem");
+    expect(cardActions).toContain("checked={assigned}");
+    expect(cardActions).toContain("onCheckedChange={(checked) => void handleToggleLabel(label, checked)}");
+  });
+
   it("keeps pinned-note unpin as a real focusable button", () => {
     expect(memoHeader).toContain("<button");
     expect(memoHeader).toContain('className="flex size-11 items-center justify-center');
