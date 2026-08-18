@@ -47,7 +47,7 @@ func TestLoggingInterceptorClassifiesStructuredOutcomes(t *testing.T) {
 	interceptor := NewLoggingInterceptor(false)
 
 	level, message, code := interceptor.classifyError(nil)
-	if level != slog.LevelInfo || message != "RPC request completed" || code != connect.CodeOK.String() {
+	if level != slog.LevelInfo || message != "RPC request completed" || code != "ok" {
 		t.Fatalf("unexpected success classification: level=%v message=%q code=%q", level, message, code)
 	}
 
