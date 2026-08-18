@@ -608,14 +608,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   :where(
-      .gc-app-shell,
-      [data-slot="dialog-content"],
-      [data-slot="sheet-content"],
-      [data-slot="popover-content"],
-      [data-slot="dropdown-menu-content"],
-      [data-slot="select-content"],
-      [data-slot="tooltip-content"]
-    ),
+    .gc-app-shell,
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"]
+  ),
   :where(
       .gc-app-shell,
       [data-slot="dialog-content"],
