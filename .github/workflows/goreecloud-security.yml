@@ -11,9 +11,11 @@ on:
       - "internal/**"
       - "cmd/**"
       - "proto/**"
+      - "store/**"
       - "go.mod"
       - "go.sum"
       - "Dockerfile"
+      - "scripts/Dockerfile"
       - ".github/workflows/**"
   schedule:
     - cron: "17 9 * * 1"
@@ -27,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.26.2"
+  GO_VERSION: "1.26.6"
   NODE_VERSION: "24"
   PNPM_VERSION: "11.0.1"
   GOVULNCHECK_VERSION: "v1.6.0"
