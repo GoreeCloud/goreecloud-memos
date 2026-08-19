@@ -41,9 +41,12 @@ describe("Browser capture inbox", () => {
     expect(inbox.consumeBrowserCapturePayload()).toBeNull();
   });
 
-  it("advertises the fail-closed memory-only contract", () => {
+  it("advertises the fail-closed memory-only and canonical URL contract", () => {
     expect(inbox.browserCaptureInboxContract).toMatchObject({
       path: "/browser-capture",
+      trailingSlashAllowed: true,
+      queryAllowed: false,
+      fragmentAllowed: false,
       memoryOnly: true,
       onePayloadPerDocument: true,
       privateBrowsingAccepted: false,
