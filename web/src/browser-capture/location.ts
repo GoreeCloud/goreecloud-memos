@@ -4,9 +4,7 @@ export type BrowserCaptureLocation = Pick<Location, "pathname" | "search" | "has
 
 export function isCanonicalBrowserCaptureLocation(location: BrowserCaptureLocation): boolean {
   return (
-    (location.pathname === BROWSER_CAPTURE_PATH || location.pathname === `${BROWSER_CAPTURE_PATH}/`) &&
-    !location.search &&
-    !location.hash
+    (location.pathname === BROWSER_CAPTURE_PATH || location.pathname === `${BROWSER_CAPTURE_PATH}/`) && !location.search && !location.hash
   );
 }
 
