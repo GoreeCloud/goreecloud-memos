@@ -25,7 +25,8 @@ describe("Browser capture security contract", () => {
   });
 
   it("registers the exact top-level capture route outside the normal workspace layout", () => {
-    expect(ROUTER_SOURCE).toContain('{ path: "browser-capture", element: <BrowserCapture /> }');
+    expect(ROUTER_SOURCE).toContain('path: "/browser-capture"');
+    expect(ROUTER_SOURCE.indexOf('path: "/browser-capture"')).toBeLessThan(ROUTER_SOURCE.indexOf('path: "/",\n    element: <App />'));
     expect(ROUTER_SOURCE).toContain('import "@/browser-capture/inbox"');
   });
 });
