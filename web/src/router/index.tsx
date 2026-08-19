@@ -1,4 +1,3 @@
-import "@/browser-capture/inbox";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router-dom";
 import App from "@/App";
 import { ChunkLoadErrorFallback } from "@/components/ErrorBoundary";
@@ -18,7 +17,6 @@ const AdminSignIn = lazyWithReload(() => import("@/pages/AdminSignIn"));
 const About = lazyWithReload(() => import("@/pages/About"));
 const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
-const BrowserCapture = lazyWithReload(() => import("@/pages/BrowserCapture"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
 const Inboxes = lazyWithReload(() => import("@/pages/Inboxes"));
@@ -41,17 +39,12 @@ export { ROUTES };
  * Static route configuration. Exported so tests can assert on the tree shape
  * (e.g. that `/auth/callback` stays outside the guest-only guard subtree) and
  * so integration tests can drive a `createMemoryRouter` over the same tree.
+ *
+ * The privileged `/browser-capture[/]` document is intentionally not part of
+ * this router. main.tsx selects that isolated runtime before importing the
+ * normal workspace runtime or this route tree.
  */
 export const routeConfig: RouteObject[] = [
-  // Browser capture is intentionally outside the normal Memos application
-  // shell. This prevents workspace navigation, initialization redirects, and
-  // administrator-configured additional scripts from sharing the sensitive
-  // one-time handoff document.
-  {
-    path: "/browser-capture",
-    element: <BrowserCapture />,
-    errorElement: <ChunkLoadErrorFallback />,
-  },
   {
     path: "/",
     element: <App />,
