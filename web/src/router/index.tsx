@@ -1,3 +1,4 @@
+import "@/browser-capture/inbox";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router-dom";
 import App from "@/App";
 import { ChunkLoadErrorFallback } from "@/components/ErrorBoundary";
@@ -17,6 +18,7 @@ const AdminSignIn = lazyWithReload(() => import("@/pages/AdminSignIn"));
 const About = lazyWithReload(() => import("@/pages/About"));
 const Archived = lazyWithReload(() => import("@/pages/Archived"));
 const AuthCallback = lazyWithReload(() => import("@/pages/AuthCallback"));
+const BrowserCapture = lazyWithReload(() => import("@/pages/BrowserCapture"));
 const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
 const Inboxes = lazyWithReload(() => import("@/pages/Inboxes"));
@@ -68,6 +70,10 @@ export const routeConfig: RouteObject[] = [
           },
         ],
       },
+      // Browser capture is a deliberately isolated, service-owned handoff surface.
+      // It receives a one-time privileged Browser payload and requires explicit
+      // user confirmation before writing through the normal authenticated API.
+      { path: "browser-capture", element: <BrowserCapture /> },
       // Backward compatibility: the old `/home` URL now lives at `/`.
       { path: "home", element: <Navigate to={Routes.HOME} replace /> },
       {
