@@ -43,6 +43,15 @@ export { ROUTES };
  * so integration tests can drive a `createMemoryRouter` over the same tree.
  */
 export const routeConfig: RouteObject[] = [
+  // Browser capture is intentionally outside the normal Memos application
+  // shell. This prevents workspace navigation, initialization redirects, and
+  // administrator-configured additional scripts from sharing the sensitive
+  // one-time handoff document.
+  {
+    path: "/browser-capture",
+    element: <BrowserCapture />,
+    errorElement: <ChunkLoadErrorFallback />,
+  },
   {
     path: "/",
     element: <App />,
@@ -70,10 +79,6 @@ export const routeConfig: RouteObject[] = [
           },
         ],
       },
-      // Browser capture is a deliberately isolated, service-owned handoff surface.
-      // It receives a one-time privileged Browser payload and requires explicit
-      // user confirmation before writing through the normal authenticated API.
-      { path: "browser-capture", element: <BrowserCapture /> },
       // Backward compatibility: the old `/home` URL now lives at `/`.
       { path: "home", element: <Navigate to={Routes.HOME} replace /> },
       {
