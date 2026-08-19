@@ -1,5 +1,5 @@
-import { create, type DescService, type Message } from "@bufbuild/protobuf";
-import { createClient, type Client, type Interceptor } from "@connectrpc/connect";
+import { create } from "@bufbuild/protobuf";
+import { createClient, type Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { AuthService } from "@/types/proto/api/v1/auth_service_pb";
 import { MemoSchema, MemoService } from "@/types/proto/api/v1/memo_service_pb";
