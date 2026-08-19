@@ -1,12 +1,17 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const CLIENT_SOURCE = readFileSync(new URL("../src/browser-capture/client.ts", import.meta.url), "utf8");
-const INBOX_SOURCE = readFileSync(new URL("../src/browser-capture/inbox.ts", import.meta.url), "utf8");
-const LOCATION_SOURCE = readFileSync(new URL("../src/browser-capture/location.ts", import.meta.url), "utf8");
-const MAIN_SOURCE = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
-const APP_RUNTIME_SOURCE = readFileSync(new URL("../src/AppRuntime.tsx", import.meta.url), "utf8");
-const ROUTER_SOURCE = readFileSync(new URL("../src/router/index.tsx", import.meta.url), "utf8");
+function readSource(path: string): string {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
+
+const CLIENT_SOURCE = readSource("src/browser-capture/client.ts");
+const INBOX_SOURCE = readSource("src/browser-capture/inbox.ts");
+const LOCATION_SOURCE = readSource("src/browser-capture/location.ts");
+const MAIN_SOURCE = readSource("src/main.tsx");
+const APP_RUNTIME_SOURCE = readSource("src/AppRuntime.tsx");
+const ROUTER_SOURCE = readSource("src/router/index.tsx");
 
 describe("Browser capture security contract", () => {
   it("keeps capture credentials out of persistent browser storage", () => {
