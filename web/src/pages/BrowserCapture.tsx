@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { clearBrowserCaptureAuthentication, createBrowserCaptureMemo } from "@/browser-capture/client";
-import {
-  consumeBrowserCapturePayload,
-  subscribeToBrowserCapturePayload,
-  type BrowserCapturePayload,
-} from "@/browser-capture/inbox";
+import { type BrowserCapturePayload, consumeBrowserCapturePayload, subscribeToBrowserCapturePayload } from "@/browser-capture/inbox";
 import GoreeCloudMemosMark from "@/components/GoreeCloudMemosMark";
 
 const RESULT_EVENT = "GoreeCloudCaptureResult";
@@ -135,12 +131,18 @@ const BrowserCapture = () => {
               />
               <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>Saved as a private memo.</span>
-                <span>{content.length.toLocaleString()} / {MAX_EDITOR_LENGTH.toLocaleString()}</span>
+                <span>
+                  {content.length.toLocaleString()} / {MAX_EDITOR_LENGTH.toLocaleString()}
+                </span>
               </div>
             </label>
 
             {error && (
-              <div id="browser-capture-error" role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm">
+              <div
+                id="browser-capture-error"
+                role="alert"
+                className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm"
+              >
                 {error} If your Memos session expired, sign in to GoreeCloud Memos in another tab and retry here.
               </div>
             )}
