@@ -21,6 +21,11 @@ function cleanString(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.slice(0, maxLength) : "";
 }
 
+function isCanonicalCaptureDocument(): boolean {
+  const { pathname, search, hash } = window.location;
+  return (pathname === CAPTURE_PATH || pathname === `${CAPTURE_PATH}/`) && !search && !hash;
+}
+
 function normalizePayload(value: unknown): BrowserCapturePayload | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -42,7 +47,7 @@ function normalizePayload(value: unknown): BrowserCapturePayload | null {
 }
 
 function onPayload(event: Event) {
-  if (window.location.pathname !== CAPTURE_PATH || consumed || pendingPayload) {
+  if (!isCanonicalCaptureDocument() || consumed || pendingPayload) {
     return;
   }
 
@@ -76,6 +81,9 @@ export function subscribeToBrowserCapturePayload(callback: () => void): () => vo
 
 export const browserCaptureInboxContract = Object.freeze({
   path: CAPTURE_PATH,
+  trailingSlashAllowed: true,
+  queryAllowed: false,
+  fragmentAllowed: false,
   payloadEvent: PAYLOAD_EVENT,
   memoryOnly: true,
   onePayloadPerDocument: true,
