@@ -16,10 +16,12 @@ describe("Browser capture security contract", () => {
   });
 
   it("keeps captured content out of URL and storage channels", () => {
-    for (const forbidden of ["URLSearchParams", "location.search", "location.hash", "localStorage", "sessionStorage", "indexedDB"]) {
+    for (const forbidden of ["URLSearchParams", "localStorage", "sessionStorage", "indexedDB"]) {
       expect(INBOX_SOURCE).not.toContain(forbidden);
     }
     expect(INBOX_SOURCE).toContain('const PAYLOAD_EVENT = "GoreeCloudCapturePayload"');
+    expect(INBOX_SOURCE).toContain('pathname === CAPTURE_PATH || pathname === `${CAPTURE_PATH}/`');
+    expect(INBOX_SOURCE).toContain("&& !search && !hash");
     expect(INBOX_SOURCE).toContain('candidate.destination !== "memo"');
     expect(INBOX_SOURCE).toContain("candidate.isPrivate === true");
   });
