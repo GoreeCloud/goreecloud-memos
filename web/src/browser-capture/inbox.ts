@@ -1,5 +1,6 @@
+import { BROWSER_CAPTURE_PATH, isCanonicalBrowserCaptureLocation } from "@/browser-capture/location";
+
 const PAYLOAD_EVENT = "GoreeCloudCapturePayload";
-const CAPTURE_PATH = "/browser-capture";
 const MAX_TEXT_LENGTH = 8192;
 const MAX_TITLE_LENGTH = 512;
 const MAX_URL_LENGTH = 4096;
@@ -19,11 +20,6 @@ const subscribers = new Set<() => void>();
 
 function cleanString(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.slice(0, maxLength) : "";
-}
-
-function isCanonicalCaptureDocument(): boolean {
-  const { pathname, search, hash } = window.location;
-  return (pathname === CAPTURE_PATH || pathname === `${CAPTURE_PATH}/`) && !search && !hash;
 }
 
 function normalizePayload(value: unknown): BrowserCapturePayload | null {
@@ -47,7 +43,7 @@ function normalizePayload(value: unknown): BrowserCapturePayload | null {
 }
 
 function onPayload(event: Event) {
-  if (!isCanonicalCaptureDocument() || consumed || pendingPayload) {
+  if (!isCanonicalBrowserCaptureLocation(window.location) || consumed || pendingPayload) {
     return;
   }
 
@@ -80,7 +76,7 @@ export function subscribeToBrowserCapturePayload(callback: () => void): () => vo
 }
 
 export const browserCaptureInboxContract = Object.freeze({
-  path: CAPTURE_PATH,
+  path: BROWSER_CAPTURE_PATH,
   trailingSlashAllowed: true,
   queryAllowed: false,
   fragmentAllowed: false,
