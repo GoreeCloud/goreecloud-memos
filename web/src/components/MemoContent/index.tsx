@@ -18,11 +18,11 @@ const MemoContent = (props: MemoContentProps) => {
         data-memo-content
         data-memo-name={props.memoName}
         className={cn(
-          "relative w-full max-w-full wrap-break-word text-base leading-6 max-[599px]:text-[0.92rem] max-[599px]:leading-[1.5]",
+          "relative w-full max-w-full wrap-break-word text-base leading-6 max-[599px]:text-[0.97rem] max-[599px]:leading-[1.52]",
           "[&>*:last-child]:mb-0",
           // GoreeCloud Notes treats a leading Markdown H1 as the note title. Keep
           // ordinary H1s elsewhere in the document on the upstream heading scale.
-          "[&>h1:first-child]:mt-0 [&>h1:first-child]:mb-2 [&>h1:first-child]:border-0 [&>h1:first-child]:pb-0 [&>h1:first-child]:text-lg [&>h1:first-child]:font-medium [&>h1:first-child]:leading-6 max-[599px]:[&>h1:first-child]:text-[1.08rem] max-[599px]:[&>h1:first-child]:leading-[1.35]",
+          "[&>h1:first-child]:mt-0 [&>h1:first-child]:mb-2 [&>h1:first-child]:border-0 [&>h1:first-child]:pb-0 [&>h1:first-child]:text-lg [&>h1:first-child]:font-medium [&>h1:first-child]:leading-6 max-[599px]:[&>h1:first-child]:text-[1.15rem] max-[599px]:[&>h1:first-child]:leading-[1.38]",
           "[&_.katex-display]:max-w-full",
           "[&_.katex-display]:overflow-x-auto",
           "[&_.katex-display]:overflow-y-hidden",
