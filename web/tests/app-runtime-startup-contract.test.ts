@@ -18,6 +18,15 @@ describe("GoreeCloud Memos startup contract", () => {
     expect(appRuntime).not.toContain("Promise.all([initInstance(), runAuthInitialize()])");
   });
 
+  it("retries incomplete initialization across Android foreground signals", () => {
+    expect(appRuntime).toContain('window.addEventListener("online", retry)');
+    expect(appRuntime).toContain('window.addEventListener("focus", retry)');
+    expect(appRuntime).toContain('window.addEventListener("pageshow", retry)');
+    expect(appRuntime).toContain('document.addEventListener("visibilitychange", retryWhenVisible)');
+    expect(appRuntime).toContain('document.visibilityState === "visible"');
+    expect(appRuntime).toContain('document.removeEventListener("visibilitychange", retryWhenVisible)');
+  });
+
   it("keeps routes that need instance or full settings behind route-level guards", () => {
     expect(routerGuards).toContain("export const RequireInstanceInitializationRoute");
     expect(routerGuards).toContain("return isInitialized ? <Outlet /> : null;");
