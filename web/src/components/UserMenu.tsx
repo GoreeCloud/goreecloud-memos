@@ -94,9 +94,9 @@ const UserMenu = (props: Props) => {
     const toastId = toast.loading(`Preparing ${format === "markdown" ? "Markdown" : "JSON"} export…`);
     try {
       const count = await downloadLibraryExport(currentUser.name, format);
-      toast.success(`Exported ${count} ${count === 1 ? "note" : "notes"}`, { id: toastId });
+      toast.success(`Exported ${count} ${count === 1 ? "memo" : "memos"}`, { id: toastId });
     } catch {
-      toast.error("Unable to export notes", { id: toastId });
+      toast.error("Unable to export memos", { id: toastId });
     }
   };
 
@@ -172,7 +172,7 @@ const UserMenu = (props: Props) => {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <DownloadIcon className="size-4 text-muted-foreground" />
-            Export notes
+            Export memos
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem onClick={() => void handleLibraryExport("markdown")}>
