@@ -6,6 +6,7 @@ const connectSource = readFileSync(join(process.cwd(), "src/connect.ts"), "utf8"
 const authContext = readFileSync(join(process.cwd(), "src/contexts/AuthContext.tsx"), "utf8");
 const focusRefreshHook = readFileSync(join(process.cwd(), "src/hooks/useTokenRefreshOnFocus.ts"), "utf8");
 const mainSource = readFileSync(join(process.cwd(), "src/main.tsx"), "utf8");
+const appRuntime = readFileSync(join(process.cwd(), "src/AppRuntime.tsx"), "utf8");
 const webIndex = readFileSync(join(process.cwd(), "index.html"), "utf8");
 const nativeLib = readFileSync(join(process.cwd(), "../clients/goreecloud-memos/src-tauri/src/lib.rs"), "utf8");
 const nativeLaunch = readFileSync(join(process.cwd(), "../clients/goreecloud-memos/frontend/launch.js"), "utf8");
@@ -37,13 +38,16 @@ describe("GoreeCloud Memos mobile session and startup contract", () => {
     expect(focusRefreshHook).toContain("void refreshIfNeeded();");
   });
 
-  it("shows a launch surface instead of a blank React root while identity settles", () => {
-    expect(mainSource).toContain("function GoreeCloudStartupScreen");
-    expect(mainSource).toContain("Opening your memos…");
-    expect(mainSource).toContain("return <GoreeCloudStartupScreen />;");
-    expect(mainSource).toContain('window.addEventListener("online", retry)');
-    expect(mainSource).toContain("runSettingsRetry");
-    expect(mainSource).not.toContain("ReactQueryDevtools");
+  it("keeps Browser capture isolated while the normal workspace shows a launch surface", () => {
+    expect(mainSource).toContain('await import("@/pages/BrowserCapture")');
+    expect(mainSource).toContain('await import("./AppRuntime")');
+    expect(mainSource).not.toContain("AuthProvider");
+    expect(appRuntime).toContain("function GoreeCloudStartupScreen");
+    expect(appRuntime).toContain("Opening your memos…");
+    expect(appRuntime).toContain("return <GoreeCloudStartupScreen />;");
+    expect(appRuntime).toContain('window.addEventListener("online", retry)');
+    expect(appRuntime).toContain("runSettingsRetry");
+    expect(appRuntime).not.toContain("ReactQueryDevtools");
   });
 
   it("keeps a static first paint and does not force document no-cache metadata", () => {

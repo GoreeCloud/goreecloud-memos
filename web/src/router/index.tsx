@@ -39,6 +39,10 @@ export { ROUTES };
  * Static route configuration. Exported so tests can assert on the tree shape
  * (e.g. that `/auth/callback` stays outside the guest-only guard subtree) and
  * so integration tests can drive a `createMemoryRouter` over the same tree.
+ *
+ * The privileged `/browser-capture[/]` document is intentionally not part of
+ * this router. main.tsx selects that isolated runtime before importing the
+ * normal workspace runtime or this route tree.
  */
 export const routeConfig: RouteObject[] = [
   {
