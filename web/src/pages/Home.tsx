@@ -37,14 +37,14 @@ const Home = () => {
       <section className="gc-route-hero gc-workspace-intro mx-auto mb-6 flex w-full max-w-6xl flex-col gap-4 px-5 py-5 max-[599px]:!mb-4 max-[599px]:!gap-3 max-[599px]:!p-4 sm:flex-row sm:items-end sm:justify-between sm:px-6">
         <div className="min-w-0">
           <div className="gc-eyebrow mb-1.5">Quick Notes</div>
-          <h1 className="text-2xl font-semibold tracking-[-0.035em] max-[599px]:!text-[1.35rem] sm:text-[1.75rem]">
+          <h1 className="text-2xl font-semibold tracking-[-0.035em] max-[599px]:!text-[1.45rem] sm:text-[1.75rem]">
             Capture what matters.
           </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground max-[599px]:!mt-1 max-[599px]:!text-[0.9rem] max-[599px]:!leading-[1.45]">
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground max-[599px]:!mt-1 max-[599px]:!text-[0.95rem] max-[599px]:!leading-[1.5]">
             Fast capture with labels, attachments, Archive, and recoverable Trash in your private GoreeCloud workspace.
           </p>
         </div>
-        <div className="gc-privacy-badge flex w-fit shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground max-[599px]:!py-1.5 max-[599px]:!text-[0.82rem]">
+        <div className="gc-privacy-badge flex w-fit shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground max-[599px]:!py-1.5 max-[599px]:!text-[0.9rem]">
           <LockIcon className="size-3.5" strokeWidth={1.8} />
           Private by default
         </div>
@@ -92,7 +92,7 @@ const Home = () => {
                       <span className="gc-composer-icon flex size-9 shrink-0 items-center justify-center rounded-xl text-foreground transition-colors">
                         <PlusIcon className="size-4" strokeWidth={1.9} />
                       </span>
-                      <span className="gc-composer-label font-medium max-[599px]:!text-[0.95rem]">Take a note…</span>
+                      <span className="gc-composer-label font-medium max-[599px]:!text-[1rem]">Take a note…</span>
                       <span className="ml-auto hidden text-xs text-muted-foreground/70 sm:inline">Quick capture</span>
                     </button>
                   )}
