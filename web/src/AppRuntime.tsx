@@ -48,13 +48,7 @@ function GoreeCloudStartupScreen() {
 }
 
 function AppInitializer({ children }: { children: React.ReactNode }) {
-  const {
-    isIdentityInitialized,
-    isUserSettingsInitialized,
-    initialize: initAuth,
-    refetchSettings,
-    currentUser,
-  } = useAuth();
+  const { isIdentityInitialized, isUserSettingsInitialized, initialize: initAuth, refetchSettings, currentUser } = useAuth();
   const { isProfileInitialized, initialize: initInstance } = useInstance();
   const initStartedRef = useRef(false);
   const authRetryPromiseRef = useRef<Promise<void> | null>(null);
