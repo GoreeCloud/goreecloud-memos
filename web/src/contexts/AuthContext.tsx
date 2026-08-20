@@ -91,34 +91,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // consumers cannot render with the new identity and stale/default settings.
     setState((prev) => ({ ...prev, isUserSettingsInitialized: false, isInitialized: false, isLoading: true }));
 
-    // Try to get or refresh the access token.
-    // This handles PWA isolated storage scenarios (e.g., iOS Safari) where localStorage
-    // may be empty but a valid HTTP-only refresh token cookie still exists.
-    // getAccessToken() returns a cached token or loads from localStorage if valid.
     if (!getAccessToken()) {
-      try {
-        await refreshAccessToken();
-      } catch (error) {
-        // A missing/invalid refresh session is handled below. A temporary mobile
-        // reconnect failure must not erase the stored login state.
-        if (!isDefinitiveAuthFailure(error)) {
-          console.warn("[AuthContext] Session refresh deferred until connectivity recovers", error);
+      let refreshFailure: unknown;
+
+      // Android can resume before its network path is completely usable. Give
+      // refresh one short retry for transport/unavailable failures, but never
+      // retry an explicit Unauthenticated response.
+      for (let attempt = 0; attempt < 2 && !getAccessToken(); attempt += 1) {
+        try {
+          await refreshAccessToken();
+          refreshFailure = undefined;
+          break;
+        } catch (error) {
+          refreshFailure = error;
+          if (isDefinitiveAuthFailure(error) || attempt === 1) {
+            break;
+          }
+          await sleep(250);
         }
       }
-    }
 
-    // If we still don't have a token after refresh attempt, skip getCurrentUser call.
-    // Only clear the persisted login when the server explicitly rejects the refresh
-    // session; a transient network failure keeps initialization unsettled so the app
-    // can retry on foreground/reconnect instead of showing a false signed-out state.
-    if (!getAccessToken()) {
-      try {
-        await refreshAccessToken();
-      } catch (error) {
-        if (isDefinitiveAuthFailure(error)) {
+      if (!getAccessToken()) {
+        if (isDefinitiveAuthFailure(refreshFailure)) {
           clearAccessToken();
           setState(UNAUTHENTICATED_STATE);
         } else {
+          console.warn("[AuthContext] Session refresh deferred until connectivity recovers", refreshFailure);
+          // Preserve the refresh cookie and any stored access-token metadata. The
+          // startup/reconnecting surface remains visible and AppInitializer retries
+          // on foreground or network restoration.
           setState((prev) => ({ ...prev, isLoading: false }));
         }
         return;
