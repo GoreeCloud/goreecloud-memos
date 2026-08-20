@@ -4,7 +4,6 @@ use tauri::webview::{NewWindowResponse, Url, WebviewWindowBuilder};
 use tauri::WebviewUrl;
 
 const APP_HOST: &str = "memos.goreecloud.com";
-const APP_URL: &str = "https://memos.goreecloud.com";
 
 fn is_local_app_navigation(url: &Url) -> bool {
     matches!(
