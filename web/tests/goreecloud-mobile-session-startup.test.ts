@@ -38,14 +38,17 @@ describe("GoreeCloud Memos mobile session and startup contract", () => {
     expect(focusRefreshHook).toContain("void refreshIfNeeded();");
   });
 
-  it("keeps Browser capture isolated while the normal workspace shows a launch surface", () => {
+  it("keeps Browser capture isolated while the normal workspace shows a status-aware launch surface", () => {
     expect(mainSource).toContain('await import("@/pages/BrowserCapture")');
     expect(mainSource).toContain('await import("./AppRuntime")');
     expect(mainSource).not.toContain("AuthProvider");
     expect(appRuntime).toContain("function GoreeCloudStartupScreen");
     expect(appRuntime).toContain("Opening your memos…");
-    expect(appRuntime).toContain("return <GoreeCloudStartupScreen />;");
-    expect(appRuntime).toContain('window.addEventListener("online", retry)');
+    expect(appRuntime).toContain("You’re offline. Memos will reconnect automatically.");
+    expect(appRuntime).toContain("Reconnecting to your memos…");
+    expect(appRuntime).toContain("return <GoreeCloudStartupScreen status={status} />;");
+    expect(appRuntime).toContain('window.addEventListener("online", handleOnline)');
+    expect(appRuntime).toContain('window.addEventListener("offline", handleOffline)');
     expect(appRuntime).toContain("runSettingsRetry");
     expect(appRuntime).not.toContain("ReactQueryDevtools");
   });
