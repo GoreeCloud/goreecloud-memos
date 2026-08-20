@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { clearAccessToken, getAccessToken } from "@/auth-state";
+import { clearAccessToken, getAccessToken, hasStoredToken } from "@/auth-state";
 import { authServiceClient, isDefinitiveAuthFailure, refreshAccessToken, userServiceClient } from "@/connect";
 import { userKeys } from "@/hooks/useUserQueries";
 import type {
@@ -92,6 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isUserSettingsInitialized: false, isInitialized: false, isLoading: true }));
 
     if (!getAccessToken()) {
+      // A client that has never stored an access token has no recoverable session
+      // metadata to refresh. Settling immediately avoids an unnecessary startup
+      // network round trip for signed-out/new installs while preserving refresh
+      // recovery for clients that do have stored (including expired) token state.
+      if (!hasStoredToken()) {
+        setState(UNAUTHENTICATED_STATE);
+        return;
+      }
+
       let refreshFailure: unknown;
 
       // Android can resume before its network path is completely usable. Give
