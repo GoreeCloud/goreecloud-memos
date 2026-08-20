@@ -34,3 +34,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Physical Android acceptance showed that the earlier Compact density pass went
+ * too far visually even though its spacing and touch targets were correct. Keep
+ * those denser compositions, but raise the phone reading scale one step so body,
+ * metadata, controls, and memo content no longer feel miniaturized.
+ */
+@media (max-width: 599px) {
+  html {
+    font-size: 20px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
