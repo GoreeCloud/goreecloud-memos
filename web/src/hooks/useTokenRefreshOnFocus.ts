@@ -2,48 +2,61 @@ import { useEffect } from "react";
 import { FOCUS_TOKEN_EXPIRY_BUFFER_MS, hasStoredToken, isTokenExpired } from "@/auth-state";
 
 /**
- * Hook that proactively refreshes the access token when the tab becomes visible
- * and the token is expired or expiring soon.
+ * Proactively refreshes an expiring access token when a browser/PWA/native
+ * webview returns to the foreground or regains connectivity.
  *
- * This prevents React Query's automatic refetch-on-window-focus from triggering
- * multiple 401 errors when the user returns to the tab after the token has expired.
- *
- * Related issue: https://github.com/usememos/memos/issues/5589
+ * Android WebView lifecycle transitions are not represented consistently by a
+ * single DOM event across OS versions. Listening to visibilitychange, focus,
+ * pageshow, and online keeps the refresh path reliable without polling in the
+ * background. Concurrent attempts are safe because connect.ts deduplicates them.
  */
 export function useTokenRefreshOnFocus(refreshFn: () => Promise<void>, enabled: boolean = true) {
   useEffect(() => {
     if (!enabled) return;
 
-    const handleVisibilityChange = async () => {
-      // Only act when tab becomes visible
-      if (document.visibilityState !== "visible") {
+    let disposed = false;
+
+    const refreshIfNeeded = async () => {
+      if (disposed || document.visibilityState === "hidden") {
         return;
       }
 
-      // Only refresh if the user has logged in before (token in localStorage)
-      if (!hasStoredToken()) {
+      if (!hasStoredToken() || !isTokenExpired(FOCUS_TOKEN_EXPIRY_BUFFER_MS)) {
         return;
       }
 
-      // Check if token is expired or expiring soon (within 2 minutes)
-      // Use a longer buffer than normal requests to be proactive
-      if (isTokenExpired(FOCUS_TOKEN_EXPIRY_BUFFER_MS)) {
-        try {
-          console.debug("[useTokenRefreshOnFocus] Token expired/expiring, refreshing before queries refetch");
-          await refreshFn();
-          console.debug("[useTokenRefreshOnFocus] Token refreshed successfully");
-        } catch (error) {
-          // Don't block - let the normal auth interceptor handle it
-          // The user will be redirected if refresh fails
-          console.error("[useTokenRefreshOnFocus] Failed to refresh token:", error);
-        }
+      try {
+        await refreshFn();
+      } catch (error) {
+        // A transient mobile-network/server failure is intentionally non-fatal.
+        // connect.ts only redirects after an explicit Unauthenticated refresh
+        // response, so the next foreground/online event can recover the session.
+        console.warn("[useTokenRefreshOnFocus] Session refresh deferred", error);
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshIfNeeded();
+      }
+    };
+    const handleForegroundSignal = () => void refreshIfNeeded();
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleForegroundSignal);
+    window.addEventListener("pageshow", handleForegroundSignal);
+    window.addEventListener("online", handleForegroundSignal);
+
+    // Also cover the case where the hook becomes enabled after authentication
+    // while the app is already visible.
+    void refreshIfNeeded();
 
     return () => {
+      disposed = true;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleForegroundSignal);
+      window.removeEventListener("pageshow", handleForegroundSignal);
+      window.removeEventListener("online", handleForegroundSignal);
     };
   }, [refreshFn, enabled]);
 }
