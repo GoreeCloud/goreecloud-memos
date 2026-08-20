@@ -1,3 +1,4 @@
+import { Code, ConnectError } from "@connectrpc/connect";
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import { clearAccessToken, getAccessToken } from "@/auth-state";
@@ -43,6 +44,8 @@ const UNAUTHENTICATED_STATE: AuthState = {
   isInitialized: true,
   isLoading: false,
 };
+
+const isConfirmedUnauthenticated = (error: unknown): boolean => error instanceof ConnectError && error.code === Code.Unauthenticated;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -90,19 +93,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isUserSettingsInitialized: false, isInitialized: false, isLoading: true }));
 
     // Try to get or refresh the access token.
-    // This handles PWA isolated storage scenarios (e.g., iOS Safari) where localStorage
-    // may be empty but a valid HTTP-only refresh token cookie still exists.
-    // getAccessToken() returns a cached token or loads from localStorage if valid.
+    // This handles PWA and mobile WebView storage scenarios where the short-lived
+    // access token may be absent while the HttpOnly refresh-session cookie is valid.
+    // Importantly, a transient resume/network failure is not treated as logout.
     if (!getAccessToken()) {
       try {
         await refreshAccessToken();
-      } catch {
-        // Refresh failed - no valid session
+      } catch (error) {
+        if (isConfirmedUnauthenticated(error)) {
+          clearAccessToken();
+          setState(UNAUTHENTICATED_STATE);
+          return;
+        }
+        console.warn("[AuthContext] Session refresh deferred after a transient initialization failure", error);
       }
     }
 
-    // If we still don't have a token after refresh attempt, skip getCurrentUser call
-    // to avoid unnecessary network request for unauthenticated users.
+    // Without a usable access token there is no verified identity to publish yet.
+    // Keep the app usable as unauthenticated for this launch, but do not destroy
+    // refresh-session state on a transient connectivity failure; a later request,
+    // reconnect, or app resume can recover the session automatically.
     if (!getAccessToken()) {
       setState(UNAUTHENTICATED_STATE);
       return;
@@ -140,8 +150,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } catch (error) {
       console.error("Failed to initialize auth:", error);
-      clearAccessToken();
-      setState(UNAUTHENTICATED_STATE);
+      if (isConfirmedUnauthenticated(error)) {
+        clearAccessToken();
+        setState(UNAUTHENTICATED_STATE);
+        return;
+      }
+
+      // Android may resume while network connectivity is still being restored.
+      // Preserve the token/session boundary instead of converting a temporary
+      // transport error into a persistent logout. Cached identity, when present,
+      // remains available while reconnect/refocus retry paths recover normally.
+      setState((prev) => ({
+        ...prev,
+        isIdentityInitialized: true,
+        isUserSettingsInitialized: prev.currentUser ? prev.isUserSettingsInitialized : true,
+        isInitialized: true,
+        isLoading: false,
+      }));
     }
   }, [fetchUserSettings, queryClient]);
 
