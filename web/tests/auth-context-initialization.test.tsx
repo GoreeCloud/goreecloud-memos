@@ -12,6 +12,7 @@ const clients = vi.hoisted(() => ({
 vi.mock("@/auth-state", () => ({
   clearAccessToken: vi.fn(),
   getAccessToken: () => (authState.hasToken ? "token" : undefined),
+  hasStoredToken: () => authState.hasToken,
 }));
 
 vi.mock("@/connect", () => ({
@@ -19,6 +20,7 @@ vi.mock("@/connect", () => ({
     getCurrentUser: clients.getCurrentUser,
     signOut: vi.fn(),
   },
+  isDefinitiveAuthFailure: () => false,
   refreshAccessToken: vi.fn(async () => undefined),
   userServiceClient: {
     listUserSettings: clients.listUserSettings,
