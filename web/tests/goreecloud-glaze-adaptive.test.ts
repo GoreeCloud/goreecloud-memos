@@ -43,6 +43,7 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
 
   it("keeps compact controls readable, touch-sized, and safe-area aware", () => {
     expect(adaptiveCss).toContain("font-size: 19px");
+    expect(indexCss).toContain("font-size: 20px");
     expect(adaptiveCss).toContain("--gc-target-min: 2.75rem");
     expect(adaptiveCss).toContain("env(safe-area-inset-top)");
     expect(adaptiveCss).toContain("env(safe-area-inset-bottom)");
@@ -55,11 +56,11 @@ describe("GoreeCloud Memos Glaze UI adaptive contract", () => {
   });
 
   it("keeps compact reading density deliberate without shrinking interaction targets", () => {
-    expect(homePage).toContain("max-[599px]:!text-[1.35rem]");
-    expect(homePage).toContain("max-[599px]:!text-[0.9rem]");
+    expect(homePage).toContain("max-[599px]:!text-[1.45rem]");
+    expect(homePage).toContain("max-[599px]:!text-[0.95rem]");
     expect(homePage).toContain("max-[599px]:!min-h-[3.25rem]");
-    expect(memoContent).toContain("max-[599px]:text-[0.92rem]");
-    expect(memoContent).toContain("max-[599px]:[&>h1:first-child]:text-[1.08rem]");
+    expect(memoContent).toContain("max-[599px]:text-[0.97rem]");
+    expect(memoContent).toContain("max-[599px]:[&>h1:first-child]:text-[1.15rem]");
     expect(memoCardConstants).toContain("px-3 py-3");
     expect(memoCardConstants).toContain("sm:px-4");
     expect(memoEditor).toContain("max-[599px]:px-3");
