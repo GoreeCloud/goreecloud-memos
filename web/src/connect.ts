@@ -90,6 +90,16 @@ export async function refreshAccessToken(): Promise<void> {
   return tokenRefreshManager.refresh(doRefreshAccessToken);
 }
 
+// A refresh request can fail because the refresh session is actually invalid, or
+// because a mobile device is between networks / still restoring connectivity after
+// backgrounding. Only an explicit Unauthenticated response proves that the login is
+// gone. Network, timeout, unavailable, and server failures must preserve the stored
+// session so a later foreground/reconnect attempt can recover without asking the user
+// to sign in again.
+export function isDefinitiveAuthFailure(error: unknown): boolean {
+  return error instanceof ConnectError && error.code === Code.Unauthenticated;
+}
+
 // ============================================================================
 // Authentication Interceptor Helpers
 // ============================================================================
@@ -100,10 +110,7 @@ function setAuthorizationHeader(req: RequestWithHeader, token: string | null) {
 }
 
 function shouldHandleUnauthenticatedRetry(error: unknown, isRetryAttempt: boolean): boolean {
-  if (!(error instanceof ConnectError)) {
-    return false;
-  }
-  if (error.code !== Code.Unauthenticated) {
+  if (!isDefinitiveAuthFailure(error)) {
     return false;
   }
   if (isRetryAttempt) {
@@ -141,8 +148,9 @@ export async function getRequestToken(): Promise<string | null> {
     try {
       token = await refreshAndGetAccessToken();
     } catch {
-      // Keep existing reactive 401 flow as fallback.
-      // Protected methods still trigger refresh/redirect in the catch block below.
+      // Keep existing reactive 401 flow as fallback. A transient mobile-network
+      // failure must not clear the refresh session; the authenticated request can
+      // retry after connectivity is restored.
     }
   }
 
@@ -171,7 +179,9 @@ const authInterceptor: Interceptor = (next) => async (req) => {
       req.header.set(RETRY_HEADER, RETRY_HEADER_VALUE);
       return await next(req);
     } catch (refreshError) {
-      redirectOnAuthFailure();
+      if (isDefinitiveAuthFailure(refreshError)) {
+        redirectOnAuthFailure();
+      }
       throw refreshError;
     }
   }
