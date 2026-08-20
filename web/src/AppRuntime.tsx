@@ -49,7 +49,7 @@ function GoreeCloudStartupScreen() {
 
 function AppInitializer({ children }: { children: React.ReactNode }) {
   const { isIdentityInitialized, isUserSettingsInitialized, initialize: initAuth, refetchSettings, currentUser } = useAuth();
-  const { isProfileInitialized, initialize: initInstance } = useInstance();
+  const { initialize: initInstance } = useInstance();
   const initStartedRef = useRef(false);
   const authRetryPromiseRef = useRef<Promise<void> | null>(null);
   const settingsRetryPromiseRef = useRef<Promise<void> | null>(null);
@@ -87,7 +87,13 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
     if (initStartedRef.current) return;
     initStartedRef.current = true;
 
-    void Promise.all([initInstance(), runAuthInitialize()]);
+    // Authentication identity is the only global first-render gate. Instance
+    // profile/settings still initialize in parallel, while route-level guards
+    // keep setup/auth/settings pages behind the instance state they require.
+    // This lets an authenticated Home route begin rendering as soon as identity
+    // is verified instead of waiting on an unrelated public profile request.
+    void initInstance();
+    void runAuthInitialize();
   }, [initInstance, runAuthInitialize]);
 
   useEffect(() => {
@@ -118,7 +124,7 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
   useTokenRefreshOnFocus(refreshAccessToken, !!currentUser);
   useLiveMemoRefresh();
 
-  if (!isIdentityInitialized || !isProfileInitialized) {
+  if (!isIdentityInitialized) {
     return <GoreeCloudStartupScreen />;
   }
 
