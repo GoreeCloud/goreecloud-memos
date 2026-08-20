@@ -105,10 +105,16 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
         void runSettingsRetry();
       }
     };
+    const retryWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        retry();
+      }
+    };
 
     window.addEventListener("online", retry);
     window.addEventListener("focus", retry);
     window.addEventListener("pageshow", retry);
+    document.addEventListener("visibilitychange", retryWhenVisible);
 
     if (isIdentityInitialized && !isUserSettingsInitialized) {
       void runSettingsRetry();
@@ -118,6 +124,7 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
       window.removeEventListener("online", retry);
       window.removeEventListener("focus", retry);
       window.removeEventListener("pageshow", retry);
+      document.removeEventListener("visibilitychange", retryWhenVisible);
     };
   }, [isIdentityInitialized, isUserSettingsInitialized, runAuthInitialize, runSettingsRetry]);
 
