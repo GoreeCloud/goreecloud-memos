@@ -7,6 +7,7 @@ const repoRoot = join(webRoot, "..");
 
 const canonicalIconSource = readFileSync(join(webRoot, "public/goreecloud-memos.svg"), "utf8");
 const indexSource = readFileSync(join(webRoot, "index.html"), "utf8");
+const userMenuSource = readFileSync(join(webRoot, "src/components/UserMenu.tsx"), "utf8");
 const manifest = JSON.parse(readFileSync(join(webRoot, "public/site.webmanifest"), "utf8")) as {
   name: string;
   short_name: string;
@@ -62,6 +63,14 @@ describe("GoreeCloud Memos application identity", () => {
         expect.objectContaining({ src: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }),
       ]),
     );
+  });
+
+  it("keeps account export language aligned with the Memos product identity", () => {
+    expect(userMenuSource).toContain("Export memos");
+    expect(userMenuSource).toContain('count === 1 ? "memo" : "memos"');
+    expect(userMenuSource).toContain('toast.error("Unable to export memos"');
+    expect(userMenuSource).not.toContain("Export notes");
+    expect(userMenuSource).not.toContain('toast.error("Unable to export notes"');
   });
 
   it("keeps Linux and Android launcher assets derived from the same canonical SVG", () => {
