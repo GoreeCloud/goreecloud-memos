@@ -2,9 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/svg+xml" href="/goreecloud-memos.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -20,7 +17,26 @@
     <title>GoreeCloud Memos</title>
   </head>
   <body class="text-base w-full min-h-svh">
-    <div id="root" class="relative w-full min-h-full"></div>
+    <div id="root" class="relative w-full min-h-full">
+      <main
+        class="fixed inset-0 grid min-h-dvh place-items-center bg-background px-6 text-foreground"
+        role="status"
+        aria-live="polite"
+        aria-label="Opening GoreeCloud Memos"
+      >
+        <div class="flex min-w-0 items-center gap-4 rounded-[1.35rem] border border-border/70 bg-card/95 px-5 py-4 shadow-lg">
+          <div class="flex size-14 shrink-0 flex-col justify-center gap-1 rounded-[1rem] border border-primary/20 bg-primary/10 px-3" aria-hidden="true">
+            <span class="h-0.5 w-full rounded-full bg-primary/70"></span>
+            <span class="h-0.5 w-4/5 rounded-full bg-primary/55"></span>
+            <span class="h-0.5 w-3/5 rounded-full bg-primary/40"></span>
+          </div>
+          <div class="min-w-0">
+            <div class="truncate text-[1.1rem] font-semibold tracking-[-0.025em]">GoreeCloud Memos</div>
+            <div class="mt-0.5 text-[0.95rem] text-muted-foreground">Opening your memos…</div>
+          </div>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- memos.metadata.body -->
   </body>
