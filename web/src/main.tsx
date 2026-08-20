@@ -51,10 +51,17 @@ function GoreeCloudStartupScreen() {
 
 // Inner component that initializes contexts
 function AppInitializer({ children }: { children: React.ReactNode }) {
-  const { isIdentityInitialized, initialize: initAuth, currentUser } = useAuth();
+  const {
+    isIdentityInitialized,
+    isUserSettingsInitialized,
+    initialize: initAuth,
+    refetchSettings,
+    currentUser,
+  } = useAuth();
   const { isProfileInitialized, initialize: initInstance } = useInstance();
   const initStartedRef = useRef(false);
   const authRetryPromiseRef = useRef<Promise<void> | null>(null);
+  const settingsRetryPromiseRef = useRef<Promise<void> | null>(null);
 
   const runAuthInitialize = useCallback(() => {
     if (authRetryPromiseRef.current) return authRetryPromiseRef.current;
@@ -66,6 +73,24 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
     authRetryPromiseRef.current = promise;
     return promise;
   }, [initAuth]);
+
+  const runSettingsRetry = useCallback(() => {
+    if (!currentUser || isUserSettingsInitialized || settingsRetryPromiseRef.current) {
+      return settingsRetryPromiseRef.current;
+    }
+
+    const promise = refetchSettings()
+      .catch((error) => {
+        console.warn("[AppInitializer] User settings retry deferred", error);
+      })
+      .finally(() => {
+        if (settingsRetryPromiseRef.current === promise) {
+          settingsRetryPromiseRef.current = null;
+        }
+      });
+    settingsRetryPromiseRef.current = promise;
+    return promise;
+  }, [currentUser, isUserSettingsInitialized, refetchSettings]);
 
   // Initialize on mount - run in parallel for better performance.
   useEffect(() => {
@@ -79,23 +104,29 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
   // AuthContext intentionally keeps identity unsettled rather than falsely signing
   // the user out. Retry on the lifecycle/network signals that commonly follow.
   useEffect(() => {
-    if (isIdentityInitialized) return;
-
     const retry = () => {
       if (navigator.onLine === false) return;
-      void runAuthInitialize();
+      if (!isIdentityInitialized) {
+        void runAuthInitialize();
+      } else if (!isUserSettingsInitialized) {
+        void runSettingsRetry();
+      }
     };
 
     window.addEventListener("online", retry);
     window.addEventListener("focus", retry);
     window.addEventListener("pageshow", retry);
 
+    if (isIdentityInitialized && !isUserSettingsInitialized) {
+      void runSettingsRetry();
+    }
+
     return () => {
       window.removeEventListener("online", retry);
       window.removeEventListener("focus", retry);
       window.removeEventListener("pageshow", retry);
     };
-  }, [isIdentityInitialized, runAuthInitialize]);
+  }, [isIdentityInitialized, isUserSettingsInitialized, runAuthInitialize, runSettingsRetry]);
 
   // Proactively refresh token on foreground/reconnect signals to prevent stale
   // access tokens from reaching queries after Android resumes the webview.
