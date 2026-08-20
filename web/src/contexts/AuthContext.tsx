@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import { clearAccessToken, getAccessToken } from "@/auth-state";
-import { authServiceClient, refreshAccessToken, userServiceClient } from "@/connect";
+import { authServiceClient, isDefinitiveAuthFailure, refreshAccessToken, userServiceClient } from "@/connect";
 import { userKeys } from "@/hooks/useUserQueries";
 import type {
   User,
@@ -43,6 +43,8 @@ const UNAUTHENTICATED_STATE: AuthState = {
   isInitialized: true,
   isLoading: false,
 };
+
+const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -96,38 +98,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!getAccessToken()) {
       try {
         await refreshAccessToken();
-      } catch {
-        // Refresh failed - no valid session
+      } catch (error) {
+        // A missing/invalid refresh session is handled below. A temporary mobile
+        // reconnect failure must not erase the stored login state.
+        if (!isDefinitiveAuthFailure(error)) {
+          console.warn("[AuthContext] Session refresh deferred until connectivity recovers", error);
+        }
       }
     }
 
-    // If we still don't have a token after refresh attempt, skip getCurrentUser call
-    // to avoid unnecessary network request for unauthenticated users.
+    // If we still don't have a token after refresh attempt, skip getCurrentUser call.
+    // Only clear the persisted login when the server explicitly rejects the refresh
+    // session; a transient network failure keeps initialization unsettled so the app
+    // can retry on foreground/reconnect instead of showing a false signed-out state.
     if (!getAccessToken()) {
+      try {
+        await refreshAccessToken();
+      } catch (error) {
+        if (isDefinitiveAuthFailure(error)) {
+          clearAccessToken();
+          setState(UNAUTHENTICATED_STATE);
+        } else {
+          setState((prev) => ({ ...prev, isLoading: false }));
+        }
+        return;
+      }
+    }
+
+    let currentUser: User | undefined;
+    try {
+      // Android WebView can resume while connectivity is still settling. Give
+      // identity verification a short bounded retry window before surfacing a
+      // reconnecting state. Definitive authentication failures are never retried.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await authServiceClient.getCurrentUser({});
+          currentUser = response.user;
+          break;
+        } catch (error) {
+          if (isDefinitiveAuthFailure(error) || attempt === 2) {
+            throw error;
+          }
+          await sleep(300 * (attempt + 1));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to initialize auth identity:", error);
+      if (isDefinitiveAuthFailure(error)) {
+        clearAccessToken();
+        setState(UNAUTHENTICATED_STATE);
+      } else {
+        // Preserve the refresh cookie and local token. AppInitializer keeps the
+        // Glaze startup/reconnecting surface visible and retries on foreground or
+        // network restoration rather than forcing a sign-in.
+        setState((prev) => ({ ...prev, isLoading: false }));
+      }
+      return;
+    }
+
+    if (!currentUser) {
+      clearAccessToken();
       setState(UNAUTHENTICATED_STATE);
       return;
     }
 
+    // Publish the verified identity immediately so route modules and their
+    // data queries can start while display-sensitive settings are loading.
+    setState((prev) => ({
+      ...prev,
+      currentUser,
+      isIdentityInitialized: true,
+    }));
+
+    queryClient.setQueryData(userKeys.currentUser(), currentUser);
+    queryClient.setQueryData(userKeys.detail(currentUser.name), currentUser);
+
     try {
-      const { user: currentUser } = await authServiceClient.getCurrentUser({});
-
-      if (!currentUser) {
-        clearAccessToken();
-        setState(UNAUTHENTICATED_STATE);
-        return;
-      }
-
-      // Publish the verified identity immediately so route modules and their
-      // data queries can start while display-sensitive settings are loading.
-      setState((prev) => ({
-        ...prev,
-        currentUser,
-        isIdentityInitialized: true,
-      }));
-
-      queryClient.setQueryData(userKeys.currentUser(), currentUser);
-      queryClient.setQueryData(userKeys.detail(currentUser.name), currentUser);
-
       const settings = await fetchUserSettings(currentUser.name);
 
       setState({
@@ -139,9 +185,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
     } catch (error) {
-      console.error("Failed to initialize auth:", error);
-      clearAccessToken();
-      setState(UNAUTHENTICATED_STATE);
+      // Settings are presentation state, not proof that the login has expired.
+      // Preserve the authenticated identity and fail closed by leaving sensitive
+      // user settings unsettled until a later retry succeeds.
+      console.error("Failed to initialize user settings:", error);
+      setState((prev) => ({
+        ...prev,
+        currentUser,
+        isIdentityInitialized: true,
+        isUserSettingsInitialized: false,
+        isInitialized: true,
+        isLoading: false,
+      }));
     }
   }, [fetchUserSettings, queryClient]);
 
