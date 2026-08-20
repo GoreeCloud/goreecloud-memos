@@ -97,7 +97,7 @@
 /* Compact: phones and narrow embedded clients. */
 @media (max-width: 599px) {
   html {
-    font-size: 19px;
+    font-size: 20px;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -180,7 +180,7 @@
   }
 
   .gc-eyebrow {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 
   .gc-privacy-badge {
@@ -209,11 +209,11 @@
   }
 
   .gc-app-shell article.group .text-sm {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
   }
 
   .gc-app-shell article.group .text-xs {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
   }
 
   :where(
@@ -237,7 +237,7 @@
       [data-slot="select-content"]
     )
     [data-slot="button"] {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
   }
 
   :where(
@@ -345,7 +345,7 @@
   }
 
   [data-slot="sheet-content"] aside :is(.text-xs, .text-2xs) {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
   }
 
   .gc-settings-route {
@@ -426,7 +426,7 @@
 
   .gc-setting-table-card-label {
     color: var(--muted-foreground);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
