@@ -72,11 +72,11 @@ const Home = () => {
             renderLeading={({ useGrid }) => {
               if (!isUserSettingsInitialized) return null;
               return (
-                <section aria-label="Create note">
+                <section aria-label="Create note" className="gc-home-composer-section">
                   {composerOpen ? (
                     <MemoEditor
                       autoFocus
-                      className={useGrid ? "gc-editor-surface shadow-md" : "gc-editor-surface mb-2 shadow-md"}
+                      className={useGrid ? "gc-editor-surface shadow-md" : "gc-editor-surface shadow-md"}
                       placeholder="Take a note…"
                       defaultCreateTime={defaultCreateTime}
                       onConfirm={() => setComposerOpen(false)}
