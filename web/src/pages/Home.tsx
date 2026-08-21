@@ -76,6 +76,7 @@ const Home = () => {
                   {composerOpen ? (
                     <MemoEditor
                       autoFocus
+                      quickCaptureAutoSave
                       className={useGrid ? "gc-editor-surface shadow-md" : "gc-editor-surface shadow-md"}
                       placeholder="Take a note…"
                       defaultCreateTime={defaultCreateTime}
