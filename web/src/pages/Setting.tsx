@@ -65,7 +65,7 @@ const Setting = () => {
 
   return (
     <section className="gc-settings-route min-h-full w-full bg-transparent">
-      <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-4 sm:px-6 md:pt-8">
+      <div className="mx-auto w-full max-w-4xl px-0 pb-12 pt-4 sm:px-6 md:pt-8">
         <div className="min-w-0">
           <ActiveSection />
         </div>
