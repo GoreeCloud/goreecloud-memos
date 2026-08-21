@@ -105,6 +105,61 @@ const MemberSection = () => {
     });
   };
 
+  const renderMemberActions = (user: User) =>
+    currentUser?.name === user.name ? null : (
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" size="sm" aria-label={`Manage ${user.username}`} />}>
+          <MoreVerticalIcon className="w-4 h-auto" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" sideOffset={2}>
+          <DropdownMenuItem onClick={() => handleEditUser(user)}>{t("common.update")}</DropdownMenuItem>
+          {user.state === State.NORMAL ? (
+            <DropdownMenuItem onClick={() => handleArchiveUserClick(user)}>{t("setting.member.archive-member")}</DropdownMenuItem>
+          ) : (
+            <>
+              <DropdownMenuItem onClick={() => handleRestoreUserClick(user)}>{t("common.restore")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDeleteUserClick(user)} className="text-destructive focus:text-destructive">
+                {t("setting.member.delete-member")}
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+  const renderMemberIdentity = (user: User) => (
+    <div className="gc-member-identity flex min-w-0 items-start gap-3 md:min-w-[18rem]">
+      <UserAvatar className="h-10 w-10 shrink-0 rounded-xl" avatarUrl={user.avatarUrl} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className={user.displayName ? "text-sm font-medium text-foreground" : "text-sm font-medium text-muted-foreground italic"}>
+            {user.displayName || t("common.empty-placeholder")}
+          </span>
+          {currentUser?.name === user.name ? <span className="text-xs text-muted-foreground">{t("common.yourself")}</span> : null}
+        </div>
+        <span className="truncate text-xs text-muted-foreground">@{user.username}</span>
+      </div>
+    </div>
+  );
+
+  const renderMemberSummary = (user: User) => (
+    <div className="gc-member-summary flex min-w-0 flex-col gap-2 md:min-w-[18rem]">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="rounded-full px-2.5 py-0.5">
+          {stringifyUserRole(user.role)}
+        </Badge>
+        <Badge variant={user.state === State.ARCHIVED ? "outline" : "default"} className="rounded-full px-2.5 py-0.5">
+          {user.state === State.ARCHIVED ? t("setting.member.archived") : t("setting.member.active")}
+        </Badge>
+      </div>
+      {user.email ? (
+        <div className="flex min-w-0 flex-wrap gap-2">
+          <InfoChip label={t("common.email")} value={user.email} tooltip={user.email} />
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     <SettingSection
       title={t("setting.member.list-title")}
@@ -115,83 +170,50 @@ const MemberSection = () => {
         </Button>
       }
     >
-      <SettingTable
-        variant="info-flow"
-        columns={[
-          {
-            key: "member",
-            header: t("setting.member.member-column"),
-            render: (_, user: User) => (
-              <div className="gc-member-identity flex min-w-0 items-start gap-3 md:min-w-[18rem]">
-                <UserAvatar className="h-10 w-10 shrink-0 rounded-xl" avatarUrl={user.avatarUrl} />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span
-                      className={
-                        user.displayName ? "text-sm font-medium text-foreground" : "text-sm font-medium text-muted-foreground italic"
-                      }
-                    >
-                      {user.displayName || t("common.empty-placeholder")}
-                    </span>
-                    {currentUser?.name === user.name ? <span className="text-xs text-muted-foreground">{t("common.yourself")}</span> : null}
-                  </div>
-                  <span className="truncate text-xs text-muted-foreground">@{user.username}</span>
-                </div>
+      <div className="gc-member-mobile-list grid gap-3 md:hidden">
+        {sortedUsers.length ? (
+          sortedUsers.map((user) => (
+            <article key={user.name} className="min-w-0 rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                {renderMemberIdentity(user)}
+                <div className="shrink-0">{renderMemberActions(user)}</div>
               </div>
-            ),
-          },
-          {
-            key: "summary",
-            header: t("setting.member.summary-column"),
-            render: (_, user: User) => (
-              <div className="gc-member-summary flex min-w-0 flex-col gap-2 md:min-w-[18rem]">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="rounded-full px-2.5 py-0.5">
-                    {stringifyUserRole(user.role)}
-                  </Badge>
-                  <Badge variant={user.state === State.ARCHIVED ? "outline" : "default"} className="rounded-full px-2.5 py-0.5">
-                    {user.state === State.ARCHIVED ? t("setting.member.archived") : t("setting.member.active")}
-                  </Badge>
-                </div>
-                {user.email ? (
-                  <div className="flex flex-wrap gap-2">
-                    <InfoChip label={t("common.email")} value={user.email} tooltip={user.email} />
-                  </div>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "actions",
-            header: "",
-            className: "w-px text-right",
-            render: (_, user: User) =>
-              currentUser?.name === user.name ? null : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger render={<Button variant="outline" size="sm" aria-label={`Manage ${user.username}`} />}>
-                    <MoreVerticalIcon className="w-4 h-auto" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" sideOffset={2}>
-                    <DropdownMenuItem onClick={() => handleEditUser(user)}>{t("common.update")}</DropdownMenuItem>
-                    {user.state === State.NORMAL ? (
-                      <DropdownMenuItem onClick={() => handleArchiveUserClick(user)}>{t("setting.member.archive-member")}</DropdownMenuItem>
-                    ) : (
-                      <>
-                        <DropdownMenuItem onClick={() => handleRestoreUserClick(user)}>{t("common.restore")}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteUserClick(user)} className="text-destructive focus:text-destructive">
-                          {t("setting.member.delete-member")}
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ),
-          },
-        ]}
-        data={sortedUsers}
-        emptyMessage={t("setting.member.no-members-found")}
-        getRowKey={(user) => user.name}
-      />
+              <div className="mt-4 min-w-0 border-t border-border/60 pt-4">{renderMemberSummary(user)}</div>
+            </article>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+            {t("setting.member.no-members-found")}
+          </div>
+        )}
+      </div>
+
+      <div className="gc-member-desktop-table hidden md:block">
+        <SettingTable
+          variant="info-flow"
+          columns={[
+            {
+              key: "member",
+              header: t("setting.member.member-column"),
+              render: (_, user: User) => renderMemberIdentity(user),
+            },
+            {
+              key: "summary",
+              header: t("setting.member.summary-column"),
+              render: (_, user: User) => renderMemberSummary(user),
+            },
+            {
+              key: "actions",
+              header: "",
+              className: "w-px text-right",
+              render: (_, user: User) => renderMemberActions(user),
+            },
+          ]}
+          data={sortedUsers}
+          emptyMessage={t("setting.member.no-members-found")}
+          getRowKey={(user) => user.name}
+        />
+      </div>
 
       <CreateUserDialog open={createDialog.isOpen} onOpenChange={createDialog.setOpen} onSuccess={refetchUsers} />
       <CreateUserDialog open={editDialog.isOpen} onOpenChange={editDialog.setOpen} user={editingUser} onSuccess={refetchUsers} />
