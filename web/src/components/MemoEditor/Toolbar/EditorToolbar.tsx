@@ -1,5 +1,5 @@
 import { CheckIcon, TagIcon, XIcon } from "lucide-react";
-import { type FC, useMemo } from "react";
+import { type FC, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,12 +8,22 @@ import type { Location, Visibility } from "@/types/proto/api/v1/memo_service_pb"
 import { useTranslate } from "@/utils/i18n";
 import { normalizeNoteLabel } from "@/utils/noteLabels";
 import { validationService } from "../services";
-import { useEditorContext, useEditorSelector } from "../state";
+import { useEditorContext, useEditorSelector, useEditorStore } from "../state";
 import type { EditorToolbarProps } from "../types";
 import InsertMenu from "./InsertMenu";
 import VisibilitySelector from "./VisibilitySelector";
 
 const isAssignableLabel = (label: string) => normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
+const QUICK_CAPTURE_IDLE_SAVE_MS = 3000;
+
+const isPortalInteraction = (target: EventTarget | null) => {
+  if (!(target instanceof Element)) return false;
+  return Boolean(
+    target.closest(
+      '[role="menu"], [role="dialog"], [role="listbox"], [data-radix-popper-content-wrapper], [data-slot="dropdown-menu-content"], [data-slot="popover-content"]',
+    ),
+  );
+};
 
 export const EditorToolbar: FC<EditorToolbarProps> = ({
   onSave,
@@ -28,6 +38,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
 }) => {
   const t = useTranslate();
   const { userTagsSetting } = useAuth();
+  const editorStore = useEditorStore();
   const { actions, dispatch } = useEditorContext();
   const valid = useEditorSelector((s) => validationService.canSave(s).valid);
   const blockedReason = useEditorSelector((s) => validationService.canSave(s).reason);
@@ -37,6 +48,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   const location = useEditorSelector((s) => s.metadata.location);
   const visibility = useEditorSelector((s) => s.metadata.visibility);
   const draftLabelSet = useMemo(() => new Set(draftLabels), [draftLabels]);
+  const idleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const availableLabels = useMemo(
     () =>
       Object.keys(userTagsSetting?.tags ?? {})
@@ -49,6 +61,62 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
     : blockedReason
       ? t(blockedReason, blockedReasonDetail ? { url: blockedReasonDetail } : undefined)
       : t("editor.validation.cannot-save");
+
+  useEffect(() => {
+    if (memoName) return;
+
+    const clearIdleTimer = () => {
+      if (idleSaveTimerRef.current !== null) {
+        clearTimeout(idleSaveTimerRef.current);
+        idleSaveTimerRef.current = null;
+      }
+    };
+
+    const hasDraftData = () => {
+      const state = editorStore.getState();
+      return Boolean(
+        state.content.trim() ||
+          state.metadata.attachments.length > 0 ||
+          state.localFiles.length > 0 ||
+          state.metadata.relations.length > 0 ||
+          state.metadata.location,
+      );
+    };
+
+    const saveDraft = () => {
+      const state = editorStore.getState();
+      if (state.ui.isLoading.saving || !hasDraftData() || !validationService.canSave(state).valid) return;
+      onSave();
+    };
+
+    const scheduleIdleSave = () => {
+      clearIdleTimer();
+      if (!hasDraftData()) return;
+      idleSaveTimerRef.current = setTimeout(() => {
+        idleSaveTimerRef.current = null;
+        saveDraft();
+      }, QUICK_CAPTURE_IDLE_SAVE_MS);
+    };
+
+    const unsubscribe = editorStore.subscribe(scheduleIdleSave);
+    scheduleIdleSave();
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const editorContainer = document.querySelector(".gc-editor-container");
+      if (!editorContainer || editorContainer.contains(target) || isPortalInteraction(target)) return;
+      clearIdleTimer();
+      saveDraft();
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => {
+      clearIdleTimer();
+      unsubscribe();
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [editorStore, memoName, onSave]);
 
   const handleLocationChange = (next?: Location) => {
     dispatch(actions.setMetadata({ location: next }));
