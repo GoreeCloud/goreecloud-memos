@@ -3,11 +3,10 @@ import { getEntireMemoCopyContent, getMemoBodyCopyContent } from "./noteCopy";
 
 describe("GoreeCloud memo clipboard copy helpers", () => {
   it("copies only the body when a memo has a title and managed labels", () => {
-    const content = "# NetBird via Terminal\n\nhow can i see all of my netbird peers, groups, and access policies via the terminal?\n\n#Research #Tool";
+    const content =
+      "# NetBird via Terminal\n\nhow can i see all of my netbird peers, groups, and access policies via the terminal?\n\n#Research #Tool";
 
-    expect(getMemoBodyCopyContent(content)).toBe(
-      "how can i see all of my netbird peers, groups, and access policies via the terminal?",
-    );
+    expect(getMemoBodyCopyContent(content)).toBe("how can i see all of my netbird peers, groups, and access policies via the terminal?");
   });
 
   it("preserves ordinary Markdown and inline tags inside the body", () => {
