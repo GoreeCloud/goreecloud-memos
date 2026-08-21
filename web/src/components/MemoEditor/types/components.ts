@@ -11,6 +11,8 @@ export interface MemoEditorProps {
   memo?: Memo;
   parentMemoName?: string;
   autoFocus?: boolean;
+  /** Enables idle/outside-interaction persistence for the Home quick-capture composer only. */
+  quickCaptureAutoSave?: boolean;
   /** Opens this editor instance directly in the existing focus-mode presentation. */
   initialFocusMode?: boolean;
   /** Closes an externally mounted editor when the user exits focus mode. */
@@ -40,6 +42,8 @@ export interface EditorToolbarProps {
   onSave: () => void;
   onCancel?: () => void;
   memoName?: string;
+  /** Opt-in Home quick-capture autosave. Other create/edit surfaces remain explicit-save. */
+  quickCaptureAutoSave?: boolean;
   onAudioRecorderClick: () => void;
   /** Whether the formatting toolbar is shown in normal mode (persisted preference). */
   isFormattingToolbarVisible: boolean;
