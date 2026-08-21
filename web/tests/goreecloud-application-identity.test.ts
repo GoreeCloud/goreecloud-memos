@@ -8,6 +8,14 @@ const repoRoot = join(webRoot, "..");
 const canonicalIconSource = readFileSync(join(webRoot, "public/goreecloud-memos.svg"), "utf8");
 const indexSource = readFileSync(join(webRoot, "index.html"), "utf8");
 const userMenuSource = readFileSync(join(webRoot, "src/components/UserMenu.tsx"), "utf8");
+const nativeLaunchSource = readFileSync(
+  join(repoRoot, "clients/goreecloud-memos/frontend/index.html"),
+  "utf8",
+);
+const nativeLaunchIconSource = readFileSync(
+  join(repoRoot, "clients/goreecloud-memos/frontend/goreecloud-memos.svg"),
+  "utf8",
+);
 const manifest = JSON.parse(readFileSync(join(webRoot, "public/site.webmanifest"), "utf8")) as {
   name: string;
   short_name: string;
@@ -63,6 +71,13 @@ describe("GoreeCloud Memos application identity", () => {
         expect.objectContaining({ src: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }),
       ]),
     );
+  });
+
+  it("keeps the native launch surface on the exact canonical Memos icon", () => {
+    expect(nativeLaunchSource).toContain('src="./goreecloud-memos.svg"');
+    expect(nativeLaunchSource).not.toContain('<div class="mark"');
+    expect(nativeLaunchSource).not.toContain(".mark span");
+    expect(nativeLaunchIconSource).toBe(canonicalIconSource);
   });
 
   it("keeps account export language aligned with the Memos product identity", () => {
