@@ -29,6 +29,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   onSave,
   onCancel,
   memoName,
+  quickCaptureAutoSave = false,
   onAudioRecorderClick,
   isFormattingToolbarVisible,
   onToggleFormattingToolbar,
@@ -48,6 +49,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   const location = useEditorSelector((s) => s.metadata.location);
   const visibility = useEditorSelector((s) => s.metadata.visibility);
   const draftLabelSet = useMemo(() => new Set(draftLabels), [draftLabels]);
+  const toolbarRef = useRef<HTMLDivElement>(null);
   const idleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const availableLabels = useMemo(
     () =>
@@ -63,7 +65,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
       : t("editor.validation.cannot-save");
 
   useEffect(() => {
-    if (memoName) return;
+    if (memoName || !quickCaptureAutoSave) return;
 
     const clearIdleTimer = () => {
       if (idleSaveTimerRef.current !== null) {
@@ -104,7 +106,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
-      const editorContainer = document.querySelector(".gc-editor-container");
+      const editorContainer = toolbarRef.current?.closest(".gc-editor-container");
       if (!editorContainer || editorContainer.contains(target) || isPortalInteraction(target)) return;
       clearIdleTimer();
       saveDraft();
@@ -116,7 +118,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
       unsubscribe();
       document.removeEventListener("pointerdown", handlePointerDown, true);
     };
-  }, [editorStore, memoName, onSave]);
+  }, [editorStore, memoName, onSave, quickCaptureAutoSave]);
 
   const handleLocationChange = (next?: Location) => {
     dispatch(actions.setMetadata({ location: next }));
@@ -131,7 +133,10 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:sticky max-[599px]:bottom-[max(0.25rem,env(safe-area-inset-bottom))] max-[599px]:z-20 max-[599px]:mb-1 max-[599px]:gap-1.5 max-[599px]:rounded-xl max-[599px]:border max-[599px]:border-border/70 max-[599px]:bg-card/95 max-[599px]:p-1.5 max-[599px]:shadow-md max-[599px]:backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+    <div
+      ref={toolbarRef}
+      className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:sticky max-[599px]:bottom-[max(0.25rem,env(safe-area-inset-bottom))] max-[599px]:z-20 max-[599px]:mb-1 max-[599px]:gap-1.5 max-[599px]:rounded-xl max-[599px]:border max-[599px]:border-border/70 max-[599px]:bg-card/95 max-[599px]:p-1.5 max-[599px]:shadow-md max-[599px]:backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
