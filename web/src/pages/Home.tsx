@@ -72,7 +72,7 @@ const Home = () => {
             renderLeading={({ useGrid }) => {
               if (!isUserSettingsInitialized) return null;
               return (
-                <section aria-label="Create note" className="gc-home-composer-section">
+                <section aria-label="Create note" className="mb-4 max-[599px]:!mb-5">
                   {composerOpen ? (
                     <MemoEditor
                       autoFocus
