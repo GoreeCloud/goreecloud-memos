@@ -41,6 +41,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
   memo,
   parentMemoName,
   autoFocus,
+  quickCaptureAutoSave = false,
   onFocusModeExit,
   placeholder,
   defaultCreateTime,
@@ -368,6 +369,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
             onSave={handleSave}
             onCancel={onCancel ? handleCancel : undefined}
             memoName={memoName}
+            quickCaptureAutoSave={quickCaptureAutoSave}
             onAudioRecorderClick={handleAudioRecorderClick}
             isFormattingToolbarVisible={isFormattingToolbarVisible}
             onToggleFormattingToolbar={handleToggleFormattingToolbar}
