@@ -126,17 +126,19 @@ jobs:
             | grep -q .
 
       - name: Generate Linux package checksums
+        working-directory: clients/goreecloud-memos
         shell: bash
         run: |
           set -euo pipefail
           find \
-            clients/goreecloud-memos/src-tauri/target/release/bundle/appimage \
-            clients/goreecloud-memos/src-tauri/target/release/bundle/deb \
+            src-tauri/target/release/bundle/appimage \
+            src-tauri/target/release/bundle/deb \
             -type f \( -name '*.AppImage' -o -name '*.deb' \) -print0 \
             | sort -z \
             | xargs -0 -r sha256sum \
-            > clients/goreecloud-memos/goreecloud-memos-linux-x86_64.sha256
-          test -s clients/goreecloud-memos/goreecloud-memos-linux-x86_64.sha256
+            > goreecloud-memos-linux-x86_64.sha256
+          test -s goreecloud-memos-linux-x86_64.sha256
+          sha256sum --check goreecloud-memos-linux-x86_64.sha256
 
       - name: Upload Linux client artifacts
         uses: actions/upload-artifact@v6
@@ -209,15 +211,17 @@ jobs:
         run: cargo tauri android build --debug --apk --target aarch64
 
       - name: Generate Android package checksum
+        working-directory: clients/goreecloud-memos
         shell: bash
         run: |
           set -euo pipefail
-          find clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk \
+          find src-tauri/gen/android/app/build/outputs/apk \
             -type f -name '*.apk' -print0 \
             | sort -z \
             | xargs -0 -r sha256sum \
-            > clients/goreecloud-memos/goreecloud-memos-android-arm64-debug.sha256
-          test -s clients/goreecloud-memos/goreecloud-memos-android-arm64-debug.sha256
+            > goreecloud-memos-android-arm64-debug.sha256
+          test -s goreecloud-memos-android-arm64-debug.sha256
+          sha256sum --check goreecloud-memos-android-arm64-debug.sha256
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
