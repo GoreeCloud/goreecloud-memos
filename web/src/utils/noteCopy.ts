@@ -7,8 +7,7 @@ import { stripNoteTrashMetadata } from "./noteTrash";
  * Remove GoreeCloud-only state markers while preserving the user-authored
  * Markdown document. This is the legacy/full memo copy representation.
  */
-export const getEntireMemoCopyContent = (content: string): string =>
-  stripNoteColorMetadata(stripNoteTrashMetadata(content));
+export const getEntireMemoCopyContent = (content: string): string => stripNoteColorMetadata(stripNoteTrashMetadata(content));
 
 /**
  * Return only the user-authored memo body for clipboard copy.
