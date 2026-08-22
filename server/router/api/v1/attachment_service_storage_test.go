@@ -28,3 +28,28 @@ func TestConvertAttachmentFromStoreHidesManagedStorageReference(t *testing.T) {
 	}
 	require.Equal(t, externalAttachment.Reference, convertAttachmentFromStore(externalAttachment).ExternalLink)
 }
+
+func TestConvertAttachmentFromStoreReportsMemoLinkage(t *testing.T) {
+	memoUID := "linked-memo"
+	attachment := &store.Attachment{
+		UID:      "linked-image",
+		Filename: "image.png",
+		Type:     "image/png",
+		MemoUID:  &memoUID,
+	}
+
+	converted := convertAttachmentFromStore(attachment)
+	require.NotNil(t, converted.Memo)
+	require.Equal(t, MemoNamePrefix+memoUID, *converted.Memo)
+}
+
+func TestConvertAttachmentFromStoreLeavesUnlinkedMemoUnset(t *testing.T) {
+	attachment := &store.Attachment{
+		UID:      "unlinked-image",
+		Filename: "image.png",
+		Type:     "image/png",
+	}
+
+	converted := convertAttachmentFromStore(attachment)
+	require.Nil(t, converted.Memo)
+}
