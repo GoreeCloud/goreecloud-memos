@@ -70,7 +70,7 @@ require_literal 'TLS verification: required' "$monitoring" 'TLS verification req
 require_literal 'Backend host-port publication: prohibited' "$monitoring" 'backend host-port prohibition'
 require_literal "$production_image" "$monitoring" 'accepted v0.1.2 monitoring baseline'
 require_literal "$target_image" "$monitoring" 'v0.1.3 monitoring target'
-require_literal 'controlled DOWN/RECOVERED' "$monitoring" 'controlled monitoring transition contract'
+require_literal 'UP/DOWN/RECOVERED' "$monitoring" 'monitoring transition contract'
 
 require_literal 'GOREECLOUD_MEMOS_PRIVATE_DNS_SERVER=100.71.27.119' "$deployment_checklist" 'authoritative private DNS selection'
 require_literal 'GOREECLOUD_MEMOS_HTTPS_TARGET_IP=100.71.27.119' "$deployment_checklist" 'private HTTPS destination pinning'
@@ -89,7 +89,7 @@ if grep -F 'The runtime cutover is a separate infrastructure change' "$fork_reco
 fi
 
 for file in "$fork_record" "$deployment_readme" "$deployment_checklist"; do
-  if grep -F 'current accepted production release:' "$file" >/dev/null && \
+  if grep -Fi 'current accepted production release:' "$file" >/dev/null && \
      grep -F 'goreecloud-v0.1.0' "$file" >/dev/null; then
     echo "stale v0.1.0 current-production wording found in $file" >&2
     exit 1
