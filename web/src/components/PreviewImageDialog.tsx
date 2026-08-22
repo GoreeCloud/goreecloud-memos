@@ -32,7 +32,7 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomScale, setZoomScale] = useState(MIN_ZOOM);
   const [showDetails, setShowDetails] = useState(false);
-  const previewItems = useMemo(
+  const previewItems = useMemo<PreviewMediaItem[]>(
     () => items ?? imgUrls.map((url) => ({ id: url, kind: "image" as const, sourceUrl: url, posterUrl: url, filename: "Image" })),
     [imgUrls, items],
   );
