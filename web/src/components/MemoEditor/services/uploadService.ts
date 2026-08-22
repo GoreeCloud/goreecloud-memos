@@ -21,15 +21,36 @@ export const uploadService = {
     });
   },
 
+  /**
+   * Best-effort cleanup for newly uploaded attachments that have not been linked
+   * to a memo. Cleanup failures must never replace the original save/upload
+   * error, but every successfully created attachment gets an independent delete
+   * attempt so one failed cleanup does not prevent the rest.
+   */
+  async cleanupUnlinkedAttachments(attachments: Attachment[]): Promise<void> {
+    const names = attachments.map((attachment) => attachment.name).filter(Boolean);
+    if (names.length === 0) return;
+
+    const results = await Promise.allSettled(names.map((name) => attachmentServiceClient.deleteAttachment({ name })));
+    const failures = results.filter((result) => result.status === "rejected");
+    if (failures.length > 0) {
+      console.warn(`Failed to clean up ${failures.length} unlinked attachment(s) after a save/upload failure.`);
+    }
+  },
+
   async uploadFiles(localFiles: LocalFile[]): Promise<Attachment[]> {
     if (localFiles.length === 0) return [];
 
     const attachments: Attachment[] = [];
 
-    for (const localFile of localFiles) {
-      attachments.push(await uploadService.uploadFile(localFile));
+    try {
+      for (const localFile of localFiles) {
+        attachments.push(await uploadService.uploadFile(localFile));
+      }
+      return attachments;
+    } catch (error) {
+      await uploadService.cleanupUnlinkedAttachments(attachments);
+      throw error;
     }
-
-    return attachments;
   },
 };
