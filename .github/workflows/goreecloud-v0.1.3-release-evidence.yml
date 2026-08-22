@@ -1,0 +1,44 @@
+name: GoreeCloud Memos v0.1.3 Release Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/goreecloud-v0.1.3-release-evidence.yml"
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  inspect:
+    name: Inspect immutable v0.1.3 registry identity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Resolve registry digest
+        shell: bash
+        env:
+          IMAGE: ghcr.io/goreecloud/memos:goreecloud-v0.1.3
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "$IMAGE" | tee /tmp/memos-v0.1.3-inspect.txt
+          digest="$(awk '/^Digest:/ {print $2; exit}' /tmp/memos-v0.1.3-inspect.txt)"
+          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Unable to resolve immutable digest for $IMAGE" >&2
+            exit 1
+          fi
+          echo "Resolved image: ${IMAGE}@${digest}"
+          {
+            echo "## GoreeCloud Memos v0.1.3 release evidence"
+            echo
+            echo "- Image tag: \`${IMAGE}\`"
+            echo "- Registry digest: \`${digest}\`"
+            echo "- Immutable reference: \`${IMAGE}@${digest}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
