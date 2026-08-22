@@ -294,7 +294,7 @@ export const GoreeCloudMobileAppHeader = () => {
         >
           <MenuIcon className="size-5" />
         </Button>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.01em]">GoreeCloud Memos Settings</span>
+        <span className="min-w-0 flex-1 truncate text-base font-semibold tracking-[-0.01em]">Settings</span>
         <Button
           variant="ghost"
           size="icon-sm"

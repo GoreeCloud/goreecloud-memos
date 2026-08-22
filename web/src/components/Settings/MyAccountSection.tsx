@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, KeyRoundIcon, PenLineIcon } from "lucide-react";
+import { AlertTriangleIcon, KeyRoundIcon, PenLineIcon, ShieldCheckIcon } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -17,6 +17,18 @@ import UserAvatar from "../UserAvatar";
 import LinkedIdentitySection from "./LinkedIdentitySection";
 import SettingGroup from "./SettingGroup";
 import SettingSection from "./SettingSection";
+
+const WardveilControl = ({ title, description }: { title: string; description: string }) => (
+  <div className="flex min-w-0 items-start gap-3 rounded-xl border border-border/70 bg-background/70 p-3 shadow-xs">
+    <div className="mt-0.5 shrink-0 rounded-lg border border-border/70 bg-muted/50 p-2 text-foreground" aria-hidden="true">
+      <ShieldCheckIcon className="h-4 w-4" />
+    </div>
+    <div className="min-w-0 space-y-1">
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-xs leading-5 text-muted-foreground">{description}</p>
+    </div>
+  </div>
+);
 
 const MyAccountSection = () => {
   const t = useTranslate();
@@ -68,6 +80,27 @@ const MyAccountSection = () => {
       </SettingGroup>
 
       <LinkedIdentitySection />
+
+      <SettingGroup
+        showSeparator
+        title="Wardveil Security by GoreeCloud"
+        description="The GoreeCloud security identity for protections that are enforced by this Memos build."
+      >
+        <div className="grid min-w-0 gap-2 md:grid-cols-3" aria-label="Wardveil Security controls">
+          <WardveilControl
+            title="Session safeguards"
+            description="Refresh sessions use HttpOnly cookies, rotation, server-side revocation records, and concurrency-safe token updates."
+          />
+          <WardveilControl
+            title="Trusted presentation"
+            description="Stored arbitrary scripts and styles are refused, and instance branding is restricted to approved local assets."
+          />
+          <WardveilControl
+            title="Release security"
+            description="Release candidates are gated by dependency, reachable-vulnerability, secret, and misconfiguration scans with an SBOM."
+          />
+        </div>
+      </SettingGroup>
 
       <SettingGroup showSeparator title={t("setting.account.danger-area")} description={t("setting.account.danger-area-description")}>
         <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">

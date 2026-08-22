@@ -15,7 +15,7 @@ const SettingGroup: React.FC<SettingGroupProps> = ({ title, description, childre
   return (
     <>
       {showSeparator && <Separator className="my-0" />}
-      <div className={cn("flex min-w-0 flex-col gap-3", className)}>
+      <div className={cn("gc-setting-group flex min-w-0 flex-col gap-3", className)}>
         {(title || description || actions) && (
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             {(title || description) && (

@@ -1,6 +1,8 @@
-import { EditorState } from "@codemirror/state";
+import { undo, undoDepth } from "@codemirror/commands";
+import { EditorState, Transaction } from "@codemirror/state";
 import { placeholder as cmPlaceholder, EditorView } from "@codemirror/view";
-import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef } from "react";
+import { Undo2Icon } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTagCounts } from "@/hooks/useUserQueries";
 import { cn } from "@/lib/utils";
 import type { EditorController } from "../types/editorController";
@@ -25,6 +27,7 @@ const Editor = forwardRef(function Editor(props: EditorProps, ref: React.Forward
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const controllerRef = useRef<EditorController | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
   const onChangeRef = useRef(onContentChange);
   onChangeRef.current = onContentChange;
   const onFilesRef = useRef(onFiles);
@@ -52,7 +55,11 @@ const Editor = forwardRef(function Editor(props: EditorProps, ref: React.Forward
           placeholder,
           onChange: (md) => onChangeRef.current(md),
           onFiles: (files, position) => onFilesRef.current(files, position),
-          onUpdate: () => listenersRef.current.forEach((l) => l()),
+          onUpdate: () => {
+            const currentView = viewRef.current;
+            setCanUndo(Boolean(currentView && undoDepth(currentView.state) > 0));
+            listenersRef.current.forEach((l) => l());
+          },
           onSubmit: () => onSubmitRef.current(),
           getTags: () => tagsRef.current,
         }),
@@ -61,6 +68,7 @@ const Editor = forwardRef(function Editor(props: EditorProps, ref: React.Forward
     });
     viewRef.current = view;
     controllerRef.current = createController(view, createFormattingController(view, listenersRef.current));
+    setCanUndo(undoDepth(view.state) > 0);
     return () => {
       view.destroy();
       viewRef.current = null;
@@ -80,8 +88,18 @@ const Editor = forwardRef(function Editor(props: EditorProps, ref: React.Forward
     const view = viewRef.current;
     if (!view) return;
     if (view.state.doc.toString() === initialContent) return;
-    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: initialContent } });
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: initialContent },
+      annotations: Transaction.addToHistory.of(false),
+    });
   }, [initialContent]);
+
+  const handleUndo = () => {
+    const view = viewRef.current;
+    if (!view || !undo(view)) return;
+    setCanUndo(undoDepth(view.state) > 0);
+    view.focus();
+  };
 
   // The controller is created in the mount layout effect above, which runs
   // before this (also layout-phase) handle, so controllerRef.current is set.
@@ -92,7 +110,18 @@ const Editor = forwardRef(function Editor(props: EditorProps, ref: React.Forward
       className={cn("relative flex w-full flex-col items-start justify-start bg-inherit", isFocusMode && "min-h-0 flex-1", className)}
       data-focus-mode={isFocusMode || undefined}
     >
-      <div ref={hostRef} className={cn("w-full text-base", isFocusMode && "min-h-0 flex-1")} />
+      <button
+        type="button"
+        className="absolute right-0 top-0 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-35 sm:min-h-8 sm:min-w-8"
+        aria-label="Undo last edit"
+        title="Undo last edit (Ctrl/Cmd+Z)"
+        disabled={!canUndo}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={handleUndo}
+      >
+        <Undo2Icon className="size-4" strokeWidth={1.9} />
+      </button>
+      <div ref={hostRef} className={cn("w-full pr-11 text-base sm:pr-9", isFocusMode && "min-h-0 flex-1")} />
     </div>
   );
 });

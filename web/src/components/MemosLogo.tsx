@@ -19,11 +19,14 @@ function MemosLogo(props: Props) {
       <div
         className={cn("flex w-auto flex-row items-center justify-start text-foreground", compact ? "px-0" : collapsed ? "px-1" : "px-3")}
       >
-        <GoreeCloudMemosMark className={cn(compact ? "size-8" : "size-9")} logoUrl={logoUrl} />
+        <GoreeCloudMemosMark className={cn("gc-brand-mark", compact ? "size-8" : "size-9")} logoUrl={logoUrl} />
         {!collapsed && (
           <div className={cn("min-w-0", compact ? "ml-2" : "ml-2.5")}>
             <span
-              className={cn("block shrink truncate font-semibold tracking-[-0.02em] text-foreground", compact ? "text-[14px]" : "text-lg")}
+              className={cn(
+                "gc-brand-title block shrink truncate font-semibold tracking-[-0.02em] text-foreground",
+                compact ? "text-[14px]" : "text-lg",
+              )}
             >
               {title}
             </span>

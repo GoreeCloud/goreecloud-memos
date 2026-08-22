@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { clearAccessToken, getAccessToken } from "@/auth-state";
-import { authServiceClient, refreshAccessToken, userServiceClient } from "@/connect";
+import { clearAccessToken, getAccessToken, hasStoredToken } from "@/auth-state";
+import { authServiceClient, isDefinitiveAuthFailure, refreshAccessToken, userServiceClient } from "@/connect";
 import { userKeys } from "@/hooks/useUserQueries";
 import type {
   User,
@@ -43,6 +43,8 @@ const UNAUTHENTICATED_STATE: AuthState = {
   isInitialized: true,
   isLoading: false,
 };
+
+const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -89,45 +91,99 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // consumers cannot render with the new identity and stale/default settings.
     setState((prev) => ({ ...prev, isUserSettingsInitialized: false, isInitialized: false, isLoading: true }));
 
-    // Try to get or refresh the access token.
-    // This handles PWA isolated storage scenarios (e.g., iOS Safari) where localStorage
-    // may be empty but a valid HTTP-only refresh token cookie still exists.
-    // getAccessToken() returns a cached token or loads from localStorage if valid.
     if (!getAccessToken()) {
-      try {
-        await refreshAccessToken();
-      } catch {
-        // Refresh failed - no valid session
-      }
-    }
-
-    // If we still don't have a token after refresh attempt, skip getCurrentUser call
-    // to avoid unnecessary network request for unauthenticated users.
-    if (!getAccessToken()) {
-      setState(UNAUTHENTICATED_STATE);
-      return;
-    }
-
-    try {
-      const { user: currentUser } = await authServiceClient.getCurrentUser({});
-
-      if (!currentUser) {
-        clearAccessToken();
+      // A client that has never stored an access token has no recoverable session
+      // metadata to refresh. Settling immediately avoids an unnecessary startup
+      // network round trip for signed-out/new installs while preserving refresh
+      // recovery for clients that do have stored (including expired) token state.
+      if (!hasStoredToken()) {
         setState(UNAUTHENTICATED_STATE);
         return;
       }
 
-      // Publish the verified identity immediately so route modules and their
-      // data queries can start while display-sensitive settings are loading.
-      setState((prev) => ({
-        ...prev,
-        currentUser,
-        isIdentityInitialized: true,
-      }));
+      let refreshFailure: unknown;
 
-      queryClient.setQueryData(userKeys.currentUser(), currentUser);
-      queryClient.setQueryData(userKeys.detail(currentUser.name), currentUser);
+      // Android can resume before its network path is completely usable. Give
+      // refresh one short retry for transport/unavailable failures, but never
+      // retry an explicit Unauthenticated response.
+      for (let attempt = 0; attempt < 2 && !getAccessToken(); attempt += 1) {
+        try {
+          await refreshAccessToken();
+          refreshFailure = undefined;
+          break;
+        } catch (error) {
+          refreshFailure = error;
+          if (isDefinitiveAuthFailure(error) || attempt === 1) {
+            break;
+          }
+          await sleep(250);
+        }
+      }
 
+      if (!getAccessToken()) {
+        if (isDefinitiveAuthFailure(refreshFailure)) {
+          clearAccessToken();
+          setState(UNAUTHENTICATED_STATE);
+        } else {
+          console.warn("[AuthContext] Session refresh deferred until connectivity recovers", refreshFailure);
+          // Preserve the refresh cookie and any stored access-token metadata. The
+          // startup/reconnecting surface remains visible and AppInitializer retries
+          // on foreground or network restoration.
+          setState((prev) => ({ ...prev, isLoading: false }));
+        }
+        return;
+      }
+    }
+
+    let currentUser: User | undefined;
+    try {
+      // Android WebView can resume while connectivity is still settling. Give
+      // identity verification a short bounded retry window before surfacing a
+      // reconnecting state. Definitive authentication failures are never retried.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await authServiceClient.getCurrentUser({});
+          currentUser = response.user;
+          break;
+        } catch (error) {
+          if (isDefinitiveAuthFailure(error) || attempt === 2) {
+            throw error;
+          }
+          await sleep(300 * (attempt + 1));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to initialize auth identity:", error);
+      if (isDefinitiveAuthFailure(error)) {
+        clearAccessToken();
+        setState(UNAUTHENTICATED_STATE);
+      } else {
+        // Preserve the refresh cookie and local token. AppInitializer keeps the
+        // Glaze startup/reconnecting surface visible and retries on foreground or
+        // network restoration rather than forcing a sign-in.
+        setState((prev) => ({ ...prev, isLoading: false }));
+      }
+      return;
+    }
+
+    if (!currentUser) {
+      clearAccessToken();
+      setState(UNAUTHENTICATED_STATE);
+      return;
+    }
+
+    // Publish the verified identity immediately so route modules and their
+    // data queries can start while display-sensitive settings are loading.
+    setState((prev) => ({
+      ...prev,
+      currentUser,
+      isIdentityInitialized: true,
+    }));
+
+    queryClient.setQueryData(userKeys.currentUser(), currentUser);
+    queryClient.setQueryData(userKeys.detail(currentUser.name), currentUser);
+
+    try {
       const settings = await fetchUserSettings(currentUser.name);
 
       setState({
@@ -139,9 +195,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
     } catch (error) {
-      console.error("Failed to initialize auth:", error);
-      clearAccessToken();
-      setState(UNAUTHENTICATED_STATE);
+      // Settings are presentation state, not proof that the login has expired.
+      // Preserve the authenticated identity and fail closed by leaving sensitive
+      // user settings unsettled until a later retry succeeds.
+      console.error("Failed to initialize user settings:", error);
+      setState((prev) => ({
+        ...prev,
+        currentUser,
+        isIdentityInitialized: true,
+        isUserSettingsInitialized: false,
+        isInitialized: true,
+        isLoading: false,
+      }));
     }
   }, [fetchUserSettings, queryClient]);
 

@@ -145,7 +145,8 @@ func (s *Store) GetUserByPATHash(ctx context.Context, tokenHash string) (*PATQue
 	return result, nil
 }
 
-// GetUserRefreshTokens returns the refresh tokens of the user.
+// GetUserRefreshTokens returns detached copies of the user's refresh-token records.
+// Callers may safely build replacement token sets without mutating cached protobuf state.
 func (s *Store) GetUserRefreshTokens(ctx context.Context, userID int32) ([]*storepb.RefreshTokensUserSetting_RefreshToken, error) {
 	userSetting, err := s.GetUserSetting(ctx, &FindUserSetting{
 		UserID: &userID,
@@ -157,17 +158,37 @@ func (s *Store) GetUserRefreshTokens(ctx context.Context, userID int32) ([]*stor
 	if userSetting == nil {
 		return []*storepb.RefreshTokensUserSetting_RefreshToken{}, nil
 	}
-	return userSetting.GetRefreshTokens().RefreshTokens, nil
+
+	tokens := userSetting.GetRefreshTokens().RefreshTokens
+	clonedTokens := make([]*storepb.RefreshTokensUserSetting_RefreshToken, len(tokens))
+	for i, token := range tokens {
+		if token == nil {
+			continue
+		}
+		clonedToken, ok := proto.Clone(token).(*storepb.RefreshTokensUserSetting_RefreshToken)
+		if !ok {
+			return nil, errors.New("failed to clone refresh token")
+		}
+		clonedTokens[i] = clonedToken
+	}
+	return clonedTokens, nil
 }
 
 // AddUserRefreshToken adds a new refresh token for the user.
 func (s *Store) AddUserRefreshToken(ctx context.Context, userID int32, token *storepb.RefreshTokensUserSetting_RefreshToken) error {
+	s.refreshTokenMu.Lock()
+	defer s.refreshTokenMu.Unlock()
+
 	tokens, err := s.GetUserRefreshTokens(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	tokens = append(tokens, token)
+	clonedToken, ok := proto.Clone(token).(*storepb.RefreshTokensUserSetting_RefreshToken)
+	if !ok {
+		return errors.New("failed to clone refresh token")
+	}
+	tokens = append(tokens, clonedToken)
 
 	_, err = s.UpsertUserSetting(ctx, &storepb.UserSetting{
 		UserId: userID,
@@ -183,6 +204,9 @@ func (s *Store) AddUserRefreshToken(ctx context.Context, userID int32, token *st
 
 // RemoveUserRefreshToken removes a refresh token from the user.
 func (s *Store) RemoveUserRefreshToken(ctx context.Context, userID int32, tokenID string) error {
+	s.refreshTokenMu.Lock()
+	defer s.refreshTokenMu.Unlock()
+
 	existingTokens, err := s.GetUserRefreshTokens(ctx, userID)
 	if err != nil {
 		return err
@@ -190,7 +214,7 @@ func (s *Store) RemoveUserRefreshToken(ctx context.Context, userID int32, tokenI
 
 	newTokens := make([]*storepb.RefreshTokensUserSetting_RefreshToken, 0, len(existingTokens))
 	for _, token := range existingTokens {
-		if token.TokenId != tokenID {
+		if token != nil && token.TokenId != tokenID {
 			newTokens = append(newTokens, token)
 		}
 	}
@@ -214,7 +238,7 @@ func (s *Store) GetUserRefreshTokenByID(ctx context.Context, userID int32, token
 		return nil, err
 	}
 	for _, token := range tokens {
-		if token.TokenId == tokenID {
+		if token != nil && token.TokenId == tokenID {
 			return token, nil
 		}
 	}

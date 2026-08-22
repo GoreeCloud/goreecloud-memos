@@ -21,13 +21,13 @@ import useInstanceSettingUpdater, { buildInstanceSettingName } from "./useInstan
 const EDIT_TRIGGER_OPTIONS: Array<{ value: MemoEditTrigger; label: string; description: string }> = [
   {
     value: "single",
-    label: "Single click to edit",
-    description: "Open the editor with one click on note content.",
+    label: "Single tap or click to edit",
+    description: "Open the editor with one tap or click on memo content.",
   },
   {
     value: "double",
-    label: "Double click to edit",
-    description: "Open the editor with a double click on note content.",
+    label: "Double tap or click to edit",
+    description: "Open the editor with a double tap or double click on memo content.",
   },
 ];
 
@@ -59,7 +59,7 @@ const MemoRelatedSettings = () => {
           value: memoRelatedSetting,
         },
       }),
-      errorContext: "Update Notes settings",
+      errorContext: "Update Memos settings",
     });
   };
 
@@ -74,13 +74,13 @@ const MemoRelatedSettings = () => {
   };
 
   return (
-    <SettingSection title="Notes">
-      <SettingGroup title="Editing" description="Choose how note content opens for editing and set server-side content limits.">
+    <SettingSection title="Memos">
+      <SettingGroup title="Editing" description="Choose how memo content opens for editing and set server-side content limits.">
         <SettingList>
           <SettingListItem
             vertical
             label="Edit trigger"
-            description="Choose the pointer gesture that opens editable note content. Links, labels, checkboxes, and media keep their own actions."
+            description="Choose the touch or pointer gesture that opens editable memo content. Links, labels, checkboxes, and media keep their own actions."
           >
             <RadioGroup
               aria-label="Edit trigger"
@@ -109,7 +109,7 @@ const MemoRelatedSettings = () => {
             </RadioGroup>
           </SettingListItem>
 
-          <SettingListItem label="Content length limit" description="Maximum note body size accepted by the server.">
+          <SettingListItem label="Content length limit" description="Maximum memo body size accepted by the server.">
             <div className="flex items-center gap-2">
               <Input
                 className="w-28 font-mono"

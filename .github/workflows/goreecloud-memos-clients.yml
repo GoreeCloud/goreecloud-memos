@@ -1,0 +1,324 @@
+name: GoreeCloud Memos Clients
+
+on:
+  pull_request:
+    paths:
+      - "clients/goreecloud-memos/**"
+      - "web/public/goreecloud-memos.svg"
+      - "web/public/favicon-32x32.png"
+      - "web/public/apple-touch-icon.png"
+      - "web/public/android-chrome-192x192.png"
+      - "web/public/android-chrome-512x512.png"
+      - ".github/workflows/goreecloud-memos-clients.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "clients/goreecloud-memos/**"
+      - "web/public/goreecloud-memos.svg"
+      - "web/public/favicon-32x32.png"
+      - "web/public/apple-touch-icon.png"
+      - "web/public/android-chrome-192x192.png"
+      - "web/public/android-chrome-512x512.png"
+      - ".github/workflows/goreecloud-memos-clients.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TAURI_CLI_VERSION: "2.11.4"
+  NODE_VERSION: "24"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux:
+    name: Linux AppImage and Debian package
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact source and client version contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          test "$SOURCE_SHA" = "$EXPECTED_SOURCE_SHA"
+
+          CLIENT_VERSION="$(python3 -c 'import json; print(json.load(open("clients/goreecloud-memos/src-tauri/tauri.conf.json"))["version"])')"
+          CARGO_VERSION="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' clients/goreecloud-memos/src-tauri/Cargo.toml | head -n 1)"
+          test -n "$CLIENT_VERSION"
+          test "$CLIENT_VERSION" = "$CARGO_VERSION"
+          grep -Fq "<release version=\"$CLIENT_VERSION\"" clients/goreecloud-memos/src-tauri/linux/com.goreecloud.memos.metainfo.xml
+
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "CLIENT_VERSION=$CLIENT_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            appstream \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pinned Tauri CLI
+        run: npm install --global "@tauri-apps/cli@${TAURI_CLI_VERSION}"
+
+      - name: Generate native icon set from canonical Memos icon
+        working-directory: clients/goreecloud-memos
+        run: tauri icon ../../web/public/goreecloud-memos.svg
+
+      - name: Verify Linux icon generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for icon in \
+            clients/goreecloud-memos/src-tauri/icons/32x32.png \
+            clients/goreecloud-memos/src-tauri/icons/128x128.png \
+            clients/goreecloud-memos/src-tauri/icons/128x128@2x.png \
+            clients/goreecloud-memos/src-tauri/icons/icon.png; do
+            test -s "$icon"
+          done
+
+      - name: Run client unit tests
+        run: cargo test --manifest-path clients/goreecloud-memos/src-tauri/Cargo.toml
+
+      - name: Build Linux bundles
+        working-directory: clients/goreecloud-memos
+        run: tauri build --bundles appimage,deb
+
+      - name: Validate Debian installer metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB="$(find clients/goreecloud-memos/src-tauri/target/release/bundle/deb -type f -name '*.deb' -print -quit)"
+          test -n "$DEB"
+
+          test "$(dpkg-deb -f "$DEB" Version)" = "$CLIENT_VERSION"
+          test "$(dpkg-deb -f "$DEB" Maintainer)" = "GoreeCloud"
+          test "$(dpkg-deb -f "$DEB" Homepage)" = "https://memos.goreecloud.com"
+
+          EXTRACT_ROOT="$(mktemp -d)"
+          trap 'rm -rf "$EXTRACT_ROOT"' EXIT
+          dpkg-deb -x "$DEB" "$EXTRACT_ROOT"
+
+          METAINFO="$EXTRACT_ROOT/usr/share/metainfo/com.goreecloud.memos.metainfo.xml"
+          DESKTOP="$EXTRACT_ROOT/usr/share/applications/GoreeCloud Memos.desktop"
+          test -s "$METAINFO"
+          test -s "$DESKTOP"
+          appstreamcli validate --no-net "$METAINFO"
+          grep -Fq '<id>com.goreecloud.memos</id>' "$METAINFO"
+          grep -Fq '<project_license>MIT</project_license>' "$METAINFO"
+          grep -Fq '<icon type="stock">goreecloud-memos-client</icon>' "$METAINFO"
+          grep -Fq '<launchable type="desktop-id">GoreeCloud Memos.desktop</launchable>' "$METAINFO"
+          grep -Fq "<release version=\"$CLIENT_VERSION\"" "$METAINFO"
+          grep -Fxq 'Name=GoreeCloud Memos' "$DESKTOP"
+          grep -Fxq 'Icon=goreecloud-memos-client' "$DESKTOP"
+          find "$EXTRACT_ROOT/usr/share/icons/hicolor" \
+            -type f -path '*/apps/goreecloud-memos-client.png' -size +0c \
+            | grep -q .
+
+      - name: Stage self-verifying Linux acceptance artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARTIFACT_ROOT="clients/goreecloud-memos/artifact-linux"
+          rm -rf "$ARTIFACT_ROOT"
+          mkdir -p "$ARTIFACT_ROOT"
+
+          mapfile -d '' PACKAGES < <(
+            find \
+              clients/goreecloud-memos/src-tauri/target/release/bundle/appimage \
+              clients/goreecloud-memos/src-tauri/target/release/bundle/deb \
+              -type f \( -name '*.AppImage' -o -name '*.deb' \) -print0 \
+              | sort -z
+          )
+          test "${#PACKAGES[@]}" -ge 2
+          for package in "${PACKAGES[@]}"; do
+            cp "$package" "$ARTIFACT_ROOT/"
+          done
+          cp web/public/goreecloud-memos.svg "$ARTIFACT_ROOT/goreecloud-memos.svg"
+
+          cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
+          repository=GoreeCloud/goreecloud-memos
+          source_sha=$SOURCE_SHA
+          client_version=$CLIENT_VERSION
+          application_id=com.goreecloud.memos
+          workflow=$GITHUB_WORKFLOW
+          run_id=$GITHUB_RUN_ID
+          run_attempt=$GITHUB_RUN_ATTEMPT
+          artifact_role=linux-x86_64-acceptance
+          EOF
+
+          (
+            cd "$ARTIFACT_ROOT"
+            sha256sum ./*.AppImage ./*.deb > SHA256SUMS
+            sha256sum --check SHA256SUMS
+            sha256sum goreecloud-memos.svg > CANONICAL-ICON.sha256
+          )
+
+      - name: Upload Linux client artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: goreecloud-memos-linux-x86_64
+          if-no-files-found: error
+          path: clients/goreecloud-memos/artifact-linux/*
+
+  android:
+    name: Android ARM64 debug APK
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact source and client version contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          test "$SOURCE_SHA" = "$EXPECTED_SOURCE_SHA"
+
+          CLIENT_VERSION="$(python3 -c 'import json; print(json.load(open("clients/goreecloud-memos/src-tauri/tauri.conf.json"))["version"])')"
+          CARGO_VERSION="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' clients/goreecloud-memos/src-tauri/Cargo.toml | head -n 1)"
+          test -n "$CLIENT_VERSION"
+          test "$CLIENT_VERSION" = "$CARGO_VERSION"
+          grep -Fq "<release version=\"$CLIENT_VERSION\"" clients/goreecloud-memos/src-tauri/linux/com.goreecloud.memos.metainfo.xml
+
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "CLIENT_VERSION=$CLIENT_VERSION" >> "$GITHUB_ENV"
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Select installed Android NDK
+        shell: bash
+        run: |
+          NDK_DIR="${ANDROID_NDK_LATEST_HOME:-}"
+          if [ -z "$NDK_DIR" ] && [ -d "$ANDROID_HOME/ndk" ]; then
+            NDK_DIR="$(find "$ANDROID_HOME/ndk" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          fi
+          if [ -z "$NDK_DIR" ]; then
+            echo "No Android NDK installation was found." >&2
+            exit 1
+          fi
+          echo "NDK_HOME=$NDK_DIR" >> "$GITHUB_ENV"
+
+      - name: Setup Rust Android target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install pinned Rust-native Tauri CLI
+        run: cargo install tauri-cli --version "${TAURI_CLI_VERSION}" --locked
+
+      - name: Initialize generated Android project
+        working-directory: clients/goreecloud-memos
+        run: cargo tauri android init --ci --skip-targets-install
+
+      - name: Generate Android launcher icons from canonical Memos icon
+        working-directory: clients/goreecloud-memos
+        run: cargo tauri icon ../../web/public/goreecloud-memos.svg
+
+      - name: Verify Android launcher icon generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESOURCE_ROOT="clients/goreecloud-memos/src-tauri/gen/android/app/src/main/res"
+          test -d "$RESOURCE_ROOT"
+          ICON_COUNT="$(find "$RESOURCE_ROOT" -type f \( -name 'ic_launcher*.png' -o -name 'ic_launcher*.xml' \) | wc -l)"
+          test "$ICON_COUNT" -ge 3
+
+      - name: Build installable ARM64 debug APK
+        working-directory: clients/goreecloud-memos
+        run: cargo tauri android build --debug --apk --target aarch64
+
+      - name: Validate Android package identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
+          test -x "$AAPT"
+          PACKAGE_LINE="$("$AAPT" dump badging "$APK" | sed -n '1p')"
+          grep -Fq "package: name='com.goreecloud.memos'" <<< "$PACKAGE_LINE"
+          grep -Fq "versionName='$CLIENT_VERSION'" <<< "$PACKAGE_LINE"
+          unzip -l "$APK" | grep -Fq 'lib/arm64-v8a/'
+
+      - name: Stage self-verifying Android acceptance artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARTIFACT_ROOT="clients/goreecloud-memos/artifact-android"
+          rm -rf "$ARTIFACT_ROOT"
+          mkdir -p "$ARTIFACT_ROOT"
+
+          mapfile -d '' PACKAGES < <(
+            find clients/goreecloud-memos/src-tauri/gen/android/app/build/outputs/apk \
+              -type f -name '*.apk' -print0 \
+              | sort -z
+          )
+          test "${#PACKAGES[@]}" -ge 1
+          for package in "${PACKAGES[@]}"; do
+            cp "$package" "$ARTIFACT_ROOT/"
+          done
+          cp web/public/goreecloud-memos.svg "$ARTIFACT_ROOT/goreecloud-memos.svg"
+
+          cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
+          repository=GoreeCloud/goreecloud-memos
+          source_sha=$SOURCE_SHA
+          client_version=$CLIENT_VERSION
+          application_id=com.goreecloud.memos
+          workflow=$GITHUB_WORKFLOW
+          run_id=$GITHUB_RUN_ID
+          run_attempt=$GITHUB_RUN_ATTEMPT
+          artifact_role=android-arm64-debug-acceptance
+          EOF
+
+          (
+            cd "$ARTIFACT_ROOT"
+            sha256sum ./*.apk > SHA256SUMS
+            sha256sum --check SHA256SUMS
+            sha256sum goreecloud-memos.svg > CANONICAL-ICON.sha256
+          )
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: goreecloud-memos-android-arm64-debug
+          if-no-files-found: error
+          path: clients/goreecloud-memos/artifact-android/*

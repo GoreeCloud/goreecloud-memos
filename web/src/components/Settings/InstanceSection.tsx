@@ -16,23 +16,38 @@ import {
   InstanceSettingSchema,
 } from "@/types/proto/api/v1/instance_service_pb";
 import { useTranslate } from "@/utils/i18n";
+import { GOREECLOUD_MEMOS_DEFAULT_TITLE, resolveInstanceLogoUrl } from "@/utils/instance-branding";
 import UpdateCustomizedProfileDialog from "../UpdateCustomizedProfileDialog";
 import SettingGroup from "./SettingGroup";
-import { SettingCodeEditor, SettingList, SettingListItem } from "./SettingList";
+import { SettingList, SettingListItem } from "./SettingList";
 import SettingSection from "./SettingSection";
 import useInstanceSettingUpdater, { buildInstanceSettingName } from "./useInstanceSettingUpdater";
+
+const hardenGeneralSettingForGoreeCloud = (setting: InstanceSetting_GeneralSetting) =>
+  create(InstanceSetting_GeneralSettingSchema, {
+    ...setting,
+    additionalScript: "",
+    additionalStyle: "",
+    customProfile: setting.customProfile
+      ? {
+          ...setting.customProfile,
+          logoUrl: resolveInstanceLogoUrl(setting.customProfile.logoUrl),
+        }
+      : setting.customProfile,
+  });
 
 const InstanceSection = () => {
   const t = useTranslate();
   const customizeDialog = useDialog();
   const saveInstanceSetting = useInstanceSettingUpdater();
   const { generalSetting: originalSetting, profile } = useInstance();
-  const [instanceGeneralSetting, setInstanceGeneralSetting] = useState<InstanceSetting_GeneralSetting>(originalSetting);
+  const hardenedOriginalSetting = useMemo(() => hardenGeneralSettingForGoreeCloud(originalSetting), [originalSetting]);
+  const [instanceGeneralSetting, setInstanceGeneralSetting] = useState<InstanceSetting_GeneralSetting>(hardenedOriginalSetting);
   const [identityProviderList, setIdentityProviderList] = useState<IdentityProvider[]>([]);
 
   useEffect(() => {
-    setInstanceGeneralSetting(originalSetting);
-  }, [originalSetting]);
+    setInstanceGeneralSetting(hardenedOriginalSetting);
+  }, [hardenedOriginalSetting]);
 
   const fetchIdentityProviderList = async () => {
     const { identityProviders } = await identityProviderServiceClient.listIdentityProviders({});
@@ -57,6 +72,8 @@ const InstanceSection = () => {
       create(InstanceSetting_GeneralSettingSchema, {
         ...instanceGeneralSetting,
         ...partial,
+        additionalScript: "",
+        additionalStyle: "",
       }),
     );
   };
@@ -68,7 +85,7 @@ const InstanceSection = () => {
         name: buildInstanceSettingName(InstanceSetting_Key.GENERAL),
         value: {
           case: "generalSetting",
-          value: instanceGeneralSetting,
+          value: hardenGeneralSettingForGoreeCloud(instanceGeneralSetting),
         },
       }),
       errorContext: "Update general settings",
@@ -79,30 +96,15 @@ const InstanceSection = () => {
     <SettingSection title={t("setting.system.label")}>
       <SettingGroup title={t("common.basic")} description={t("setting.system.basic-description")}>
         <SettingList>
-          <SettingListItem label={t("setting.system.server-name")} description={instanceGeneralSetting.customProfile?.title || "Memos"}>
+          <SettingListItem
+            label={t("setting.system.server-name")}
+            description={instanceGeneralSetting.customProfile?.title || GOREECLOUD_MEMOS_DEFAULT_TITLE}
+          >
             <Button variant="outline" onClick={customizeDialog.open}>
               {t("common.edit")}
             </Button>
           </SettingListItem>
         </SettingList>
-      </SettingGroup>
-
-      <SettingGroup title={t("setting.system.custom-code-title")} description={t("setting.system.custom-code-description")} showSeparator>
-        <SettingCodeEditor
-          label={t("setting.system.additional-style")}
-          description={t("setting.system.additional-style-description")}
-          placeholder={t("setting.system.additional-style-placeholder")}
-          value={instanceGeneralSetting.additionalStyle}
-          onChange={(additionalStyle) => updatePartialSetting({ additionalStyle })}
-        />
-
-        <SettingCodeEditor
-          label={t("setting.system.additional-script")}
-          description={t("setting.system.additional-script-description")}
-          placeholder={t("setting.system.additional-script-placeholder")}
-          value={instanceGeneralSetting.additionalScript}
-          onChange={(additionalScript) => updatePartialSetting({ additionalScript })}
-        />
       </SettingGroup>
 
       <SettingGroup title={t("setting.instance.access-title")} description={t("setting.instance.access-description")} showSeparator>
@@ -173,7 +175,7 @@ const InstanceSection = () => {
       </SettingGroup>
 
       <div className="w-full flex justify-end">
-        <Button disabled={isEqual(instanceGeneralSetting, originalSetting)} onClick={handleSaveGeneralSetting}>
+        <Button disabled={isEqual(instanceGeneralSetting, hardenedOriginalSetting)} onClick={handleSaveGeneralSetting}>
           {t("common.save")}
         </Button>
       </div>

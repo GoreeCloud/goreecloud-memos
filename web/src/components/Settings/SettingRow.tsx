@@ -1,5 +1,6 @@
 import { HelpCircleIcon } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +14,12 @@ interface SettingRowProps {
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, children, className, vertical = false }) => {
+  const tooltipLabel = typeof label === "string" ? `More information about ${label}` : "More information about this setting";
+
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 gap-3",
+        "gc-setting-row flex w-full min-w-0 gap-3",
         vertical ? "flex-col" : "flex-col sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
@@ -27,8 +30,20 @@ const SettingRow: React.FC<SettingRowProps> = ({ label, description, tooltip, ch
           {tooltip && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger render={<HelpCircleIcon className="w-4 h-4 text-muted-foreground cursor-help" />} />
-                <TooltipContent>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="gc-setting-help size-11 rounded-full text-muted-foreground md:size-8"
+                      aria-label={tooltipLabel}
+                    />
+                  }
+                >
+                  <HelpCircleIcon className="size-4" aria-hidden />
+                </TooltipTrigger>
+                <TooltipContent className="gc-setting-help-tooltip max-w-[calc(100vw-2rem)]">
                   <p className="max-w-xs">{tooltip}</p>
                 </TooltipContent>
               </Tooltip>

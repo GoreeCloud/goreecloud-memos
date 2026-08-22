@@ -23,7 +23,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	// Database drivers for connection verification.
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -228,7 +228,7 @@ func GetPostgresDSN(t *testing.T) string {
 			t.Fatalf("failed to get PostgreSQL connection string: %v", err)
 		}
 
-		if err := waitForDB("postgres", dsn, 30*time.Second); err != nil {
+		if err := waitForDB("pgx", dsn, 30*time.Second); err != nil {
 			t.Fatalf("PostgreSQL not ready for connections: %v", err)
 		}
 
@@ -246,7 +246,7 @@ func GetPostgresDSN(t *testing.T) string {
 
 	// Create a fresh database for this test
 	dbName := fmt.Sprintf("memos_test_%d", dbCounter.Add(1))
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		t.Fatalf("failed to connect to PostgreSQL: %v", err)
 	}

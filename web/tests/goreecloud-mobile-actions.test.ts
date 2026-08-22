@@ -7,7 +7,7 @@ const memoActionMenu = readFileSync(join(process.cwd(), "src/components/MemoActi
 const memoHeader = readFileSync(join(process.cwd(), "src/components/MemoView/components/MemoHeader.tsx"), "utf8");
 const noteTag = readFileSync(join(process.cwd(), "src/components/MemoContent/Tag.tsx"), "utf8");
 
-describe("GoreeCloud Notes mobile note actions", () => {
+describe("GoreeCloud Memos mobile note actions", () => {
   it("keeps primary card actions touch-sized on small screens", () => {
     expect(cardActions).toContain('"size-11 rounded-full');
     expect(cardActions).toContain('md:size-8";');
@@ -17,6 +17,15 @@ describe("GoreeCloud Notes mobile note actions", () => {
   it("keeps the overflow menu trigger touch-sized on small screens", () => {
     expect(memoActionMenu).toContain('className="size-11 md:size-4"');
     expect(memoActionMenu).toContain('aria-label="More note actions"');
+  });
+
+  it("exposes note colors and labels with semantic selection state", () => {
+    expect(cardActions).toContain("DropdownMenuRadioGroup");
+    expect(cardActions).toContain('aria-label="Note color"');
+    expect(cardActions).toContain("DropdownMenuRadioItem");
+    expect(cardActions).toContain("DropdownMenuCheckboxItem");
+    expect(cardActions).toContain("checked={assigned}");
+    expect(cardActions).toContain("onCheckedChange={(checked) => void handleToggleLabel(label, checked)}");
   });
 
   it("keeps pinned-note unpin as a real focusable button", () => {

@@ -50,6 +50,7 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
         ? `${t("common.last-updated-at")}: ${updateTime.toLocaleString(i18n.language)}`
         : undefined,
   };
+  const visibilityLabel = t(`memo.visibility.${convertVisibilityToString(memo.visibility).toLowerCase()}` as Parameters<typeof t>[0]);
 
   return (
     <div className="flex w-full flex-row items-center justify-between gap-2">
@@ -69,14 +70,18 @@ const MemoHeader: React.FC<MemoHeaderProps> = ({ showCreator, showVisibility, sh
       <div className="flex shrink-0 select-none flex-row items-center justify-end gap-2">
         {showVisibility && memo.visibility !== Visibility.PRIVATE && (
           <Tooltip>
-            <TooltipTrigger>
-              <span className="flex items-center justify-center rounded-md hover:opacity-80">
-                <VisibilityIcon visibility={memo.visibility} />
-              </span>
+            <TooltipTrigger
+              render={
+                <button
+                  type="button"
+                  className="flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background/75 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:size-6"
+                  aria-label={visibilityLabel}
+                />
+              }
+            >
+              <VisibilityIcon visibility={memo.visibility} />
             </TooltipTrigger>
-            <TooltipContent>
-              {t(`memo.visibility.${convertVisibilityToString(memo.visibility).toLowerCase()}` as Parameters<typeof t>[0])}
-            </TooltipContent>
+            <TooltipContent>{visibilityLabel}</TooltipContent>
           </Tooltip>
         )}
 
@@ -131,12 +136,13 @@ const CreatorDisplay: React.FC<CreatorDisplayProps> = ({ creator, displayTime, t
         {creator.displayName || creator.username}
       </Link>
       <TimeTooltip content={timeTooltip}>
-        <span
-          className="-mt-0.5 w-auto cursor-pointer select-none text-left text-xs leading-tight text-muted-foreground transition-colors hover:opacity-80"
+        <button
+          type="button"
+          className="-ml-2 -mt-0.5 min-h-11 w-auto select-none rounded-md px-2 text-left text-xs leading-tight text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:ml-0 md:min-h-0 md:px-0"
           onClick={onGotoDetail}
         >
           {displayTime}
-        </span>
+        </button>
       </TimeTooltip>
     </div>
   </div>
@@ -165,12 +171,13 @@ interface TimeDisplayProps {
 
 const TimeDisplay: React.FC<TimeDisplayProps> = ({ displayTime, timeTooltip, onGotoDetail }) => (
   <TimeTooltip content={timeTooltip}>
-    <span
-      className="w-auto cursor-pointer select-none text-left text-sm leading-tight text-muted-foreground transition-colors hover:text-foreground"
+    <button
+      type="button"
+      className="-ml-2 min-h-11 w-auto select-none rounded-md px-2 text-left text-sm leading-tight text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:ml-0 md:min-h-0 md:px-0"
       onClick={onGotoDetail}
     >
       {displayTime}
-    </span>
+    </button>
   </TimeTooltip>
 );
 

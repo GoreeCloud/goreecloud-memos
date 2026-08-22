@@ -106,20 +106,20 @@ const PreferencesSection = () => {
       </SettingGroup>
 
       <SettingGroup
-        title={useGoreeCloudEnglishTerminology ? "Note defaults" : t("setting.preference.memo-defaults-title")}
+        title={useGoreeCloudEnglishTerminology ? "Memo defaults" : t("setting.preference.memo-defaults-title")}
         description={
           useGoreeCloudEnglishTerminology
-            ? "Set the defaults used when creating new notes."
+            ? "Set the defaults used when creating new memos."
             : t("setting.preference.memo-defaults-description")
         }
         showSeparator
       >
         <SettingList>
           <SettingListItem
-            label={useGoreeCloudEnglishTerminology ? "Default note visibility" : t("setting.preference.default-memo-visibility")}
+            label={useGoreeCloudEnglishTerminology ? "Default memo visibility" : t("setting.preference.default-memo-visibility")}
             description={
               useGoreeCloudEnglishTerminology
-                ? "Visibility applied to newly created notes unless changed in the editor."
+                ? "Visibility applied to newly created memos unless changed in the editor."
                 : t("setting.preference.default-memo-visibility-description")
             }
           >

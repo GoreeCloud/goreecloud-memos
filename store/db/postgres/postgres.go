@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"log"
 
-	// Import the PostgreSQL driver.
-	_ "github.com/lib/pq"
+	// Use pgx's database/sql adapter. pgx v5.10 includes explicit hardening
+	// against malicious or compromised PostgreSQL servers and replaces lib/pq,
+	// which currently has reachable advisories without a fixed release.
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 
 	"github.com/usememos/memos/internal/profile"
@@ -23,11 +25,11 @@ func NewDB(profile *profile.Profile) (store.Driver, error) {
 		return nil, errors.New("profile is nil")
 	}
 
-	// Open the PostgreSQL connection
-	db, err := sql.Open("postgres", profile.DSN)
+	// Open the PostgreSQL connection through pgx's database/sql adapter.
+	db, err := sql.Open("pgx", profile.DSN)
 	if err != nil {
 		log.Printf("Failed to open database: %s", err)
-		return nil, errors.Wrapf(err, "failed to open database: %s", profile.DSN)
+		return nil, errors.Wrap(err, "failed to open PostgreSQL database")
 	}
 
 	var driver store.Driver = &DB{
@@ -35,7 +37,6 @@ func NewDB(profile *profile.Profile) (store.Driver, error) {
 		profile: profile,
 	}
 
-	// Return the DB struct
 	return driver, nil
 }
 

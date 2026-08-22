@@ -72,11 +72,11 @@ describe("Browser capture security contract", () => {
       "useTokenRefreshOnFocus",
       "useLiveMemoRefresh",
       "QueryClientProvider",
-      "ReactQueryDevtools",
       "./router",
     ]) {
       expect(APP_RUNTIME_SOURCE).toContain(expected);
     }
+    expect(APP_RUNTIME_SOURCE).not.toContain("ReactQueryDevtools");
   });
 
   it("keeps the privileged capture surface out of the normal workspace router", () => {

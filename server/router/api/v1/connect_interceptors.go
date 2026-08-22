@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"reflect"
 	"runtime/debug"
+	"time"
 
 	"connectrpc.com/connect"
 	pkgerrors "github.com/pkg/errors"
@@ -28,11 +29,12 @@ func NewMetadataInterceptor() *MetadataInterceptor {
 
 func (*MetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-		// Convert HTTP headers to gRPC metadata
 		header := req.Header()
 		md := metadata.MD{}
 
-		// Copy important headers for client info extraction
+		// Forward only headers consumed by security/session logic. Logging does
+		// not emit these values, keeping IP addresses, cookies and user agents out
+		// of normal request telemetry.
 		if ua := header.Get("User-Agent"); ua != "" {
 			md.Set("user-agent", ua)
 		}
@@ -51,19 +53,14 @@ func (*MetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc 
 		if forwarded := header.Get("Forwarded"); forwarded != "" {
 			md.Set("forwarded", forwarded)
 		}
-		// Forward Cookie header for authentication methods that need it (e.g., RefreshToken)
 		if cookie := header.Get("Cookie"); cookie != "" {
 			md.Set("cookie", cookie)
 		}
 
-		// Set metadata in context so services can use metadata.FromIncomingContext()
 		ctx = metadata.NewIncomingContext(ctx, md)
-
-		// Execute the request
 		resp, err := next(ctx, req)
 
-		// Prevent browser caching of API responses to avoid stale data issues
-		// See: https://github.com/usememos/memos/issues/5470
+		// Prevent browser caching of API responses to avoid stale data issues.
 		if !isNilAnyResponse(resp) && resp.Header() != nil {
 			resp.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			resp.Header().Set("Pragma", "no-cache")
@@ -90,11 +87,11 @@ func (*MetadataInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFu
 	return next
 }
 
-// LoggingInterceptor logs Connect RPC requests with appropriate log levels.
-//
-// Log levels:
-// - INFO: Successful requests and expected client errors (not found, permission denied, etc.)
-// - ERROR: Server errors (internal, unavailable, etc.)
+// LoggingInterceptor emits bounded structured telemetry for Connect RPC calls.
+// It intentionally avoids request bodies, headers, cookies, user agents and IP
+// addresses. Expected client errors are classified without logging their text,
+// which may contain user-provided values. Server errors retain an error message
+// for troubleshooting; full stack traces remain Demo-only.
 type LoggingInterceptor struct {
 	logStacktrace bool
 }
@@ -106,44 +103,55 @@ func NewLoggingInterceptor(logStacktrace bool) *LoggingInterceptor {
 
 func (in *LoggingInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		startedAt := time.Now()
 		resp, err := next(ctx, req)
-		in.log(req.Spec().Procedure, err)
+		in.log(ctx, req.Spec().Procedure, err, time.Since(startedAt))
 		return resp, err
 	}
 }
 
 func (*LoggingInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
-	return next // No-op for server-side interceptor
+	return next
 }
 
 func (*LoggingInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
-	return next // Streaming not used in this service
+	return next
 }
 
-func (in *LoggingInterceptor) log(procedure string, err error) {
-	level, msg := in.classifyError(err)
-	attrs := []slog.Attr{slog.String("method", procedure)}
+func (in *LoggingInterceptor) log(ctx context.Context, procedure string, err error, duration time.Duration) {
+	level, msg, rpcCode := in.classifyError(err)
+	outcome := "success"
 	if err != nil {
-		attrs = append(attrs, slog.String("error", err.Error()))
-		if in.logStacktrace {
-			attrs = append(attrs, slog.String("stacktrace", fmt.Sprintf("%+v", err)))
-		}
+		outcome = "error"
 	}
-	slog.LogAttrs(context.Background(), level, msg, attrs...)
+	attrs := []slog.Attr{
+		slog.String("transport", "connect"),
+		slog.String("method", procedure),
+		slog.String("outcome", outcome),
+		slog.String("rpc_code", rpcCode),
+		slog.Int64("duration_ms", duration.Milliseconds()),
+	}
+	if err != nil && level >= slog.LevelError {
+		attrs = append(attrs, slog.String("error", err.Error()))
+	}
+	if err != nil && in.logStacktrace {
+		attrs = append(attrs, slog.String("stacktrace", fmt.Sprintf("%+v", err)))
+	}
+	slog.LogAttrs(ctx, level, msg, attrs...)
 }
 
-func (*LoggingInterceptor) classifyError(err error) (slog.Level, string) {
+func (*LoggingInterceptor) classifyError(err error) (slog.Level, string, string) {
 	if err == nil {
-		return slog.LevelInfo, "OK"
+		return slog.LevelInfo, "RPC request completed", "ok"
 	}
 
 	var connectErr *connect.Error
 	if !pkgerrors.As(err, &connectErr) {
-		return slog.LevelError, "unknown error"
+		return slog.LevelError, "RPC request failed", "unknown"
 	}
 
-	// Client errors (expected, log at INFO)
-	switch connectErr.Code() {
+	code := connectErr.Code()
+	switch code {
 	case connect.CodeCanceled,
 		connect.CodeInvalidArgument,
 		connect.CodeNotFound,
@@ -154,10 +162,9 @@ func (*LoggingInterceptor) classifyError(err error) (slog.Level, string) {
 		connect.CodeFailedPrecondition,
 		connect.CodeAborted,
 		connect.CodeOutOfRange:
-		return slog.LevelInfo, "client error"
+		return slog.LevelInfo, "RPC request rejected", code.String()
 	default:
-		// Server errors
-		return slog.LevelError, "server error"
+		return slog.LevelError, "RPC request failed", code.String()
 	}
 }
 
@@ -175,7 +182,7 @@ func (in *RecoveryInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFu
 	return func(ctx context.Context, req connect.AnyRequest) (resp connect.AnyResponse, err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				in.logPanic(req.Spec().Procedure, r)
+				in.logPanic(ctx, req.Spec().Procedure, r)
 				err = connect.NewError(connect.CodeInternal, pkgerrors.New("internal server error"))
 			}
 		}()
@@ -191,15 +198,18 @@ func (*RecoveryInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFu
 	return next
 }
 
-func (in *RecoveryInterceptor) logPanic(procedure string, panicValue any) {
+func (in *RecoveryInterceptor) logPanic(ctx context.Context, procedure string, panicValue any) {
 	attrs := []slog.Attr{
+		slog.String("transport", "connect"),
 		slog.String("method", procedure),
-		slog.Any("panic", panicValue),
+		slog.String("outcome", "panic_recovered"),
+		slog.String("rpc_code", connect.CodeInternal.String()),
+		slog.String("panic_type", fmt.Sprintf("%T", panicValue)),
 	}
 	if in.logStacktrace {
 		attrs = append(attrs, slog.String("stacktrace", string(debug.Stack())))
 	}
-	slog.LogAttrs(context.Background(), slog.LevelError, "panic recovered in Connect handler", attrs...)
+	slog.LogAttrs(ctx, slog.LevelError, "panic recovered in Connect handler", attrs...)
 }
 
 // AuthInterceptor enforces authentication and anonymous-access policy for Connect
@@ -225,7 +235,6 @@ func (in *AuthInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		}
 
 		ctx = auth.ApplyToContext(ctx, result)
-
 		return next(ctx, req)
 	}
 }

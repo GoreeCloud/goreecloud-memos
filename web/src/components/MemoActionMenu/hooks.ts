@@ -13,7 +13,8 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import { checkAllTasks, uncheckAllTasks } from "@/utils/markdown-task-actions";
-import { type NoteColor, setNoteColor, stripNoteColorMetadata } from "@/utils/noteColor";
+import { type NoteColor, setNoteColor } from "@/utils/noteColor";
+import { getEntireMemoCopyContent, getMemoBodyCopyContent } from "@/utils/noteCopy";
 import { downloadNoteMarkdown } from "@/utils/noteExport";
 import { setNoteLabelEnabled } from "@/utils/noteLabels";
 import { getNoteTrashOrigin, setNoteTrashed, stripNoteTrashMetadata } from "@/utils/noteTrash";
@@ -155,10 +156,16 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     toast.success(t("message.succeed-copy-link"));
   }, [memo.name, t, profile.instanceUrl]);
 
-  const handleCopyContent = useCallback(() => {
-    copy(stripNoteColorMetadata(stripNoteTrashMetadata(memo.content)));
-    toast.success(t("message.succeed-copy-content"));
-  }, [memo.content, t]);
+  const handleCopyBody = useCallback(() => {
+    const content = memo.parent ? getEntireMemoCopyContent(memo.content) : getMemoBodyCopyContent(memo.content);
+    copy(content);
+    toast.success("Memo body copied");
+  }, [memo.content, memo.parent]);
+
+  const handleCopyEntireMemo = useCallback(() => {
+    copy(getEntireMemoCopyContent(memo.content));
+    toast.success("Entire memo copied");
+  }, [memo.content]);
 
   const handleExportMarkdown = useCallback(() => {
     downloadNoteMarkdown(memo);
@@ -199,7 +206,8 @@ export const useMemoActionHandlers = ({ memo, onEdit, setDeleteDialogOpen }: Use
     handleMoveToTrash,
     handleRestoreFromTrash,
     handleCopyLink,
-    handleCopyContent,
+    handleCopyBody,
+    handleCopyEntireMemo,
     handleExportMarkdown,
     handleCheckAllTaskListItemsClick,
     handleUncheckAllTaskListItemsClick,

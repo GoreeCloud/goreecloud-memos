@@ -1,16 +1,19 @@
-import { ArchiveIcon, ArchiveRestoreIcon, BookmarkIcon, CheckIcon, PaletteIcon, TagIcon } from "lucide-react";
+import { ArchiveIcon, ArchiveRestoreIcon, BookmarkIcon, PaletteIcon, TagIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { getNoteColor, NOTE_COLOR_OPTIONS } from "@/utils/noteColor";
+import { getNoteColor, NOTE_COLOR_OPTIONS, type NoteColor } from "@/utils/noteColor";
 import { normalizeNoteLabel } from "@/utils/noteLabels";
 import { isNoteTrashed } from "@/utils/noteTrash";
 import { useMemoActionHandlers } from "../../MemoActionMenu/hooks";
@@ -89,13 +92,18 @@ const GoreeCloudCardActions = () => {
             <PaletteIcon className="size-4" strokeWidth={1.8} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={6} className="min-w-44">
-            {NOTE_COLOR_OPTIONS.map((option) => (
-              <DropdownMenuItem key={option.value} onClick={() => void handleSetNoteColor(option.value)}>
-                <span className={cn("size-4 rounded-full border", option.swatchClassName)} aria-hidden />
-                <span className="flex-1">{option.label}</span>
-                {noteColor === option.value && <CheckIcon className="size-4" />}
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuRadioGroup
+              aria-label="Note color"
+              value={noteColor}
+              onValueChange={(value) => void handleSetNoteColor(value as NoteColor)}
+            >
+              {NOTE_COLOR_OPTIONS.map((option) => (
+                <DropdownMenuRadioItem key={option.value} value={option.value}>
+                  <span className={cn("size-4 rounded-full border", option.swatchClassName)} aria-hidden />
+                  <span className="flex-1">{option.label}</span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -114,12 +122,13 @@ const GoreeCloudCardActions = () => {
               availableLabels.map((label) => {
                 const assigned = assignedLabels.has(label);
                 return (
-                  <DropdownMenuItem key={label} onClick={() => void handleToggleLabel(label, !assigned)}>
-                    <span className="flex size-4 items-center justify-center rounded border border-border bg-background">
-                      {assigned && <CheckIcon className="size-3" />}
-                    </span>
+                  <DropdownMenuCheckboxItem
+                    key={label}
+                    checked={assigned}
+                    onCheckedChange={(checked) => void handleToggleLabel(label, checked)}
+                  >
                     <span className="min-w-0 flex-1 truncate">{label}</span>
-                  </DropdownMenuItem>
+                  </DropdownMenuCheckboxItem>
                 );
               })
             )}

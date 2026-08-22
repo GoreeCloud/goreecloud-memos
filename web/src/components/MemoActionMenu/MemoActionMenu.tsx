@@ -76,7 +76,8 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
     handleMoveToTrash,
     handleRestoreFromTrash,
     handleCopyLink,
-    handleCopyContent,
+    handleCopyBody,
+    handleCopyEntireMemo,
     handleExportMarkdown,
     handleCheckAllTaskListItemsClick,
     handleUncheckAllTaskListItemsClick,
@@ -160,13 +161,20 @@ const MemoActionMenu = (props: MemoActionMenuProps) => {
               {t("common.copy")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={handleCopyBody}>
+                <FileTextIcon className="w-4 h-auto" />
+                Copy body
+              </DropdownMenuItem>
+              {!isComment && (
+                <DropdownMenuItem onClick={handleCopyEntireMemo}>
+                  <CopyIcon className="w-4 h-auto" />
+                  Copy entire memo
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleCopyLink}>
                 <LinkIcon className="w-4 h-auto" />
                 {t("memo.copy-link")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyContent}>
-                <FileTextIcon className="w-4 h-auto" />
-                {t("memo.copy-content")}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>

@@ -31,7 +31,7 @@ const Chip = ({ href, children }: { href?: string; children: React.ReactNode }) 
 };
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">{children}</h2>
+  <h2 className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground/70 sm:text-[11px]">{children}</h2>
 );
 
 const LinkRow = ({ label, note, href }: { label: string; note: string; href: string }) => (
@@ -45,7 +45,7 @@ const LinkRow = ({ label, note, href }: { label: string; note: string; href: str
       <span className="truncate text-[13px] font-medium text-foreground group-hover:underline group-hover:underline-offset-2">{label}</span>
       <span className="hidden truncate text-xs text-muted-foreground sm:inline">{note}</span>
     </span>
-    <ExternalLinkIcon className="size-3 shrink-0 text-muted-foreground group-hover:text-foreground" />
+    <ExternalLinkIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground sm:size-3" />
   </a>
 );
 
@@ -68,28 +68,33 @@ const About = () => {
   return (
     <section className="gc-route-page min-h-full w-full px-4 pb-12 pt-6 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-3xl">
-        <header className="gc-route-hero rounded-[1.5rem] px-5 py-6 sm:px-7">
-          <div className="flex items-start gap-4">
-            <GoreeCloudMemosMark className="size-12" logoUrl={customProfile?.logoUrl} />
+        <header className="gc-route-hero rounded-[1.5rem] px-5 py-6 max-[599px]:!p-4 sm:px-7">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <GoreeCloudMemosMark className="size-10 sm:size-12" logoUrl={customProfile?.logoUrl} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-semibold tracking-[-0.025em] text-foreground">{instanceTitle}</h1>
+                <h1 className="text-lg font-semibold tracking-[-0.025em] text-foreground sm:text-xl">{instanceTitle}</h1>
                 {profile.demo && <Badge variant="warning">{t("about.demo")}</Badge>}
               </div>
-              <p className="mt-1 text-[1.7rem] font-light leading-tight tracking-[-0.025em] text-foreground">{instanceTagline}</p>
+              <p className="mt-1 text-[1.7rem] font-light leading-tight tracking-[-0.025em] text-foreground max-[599px]:!text-[1.2rem] max-[599px]:!leading-[1.25]">
+                {instanceTagline}
+              </p>
             </div>
           </div>
-          <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground max-[599px]:!mt-4 max-[599px]:!text-[0.88rem] max-[599px]:!leading-[1.5]">
             GoreeCloud Memos is the lightweight GoreeCloud quick-capture workspace: fast private notes, simple organization, portable data,
             and a focused Glaze UI experience. GoreeCloud Notes remains the separate full notes and knowledge-management product.
           </p>
         </header>
 
-        <section className="mt-7">
+        <section className="mt-5 sm:mt-7">
           <SectionLabel>Build</SectionLabel>
           <dl className="gc-context-surface mt-2.5 rounded-2xl px-4">
             {buildRows.map((row) => (
-              <div key={row.label} className="grid grid-cols-[120px_1fr] items-center border-b border-border/60 py-2.5 last:border-b-0">
+              <div
+                key={row.label}
+                className="grid grid-cols-[96px_1fr] items-center border-b border-border/60 py-2.5 last:border-b-0 sm:grid-cols-[120px_1fr]"
+              >
                 <dt className="text-[13px] text-muted-foreground">{row.label}</dt>
                 <dd className="m-0 flex min-w-0 items-center">{row.value}</dd>
               </div>
@@ -97,7 +102,7 @@ const About = () => {
           </dl>
         </section>
 
-        <section className="mt-7">
+        <section className="mt-5 sm:mt-7">
           <SectionLabel>GoreeCloud products</SectionLabel>
           <nav aria-label="GoreeCloud product links" className="gc-context-surface mt-2.5 rounded-2xl px-4">
             <LinkRow label="GoreeCloud Memos repository" note="Maintained quick-capture fork" href={GOREECLOUD_SOURCE_URL} />
@@ -105,7 +110,7 @@ const About = () => {
           </nav>
         </section>
 
-        <section className="mt-7">
+        <section className="mt-5 sm:mt-7">
           <SectionLabel>Upstream & documentation</SectionLabel>
           <div className="gc-context-surface mt-2.5 rounded-2xl px-4">
             <LinkRow label="Upstream Memos" note="Original open-source project" href={UPSTREAM_MEMOS_URL} />

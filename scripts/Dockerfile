@@ -1,15 +1,15 @@
-FROM --platform=$BUILDPLATFORM golang:1.26.2-alpine AS backend
+FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine AS backend
 WORKDIR /backend-build
 
-# Install build dependencies
+# Install build dependencies.
 RUN apk add --no-cache git ca-certificates
 
-# Copy go mod files and download dependencies (cached layer)
+# Copy go mod files and download dependencies (cached layer).
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
-# Copy source code (use .dockerignore to exclude unnecessary files)
+# Copy source code (use .dockerignore to exclude unnecessary files).
 COPY . .
 
 # Please build frontend first, so that the static files are available.
@@ -25,27 +25,26 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -o memos \
       ./cmd/memos
 
-# Use minimal Alpine with security updates
+# Use minimal Alpine with security updates.
 FROM alpine:3.21 AS monolithic
 
-# Install runtime dependencies and create non-root user in single layer
+# Install runtime dependencies and create the fixed non-root runtime identity.
 RUN apk add --no-cache tzdata ca-certificates su-exec && \
     addgroup -g 10001 -S nonroot && \
     adduser -u 10001 -S -G nonroot -h /var/opt/memos nonroot && \
     mkdir -p /var/opt/memos /usr/local/memos && \
-    chown -R nonroot:nonroot /var/opt/memos
+    chown -R nonroot:nonroot /var/opt/memos /usr/local/memos
 
-# Copy binary and entrypoint to /usr/local/memos
-COPY --from=backend /backend-build/memos /usr/local/memos/memos
-COPY --from=backend --chmod=755 /backend-build/scripts/entrypoint.sh /usr/local/memos/entrypoint.sh
+# Copy binary and entrypoint to /usr/local/memos.
+COPY --from=backend --chown=nonroot:nonroot /backend-build/memos /usr/local/memos/memos
+COPY --from=backend --chown=nonroot:nonroot --chmod=755 /backend-build/scripts/entrypoint.sh /usr/local/memos/entrypoint.sh
 
-# Run as root to fix permissions, entrypoint will drop to nonroot
-USER root
+# Default to the unprivileged runtime user. The entrypoint retains its explicit
+# privilege-drop path only for an operator who deliberately overrides USER to
+# root for a one-time legacy-volume ownership migration.
+USER nonroot:nonroot
 
-# Set working directory to the writable volume
 WORKDIR /var/opt/memos
-
-# Data directory
 VOLUME /var/opt/memos
 
 ENV TZ="UTC" \

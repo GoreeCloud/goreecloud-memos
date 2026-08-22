@@ -1,5 +1,5 @@
 import { CheckIcon, TagIcon, XIcon } from "lucide-react";
-import { type FC, useMemo } from "react";
+import { type FC, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,17 +8,28 @@ import type { Location, Visibility } from "@/types/proto/api/v1/memo_service_pb"
 import { useTranslate } from "@/utils/i18n";
 import { normalizeNoteLabel } from "@/utils/noteLabels";
 import { validationService } from "../services";
-import { useEditorContext, useEditorSelector } from "../state";
+import { useEditorContext, useEditorSelector, useEditorStore } from "../state";
 import type { EditorToolbarProps } from "../types";
 import InsertMenu from "./InsertMenu";
 import VisibilitySelector from "./VisibilitySelector";
 
 const isAssignableLabel = (label: string) => normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
+const QUICK_CAPTURE_IDLE_SAVE_MS = 3000;
+
+const isPortalInteraction = (target: EventTarget | null) => {
+  if (!(target instanceof Element)) return false;
+  return Boolean(
+    target.closest(
+      '[role="menu"], [role="dialog"], [role="listbox"], [data-radix-popper-content-wrapper], [data-slot="dropdown-menu-content"], [data-slot="popover-content"]',
+    ),
+  );
+};
 
 export const EditorToolbar: FC<EditorToolbarProps> = ({
   onSave,
   onCancel,
   memoName,
+  quickCaptureAutoSave = false,
   onAudioRecorderClick,
   isFormattingToolbarVisible,
   onToggleFormattingToolbar,
@@ -28,10 +39,8 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
 }) => {
   const t = useTranslate();
   const { userTagsSetting } = useAuth();
+  const editorStore = useEditorStore();
   const { actions, dispatch } = useEditorContext();
-  // Subscribe to narrow/derived slices so typing (which only changes content)
-  // doesn't re-render the toolbar or the heavy InsertMenu it hosts. `valid`
-  // flips only on empty↔non-empty / loading transitions, not per keystroke.
   const valid = useEditorSelector((s) => validationService.canSave(s).valid);
   const blockedReason = useEditorSelector((s) => validationService.canSave(s).reason);
   const blockedReasonDetail = useEditorSelector((s) => validationService.canSave(s).detail);
@@ -40,6 +49,8 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   const location = useEditorSelector((s) => s.metadata.location);
   const visibility = useEditorSelector((s) => s.metadata.visibility);
   const draftLabelSet = useMemo(() => new Set(draftLabels), [draftLabels]);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const idleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const availableLabels = useMemo(
     () =>
       Object.keys(userTagsSetting?.tags ?? {})
@@ -52,6 +63,62 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
     : blockedReason
       ? t(blockedReason, blockedReasonDetail ? { url: blockedReasonDetail } : undefined)
       : t("editor.validation.cannot-save");
+
+  useEffect(() => {
+    if (memoName || !quickCaptureAutoSave) return;
+
+    const clearIdleTimer = () => {
+      if (idleSaveTimerRef.current !== null) {
+        clearTimeout(idleSaveTimerRef.current);
+        idleSaveTimerRef.current = null;
+      }
+    };
+
+    const hasDraftData = () => {
+      const state = editorStore.getState();
+      return Boolean(
+        state.content.trim() ||
+          state.metadata.attachments.length > 0 ||
+          state.localFiles.length > 0 ||
+          state.metadata.relations.length > 0 ||
+          state.metadata.location,
+      );
+    };
+
+    const saveDraft = () => {
+      const state = editorStore.getState();
+      if (state.ui.isLoading.saving || !hasDraftData() || !validationService.canSave(state).valid) return;
+      onSave();
+    };
+
+    const scheduleIdleSave = () => {
+      clearIdleTimer();
+      if (!hasDraftData()) return;
+      idleSaveTimerRef.current = setTimeout(() => {
+        idleSaveTimerRef.current = null;
+        saveDraft();
+      }, QUICK_CAPTURE_IDLE_SAVE_MS);
+    };
+
+    const unsubscribe = editorStore.subscribe(scheduleIdleSave);
+    scheduleIdleSave();
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const editorContainer = toolbarRef.current?.closest(".gc-editor-container");
+      if (!editorContainer || editorContainer.contains(target) || isPortalInteraction(target)) return;
+      clearIdleTimer();
+      saveDraft();
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => {
+      clearIdleTimer();
+      unsubscribe();
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [editorStore, memoName, onSave, quickCaptureAutoSave]);
 
   const handleLocationChange = (next?: Location) => {
     dispatch(actions.setMetadata({ location: next }));
@@ -66,7 +133,10 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="mb-2 flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      ref={toolbarRef}
+      className="gc-editor-toolbar mb-2 flex w-full flex-col gap-2 max-[599px]:sticky max-[599px]:bottom-[max(0.25rem,env(safe-area-inset-bottom))] max-[599px]:z-20 max-[599px]:mb-1 max-[599px]:gap-1.5 max-[599px]:rounded-xl max-[599px]:border max-[599px]:border-border/70 max-[599px]:bg-card/95 max-[599px]:p-1.5 max-[599px]:shadow-md max-[599px]:backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:w-auto">
         <InsertMenu
           isUploading={isUploading}
@@ -140,9 +210,14 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
           ))}
       </div>
 
-      <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
+      <div className="gc-editor-toolbar-actions flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
         {onCancel && (
-          <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" variant="ghost" onClick={onCancel} disabled={isSaving}>
+          <Button
+            className="min-h-11 px-4 max-[599px]:!border max-[599px]:!border-border/80 max-[599px]:!bg-background/55 sm:min-h-8 sm:px-3"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={isSaving}
+          >
             {t("common.cancel")}
           </Button>
         )}

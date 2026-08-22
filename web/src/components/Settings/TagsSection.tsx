@@ -86,7 +86,7 @@ const TagsSection = () => {
 
   const handleRemoveLabel = (labelName: string) => {
     if ((tagCounts[labelName] ?? 0) > 0) {
-      toast.error("Remove this label from its notes before deleting it from the label list.");
+      toast.error("Remove this label from its memos before deleting it from the label list.");
       return;
     }
 
@@ -108,7 +108,7 @@ const TagsSection = () => {
       return;
     }
     if (!isValidTagPattern(name)) {
-      toast.error("That label name is not supported by the current notes index.");
+      toast.error("That label name is not supported by the current memo index.");
       return;
     }
 
@@ -147,8 +147,8 @@ const TagsSection = () => {
   return (
     <SettingSection title="Labels">
       <SettingGroup
-        title="Organize notes with labels"
-        description="Create labels here, then assign them from a note's menu. GoreeCloud Notes stores labels as portable Markdown tags so they remain searchable and exportable."
+        title="Organize memos with labels"
+        description="Create labels here, then assign them from a memo's menu. GoreeCloud Memos stores labels as portable Markdown tags so they remain searchable and exportable."
       >
         <SettingPanel
           footer={
@@ -213,7 +213,7 @@ const TagsSection = () => {
               <TagIcon className="size-5 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">No labels yet</p>
               <p className="max-w-sm text-xs text-muted-foreground">
-                Create your first label above. It will appear in the Notes sidebar and in each note's Labels menu.
+                Create your first label above. It will appear in the Memos sidebar and in each memo's Labels menu.
               </p>
             </div>
           ) : (
@@ -225,7 +225,7 @@ const TagsSection = () => {
                     <span className="truncate text-sm font-medium text-foreground">{row.name}</span>
                   </div>
                   <p className="mt-1 pl-6 text-xs text-muted-foreground">
-                    Used by {row.count} {row.count === 1 ? "note" : "notes"}
+                    Used by {row.count} {row.count === 1 ? "memo" : "memos"}
                   </p>
                 </div>
 
@@ -252,7 +252,7 @@ const TagsSection = () => {
                   size="icon-sm"
                   onClick={() => handleRemoveLabel(row.name)}
                   aria-label={`Delete ${row.name} label`}
-                  title={(tagCounts[row.name] ?? 0) > 0 ? "Remove this label from its notes before deleting it" : "Delete label"}
+                  title={(tagCounts[row.name] ?? 0) > 0 ? "Remove this label from its memos before deleting it" : "Delete label"}
                 >
                   <TrashIcon className="size-4 text-destructive" />
                 </Button>

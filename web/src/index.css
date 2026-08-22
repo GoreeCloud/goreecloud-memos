@@ -3,6 +3,7 @@
 @import "./themes/default.css";
 @import "./themes/goreecloud-glaze.css";
 @import "./themes/goreecloud-glaze-polish.css";
+@import "./themes/goreecloud-glaze-adaptive.css";
 
 @layer base {
   * {
@@ -31,5 +32,33 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/*
+ * Physical Android acceptance showed that the earlier Compact density pass went
+ * too far visually even though its spacing and touch targets were correct. Keep
+ * those denser compositions, but raise the phone reading scale one step so body,
+ * metadata, controls, and memo content no longer feel miniaturized.
+ */
+@media (max-width: 599px) {
+  html {
+    font-size: 20px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /*
+   * Keep the mobile application bar visually isolated from scrolling content.
+   * A translucent sticky bar allowed memo/settings text to remain legible through
+   * the header on physical Android devices, which read as content collision.
+   */
+  .gc-main-shell > header:not(.gc-topbar) {
+    isolation: isolate;
+    z-index: 50;
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--border) 72%, transparent);
   }
 }

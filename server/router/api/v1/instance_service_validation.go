@@ -3,8 +3,11 @@ package v1
 import (
 	"context"
 	"math"
+	"net/url"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/pkg/errors"
@@ -14,15 +17,87 @@ import (
 	storepb "github.com/usememos/memos/proto/gen/store"
 )
 
+const (
+	maxInstanceProfileTitleLength       = 80
+	maxInstanceProfileDescriptionLength = 280
+	maxInstanceProfileLogoPathLength    = 2048
+)
+
 func validateInstanceSetting(setting *v1pb.InstanceSetting) error {
 	key, err := ExtractInstanceSettingKeyFromName(setting.Name)
 	if err != nil {
 		return err
 	}
-	if key != storepb.InstanceSettingKey_TAGS.String() {
+
+	switch key {
+	case storepb.InstanceSettingKey_GENERAL.String():
+		return validateInstanceGeneralSetting(setting.GetGeneralSetting())
+	case storepb.InstanceSettingKey_TAGS.String():
+		return validateInstanceTagsSetting(setting.GetTagsSetting())
+	default:
 		return nil
 	}
-	return validateInstanceTagsSetting(setting.GetTagsSetting())
+}
+
+func validateInstanceGeneralSetting(setting *v1pb.InstanceSetting_GeneralSetting) error {
+	if setting == nil {
+		return errors.New("general setting is required")
+	}
+	if strings.TrimSpace(setting.AdditionalScript) != "" {
+		return errors.New("additional script is disabled by GoreeCloud security policy")
+	}
+	if strings.TrimSpace(setting.AdditionalStyle) != "" {
+		return errors.New("additional style is disabled by GoreeCloud security policy")
+	}
+
+	profile := setting.CustomProfile
+	if profile == nil {
+		return nil
+	}
+
+	profile.Title = strings.TrimSpace(profile.Title)
+	profile.Description = strings.TrimSpace(profile.Description)
+	profile.LogoUrl = strings.TrimSpace(profile.LogoUrl)
+
+	if profile.Title == "" {
+		return errors.New("custom profile title is required")
+	}
+	if utf8.RuneCountInString(profile.Title) > maxInstanceProfileTitleLength {
+		return errors.Errorf("custom profile title is too long; maximum length is %d characters", maxInstanceProfileTitleLength)
+	}
+	if utf8.RuneCountInString(profile.Description) > maxInstanceProfileDescriptionLength {
+		return errors.Errorf("custom profile description is too long; maximum length is %d characters", maxInstanceProfileDescriptionLength)
+	}
+	if len(profile.LogoUrl) > maxInstanceProfileLogoPathLength {
+		return errors.Errorf("custom profile logo path is too long; maximum length is %d bytes", maxInstanceProfileLogoPathLength)
+	}
+	if profile.LogoUrl != "" {
+		if err := validateLocalBrandAssetPath(profile.LogoUrl); err != nil {
+			return errors.Wrap(err, "custom profile logo_url")
+		}
+	}
+	return nil
+}
+
+func validateLocalBrandAssetPath(value string) error {
+	if !strings.HasPrefix(value, "/") || strings.HasPrefix(value, "//") {
+		return errors.New("must be a local root-relative path beginning with a single slash")
+	}
+	if strings.Contains(value, "\\") {
+		return errors.New("must not contain backslashes")
+	}
+	if strings.IndexFunc(value, unicode.IsControl) >= 0 {
+		return errors.New("must not contain control characters")
+	}
+
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return errors.Wrap(err, "invalid local asset path")
+	}
+	if parsed.IsAbs() || parsed.Scheme != "" || parsed.Host != "" || parsed.User != nil {
+		return errors.New("must not resolve to an external origin")
+	}
+	return nil
 }
 
 func (s *APIV1Service) prepareInstanceAISettingForUpdate(ctx context.Context, setting *storepb.InstanceAISetting) error {

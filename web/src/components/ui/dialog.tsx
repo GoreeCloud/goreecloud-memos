@@ -6,11 +6,17 @@ import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger;
+const DialogTrigger = React.forwardRef<HTMLButtonElement, DialogPrimitive.Trigger.Props>(({ ...props }, ref) => (
+  <DialogPrimitive.Trigger ref={ref} data-slot="dialog-trigger" {...props} />
+));
+DialogTrigger.displayName = "DialogTrigger";
 
 const DialogPortal = DialogPrimitive.Portal;
 
-const DialogClose = DialogPrimitive.Close;
+const DialogClose = React.forwardRef<HTMLButtonElement, DialogPrimitive.Close.Props>(({ ...props }, ref) => (
+  <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />
+));
+DialogClose.displayName = "DialogClose";
 
 const DialogOverlay = React.forwardRef<HTMLDivElement, DialogPrimitive.Backdrop.Props>(({ className, ...props }, ref) => (
   <DialogPrimitive.Backdrop
@@ -57,6 +63,7 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Popup
       ref={ref}
+      data-slot="dialog-content"
       className={cn(dialogContentVariants({ size }), className)}
       initialFocus={false}
       finalFocus={false}
@@ -64,10 +71,10 @@ const DialogContent = React.forwardRef<
     >
       <div className="overflow-y-auto overflow-x-hidden flex-1 flex flex-col gap-4">{children}</div>
       {showCloseButton && (
-        <DialogPrimitive.Close className="ring-offset-background absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+        <DialogClose className="ring-offset-background absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
           <XIcon />
           <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
+        </DialogClose>
       )}
     </DialogPrimitive.Popup>
   </DialogPortal>

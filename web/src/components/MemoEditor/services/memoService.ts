@@ -83,45 +83,54 @@ export const memoService = {
       parentMemoName?: string;
     },
   ): Promise<{ memoName: string; hasChanges: boolean }> {
-    // 1. Upload local files first
+    // 1. Upload local files first. uploadFiles cleans up a partial upload batch
+    // if one file fails before the batch completes.
     const newAttachments = await uploadService.uploadFiles(state.localFiles);
     const allAttachments = [...state.metadata.attachments, ...newAttachments];
 
-    // 2. Update existing memo
-    if (options.memoName) {
-      const prevMemo = await memoServiceClient.getMemo({ name: options.memoName });
-      const { mask, patch } = buildUpdateMask(prevMemo, state, allAttachments);
+    try {
+      // 2. Update existing memo
+      if (options.memoName) {
+        const prevMemo = await memoServiceClient.getMemo({ name: options.memoName });
+        const { mask, patch } = buildUpdateMask(prevMemo, state, allAttachments);
 
-      if (mask.size === 0) {
-        return { memoName: prevMemo.name, hasChanges: false };
+        if (mask.size === 0) {
+          return { memoName: prevMemo.name, hasChanges: false };
+        }
+
+        const memo = await memoServiceClient.updateMemo({
+          memo: create(MemoSchema, patch as Record<string, unknown>),
+          updateMask: create(FieldMaskSchema, { paths: Array.from(mask) }),
+        });
+        return { memoName: memo.name, hasChanges: true };
       }
 
-      const memo = await memoServiceClient.updateMemo({
-        memo: create(MemoSchema, patch as Record<string, unknown>),
-        updateMask: create(FieldMaskSchema, { paths: Array.from(mask) }),
+      // 3. Create new memo or comment
+      const memoData = create(MemoSchema, {
+        content: state.content,
+        visibility: state.metadata.visibility,
+        attachments: toAttachmentReferences(allAttachments),
+        relations: state.metadata.relations,
+        location: state.metadata.location,
+        createTime: state.timestamps.createTime ? timestampFromDate(state.timestamps.createTime) : undefined,
+        updateTime: state.timestamps.updateTime ? timestampFromDate(state.timestamps.updateTime) : undefined,
       });
+
+      const memo = options.parentMemoName
+        ? await memoServiceClient.createMemoComment({
+            name: options.parentMemoName,
+            comment: memoData,
+          })
+        : await memoServiceClient.createMemo({ memo: memoData });
+
       return { memoName: memo.name, hasChanges: true };
+    } catch (error) {
+      // The attachment service creates files before the memo write links them.
+      // If the memo read/write fails, remove only this transaction's newly
+      // uploaded files. Existing memo attachments are never part of this list.
+      await uploadService.cleanupUnlinkedAttachments(newAttachments);
+      throw error;
     }
-
-    // 3. Create new memo or comment
-    const memoData = create(MemoSchema, {
-      content: state.content,
-      visibility: state.metadata.visibility,
-      attachments: toAttachmentReferences(allAttachments),
-      relations: state.metadata.relations,
-      location: state.metadata.location,
-      createTime: state.timestamps.createTime ? timestampFromDate(state.timestamps.createTime) : undefined,
-      updateTime: state.timestamps.updateTime ? timestampFromDate(state.timestamps.updateTime) : undefined,
-    });
-
-    const memo = options.parentMemoName
-      ? await memoServiceClient.createMemoComment({
-          name: options.parentMemoName,
-          comment: memoData,
-        })
-      : await memoServiceClient.createMemo({ memo: memoData });
-
-    return { memoName: memo.name, hasChanges: true };
   },
 
   /**

@@ -15,7 +15,7 @@ import { userKeys } from "@/hooks/useUserQueries";
 import { handleError } from "@/lib/error";
 import { State } from "@/types/proto/api/v1/common_pb";
 import { ListMemosRequestSchema, type Memo } from "@/types/proto/api/v1/memo_service_pb";
-import { withTrashFilter } from "@/utils/noteTrash";
+import { NOTE_TRASH_RETENTION_DAYS, withTrashFilter } from "@/utils/noteTrash";
 
 const BULK_DELETE_PAGE_SIZE = 100;
 
@@ -94,7 +94,7 @@ const Trash = () => {
         toast.success(`${deletedCount} ${deletedCount === 1 ? "item" : "items"} permanently deleted`);
       }
     } catch (error: unknown) {
-      handleError(error, toast.error, { context: "Delete all Trash items", fallbackMessage: "Unable to empty Trash" });
+      handleError(error, toast.error, { context: "Delete All Trash items", fallbackMessage: "Unable to empty Trash" });
     } finally {
       setIsDeletingAll(false);
     }
@@ -111,14 +111,14 @@ const Trash = () => {
             <div className="gc-eyebrow mb-1">Recovery</div>
             <h1 className="text-xl font-semibold tracking-[-0.025em]">Trash</h1>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Notes remain recoverable until you explicitly choose permanent deletion.
+              Memos stay recoverable for {NOTE_TRASH_RETENTION_DAYS} days, then are permanently deleted automatically.
             </p>
           </div>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <div className="gc-privacy-badge flex w-fit shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
             <RotateCcwIcon className="size-3.5" strokeWidth={1.8} />
-            Restore available
+            {NOTE_TRASH_RETENTION_DAYS}-day recovery
           </div>
           <Button
             type="button"
@@ -128,7 +128,7 @@ const Trash = () => {
             disabled={isTrashPreviewLoading || !hasTrash || isDeletingAll}
           >
             <Trash2Icon className="size-4" strokeWidth={1.8} />
-            {isDeletingAll ? "Deleting…" : "Delete all"}
+            {isDeletingAll ? "Deleting…" : "Delete All"}
           </Button>
         </div>
       </section>
@@ -146,9 +146,9 @@ const Trash = () => {
       <ConfirmDialog
         open={deleteAllDialogOpen}
         onOpenChange={setDeleteAllDialogOpen}
-        title="Delete all Trash items permanently?"
-        description="Every item currently in Trash will be permanently deleted. This cannot be undone."
-        confirmLabel={isDeletingAll ? "Deleting…" : "Delete all permanently"}
+        title="Delete All Trash items permanently?"
+        description="Every item currently in Trash will be permanently deleted immediately. This cannot be undone."
+        confirmLabel={isDeletingAll ? "Deleting…" : "Delete All permanently"}
         cancelLabel="Cancel"
         onConfirm={handleDeleteAll}
         confirmVariant="destructive"
