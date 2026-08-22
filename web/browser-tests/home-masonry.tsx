@@ -45,20 +45,25 @@ const App = () => (
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
-const publishGeometry = async () => {
-  await nextFrame();
-  await nextFrame();
-  await new Promise((resolve) => window.setTimeout(resolve, 100));
-  await nextFrame();
-
+const publishGeometry = (attempt = 0) => {
   const shell = document.querySelector<HTMLElement>("[data-grid-shell]");
   const grid = shell?.firstElementChild as HTMLElement | null;
   const cardElements = Array.from(document.querySelectorAll<HTMLElement>("[data-acceptance-card]"));
-  if (!shell || !grid || cardElements.length !== cards.length) {
-    document.body.dataset.renderReady = "false";
-    document.body.dataset.error = "missing-grid-or-cards";
+  const wrappers = cardElements.map((element) => element.parentElement);
+  const positioned =
+    shell != null &&
+    grid != null &&
+    grid.offsetHeight > 0 &&
+    cardElements.length === cards.length &&
+    wrappers.every((wrapper) => wrapper instanceof HTMLElement && wrapper.style.width.length > 0 && wrapper.style.transform.length > 0);
+
+  if (!positioned) {
+    if (attempt >= 50) {
+      document.body.dataset.renderReady = "false";
+      document.body.dataset.error = "grid-positioning-timeout";
+      return;
+    }
+    window.setTimeout(() => publishGeometry(attempt + 1), 50);
     return;
   }
 
@@ -98,4 +103,4 @@ const publishGeometry = async () => {
   document.body.append(diagnostics);
 };
 
-void publishGeometry();
+window.setTimeout(() => publishGeometry(), 0);
