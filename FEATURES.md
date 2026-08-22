@@ -1,39 +1,44 @@
 # GoreeCloud Memos — Features
 
-GoreeCloud Memos is the lightweight GoreeCloud quick-note product. This list separates the accepted production web application from post-production source work and client acceptance candidates.
+GoreeCloud Memos is the lightweight GoreeCloud quick-note product. This list separates the accepted production web/server application from later source work and native-client acceptance candidates.
 
-## Current production features — Stable v0.1.2
+## Current production features — Stable v0.1.3
 
 - Fast, focused memo creation and editing
 - Compact quick-note workflow
 - Markdown-friendly note content
 - Checklists and task-list content
 - Pinned notes
-- Labels/tags and simple filtering
+- Labels/tags, including draft-label assignment before first save, and simple filtering
 - Search
 - Archive and restore
-- Recoverable Trash behavior
+- Recoverable Trash behavior, guarded Delete All, and automatic 30-day Trash retention
 - Per-note colors
-- Attachments and inline images
+- Attachments and inline images with transaction-integrity hardening
+- Quick-capture autosave and visible Undo
+- Separate Copy body and Copy entire memo actions
 - Individual user accounts
 - Private-by-default note visibility
-- Responsive web application behavior
+- Responsive web application behavior with Compact/mobile Glaze UI and accessibility hardening
 - Portable export improvements inherited and extended through the GoreeCloud fork
+- Unified GoreeCloud Memos application identity across web and native packaging
+- Wardveil/session and release-security hardening, privacy-aware structured observability, and stored-script/style execution restrictions
+- PostgreSQL pgx driver migration and non-root runtime defaults
+- Permanent dependency, vulnerability, security, container, and SBOM validation gates
 - Glaze UI product direction and GoreeCloud Memos branding
 - Private HTTPS deployment at `memos.goreecloud.com`
 - Non-root, no-host-port container hardening in the accepted deployment
 - Recurring backup coverage, Uptime Kuma monitoring, restart persistence validation, and rollback support
 - Production-accepted corrections for edit triggering, title spacing, and long-note label behavior
 
-## Post-v0.1.2 source enhancements and acceptance-gated work
+## Post-v0.1.3 source enhancements and acceptance-gated work
 
-- Attachment transaction-integrity hardening
-- Trash “Delete all” and 30-day retention source work
-- Additional deployment, security, dependency, and vulnerability gates
-- PostgreSQL driver modernization and security hardening
-- Unified canonical product icon across web, Linux, and Android packaging
+- Home/Capture responsive preferred masonry, including narrow-width fallback and rendered Chromium geometry acceptance
+- First-party attachment Download action in the full-screen media preview, preserving filenames and following the selected preview item
+- Discoverable Ctrl/Cmd + Enter save affordance with `aria-keyshortcuts` metadata while retaining validation-first blocked-save messaging
+- Additional source-level usability, accessibility, security, dependency, and container validation as development continues
 
-These source capabilities are not automatically part of the currently deployed v0.1.2 runtime until separately released, deployed, and accepted.
+These source capabilities are not automatically part of the currently deployed v0.1.3 runtime. They require a later controlled Stable release, deployment, and applicable representative-client acceptance before they can be described as production behavior.
 
 ## Linux and Android client foundation
 
@@ -46,7 +51,7 @@ These source capabilities are not automatically part of the currently deployed v
 
 ### Client acceptance boundary
 
-Client 0.1.3 remains an acceptance candidate. Earlier Android physical-device testing validated install, launch, sign-in, core navigation, search, attachments, Settings, Archive, and Trash rendering, but final Stable client promotion still requires the remaining Linux, Android, physical-network, signing, and deployed-web acceptance gates.
+Client 0.1.3 remains an acceptance candidate. Earlier Android physical-device testing validated install, launch, sign-in, core navigation, search, attachments, Settings, Archive, and Trash rendering, but final Stable client promotion still requires the remaining Linux, Android, physical-network, protected-signing, independent-signature-verification, and deployed-web acceptance gates that apply to the target release.
 
 ## Planned / deliberately bounded features
 
@@ -56,4 +61,4 @@ Client 0.1.3 remains an acceptance candidate. Earlier Android physical-device te
 
 ## Status rule
 
-A source feature, packaged client, or passing CI workflow is not automatically a Stable or production feature. This file must continue to distinguish repository state, released artifacts, and the accepted production runtime.
+A source feature, packaged client, or passing CI workflow is not automatically a Stable or production feature. This file must continue to distinguish repository state, released artifacts, deployed runtime state, and completed acceptance evidence.
