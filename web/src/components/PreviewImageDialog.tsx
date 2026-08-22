@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
+import { getAttachmentUrl } from "@/utils/attachment";
 import { useTranslate } from "@/utils/i18n";
 import type { PreviewMediaItem } from "@/utils/media-item";
 
@@ -103,6 +104,14 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
     return null;
   }
 
+  const downloadAttachment = currentItem.attachments?.[0];
+  const downloadUrl = downloadAttachment
+    ? getAttachmentUrl(downloadAttachment)
+    : currentItem.kind === "motion"
+      ? currentItem.posterUrl
+      : currentItem.sourceUrl;
+  const downloadFilename = downloadAttachment?.filename || currentItem.filename || "attachment";
+
   return (
     <Dialog
       open={open}
@@ -145,14 +154,14 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
 
             <div className="flex shrink-0 items-center gap-1.5">
               <a
-                href={currentItem.sourceUrl}
-                download={currentItem.filename || "attachment"}
+                href={downloadUrl}
+                download={downloadFilename}
                 className={cn(
                   buttonVariants({ variant: "ghost", size: "icon" }),
                   "rounded-full bg-white/10 text-white hover:bg-white/16 hover:text-white",
                 )}
-                aria-label={`Download ${currentItem.filename || "attachment"}`}
-                title={`Download ${currentItem.filename || "attachment"}`}
+                aria-label={`Download ${downloadFilename}`}
+                title={`Download ${downloadFilename}`}
               >
                 <Download className="h-4 w-4" />
               </a>
