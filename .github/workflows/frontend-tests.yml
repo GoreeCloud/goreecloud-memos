@@ -98,3 +98,42 @@ jobs:
       - name: Build frontend
         working-directory: web
         run: pnpm build
+
+  browser-layout:
+    name: Browser Layout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Run rendered Home masonry acceptance
+        working-directory: web
+        shell: bash
+        run: bash browser-tests/run-home-masonry-browser.sh
+
+      - name: Upload browser-layout diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-masonry-browser-diagnostics
+          path: |
+            ${{ runner.temp }}/goreecloud-memos-browser-acceptance
+            ${{ runner.temp }}/goreecloud-memos-browser-vite.log
+          if-no-files-found: warn
+          retention-days: 3
