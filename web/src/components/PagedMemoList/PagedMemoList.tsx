@@ -51,6 +51,8 @@ interface Props {
   groupPinned?: boolean;
   /** Label used for the non-pinned section when grouped pinned notes exist. */
   notesSectionLabel?: string;
+  /** Route-specific minimum readable card width before the packed masonry layout activates. */
+  minColumnWidth?: number;
 }
 
 function useAutoFetchWhenNotScrollable({
@@ -135,13 +137,13 @@ const PagedMemoList = (props: Props) => {
   useLayoutEffect(() => {
     const el = layoutMeasureRef.current;
     if (!el) return;
-    const apply = (nextWidth: number) => setFitsGridWidth(columnCountForWidth(nextWidth) >= 2);
+    const apply = (nextWidth: number) => setFitsGridWidth(columnCountForWidth(nextWidth, props.minColumnWidth) >= 2);
     apply(el.clientWidth);
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver((entries) => apply(entries[0]?.contentRect.width ?? el.clientWidth));
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [props.minColumnWidth]);
   const useGrid = multiColumn && (fitsGridWidth ?? true);
   // Grid tiles are always bounded/compact; the narrow-width fallback behaves exactly like
   // maxColumns = 1, so it respects the user's own compact setting. Centralized here so the
@@ -257,6 +259,7 @@ const PagedMemoList = (props: Props) => {
       estimateHeight={estimateMemoCardHeight}
       priorityKey={gridPriorityKey}
       maxColumns={maxColumns}
+      minColumnWidth={props.minColumnWidth}
       maxColumnWidth={MAX_COLUMN_WIDTH}
     />
   );
@@ -307,6 +310,7 @@ const PagedMemoList = (props: Props) => {
                   leading={props.leadingFullWidth ? undefined : gridLeading}
                   priorityKey={priorityKey}
                   maxColumns={maxColumns}
+                  minColumnWidth={props.minColumnWidth}
                   maxColumnWidth={MAX_COLUMN_WIDTH}
                 />
               )}

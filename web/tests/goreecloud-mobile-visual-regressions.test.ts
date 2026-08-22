@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const indexCss = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
+const homePage = readFileSync(join(process.cwd(), "src/pages/Home.tsx"), "utf8");
 const settingPage = readFileSync(join(process.cwd(), "src/pages/Setting.tsx"), "utf8");
 const preferences = readFileSync(join(process.cwd(), "src/components/Settings/PreferencesSection.tsx"), "utf8");
 const memberSection = readFileSync(join(process.cwd(), "src/components/Settings/MemberSection.tsx"), "utf8");
@@ -15,6 +16,13 @@ describe("GoreeCloud Memos physical mobile visual regression contract", () => {
     expect(indexCss).toContain("background: var(--background)");
     expect(indexCss).toContain("backdrop-filter: none");
     expect(indexCss).toContain("-webkit-backdrop-filter: none");
+  });
+
+  it("keeps the Home capture surface eligible for two compact masonry columns on representative phones", () => {
+    expect(homePage).toContain("const HOME_MASONRY_MIN_COLUMN_WIDTH = 168;");
+    expect(homePage).toContain("minColumnWidth={HOME_MASONRY_MIN_COLUMN_WIDTH}");
+    expect(homePage).toContain("leadingFullWidth");
+    expect(homePage).toContain("groupPinned");
   });
 
   it("avoids double horizontal padding on Compact settings while retaining larger breakpoints", () => {

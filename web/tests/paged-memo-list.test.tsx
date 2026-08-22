@@ -27,11 +27,15 @@ vi.mock("@/components/MemoFilters", () => ({ default: () => <div data-testid="me
 const memo = { name: "memos/1", content: "hello", updateTime: undefined } as unknown as Memo;
 const renderList = (
   renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = (m) => <div key={m.name} />,
-  options: { leading?: React.ReactNode } = {},
+  options: { leading?: React.ReactNode; minColumnWidth?: number } = {},
 ) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <PagedMemoList renderer={renderer} renderLeading={options.leading ? () => options.leading : undefined} />
+      <PagedMemoList
+        renderer={renderer}
+        renderLeading={options.leading ? () => options.leading : undefined}
+        minColumnWidth={options.minColumnWidth}
+      />
     </QueryClientProvider>,
   );
 
@@ -161,6 +165,30 @@ describe("<PagedMemoList>", () => {
       const renderer = vi.fn((m: Memo) => <div key={m.name} />);
       renderList(renderer);
       expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: false });
+    });
+
+    it("keeps an ordinary 358px feed in the one-column fallback", () => {
+      view.maxColumns = 0;
+      const widthSpy = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(358);
+      try {
+        const renderer = vi.fn((m: Memo) => <div key={m.name} />);
+        renderList(renderer);
+        expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: false });
+      } finally {
+        widthSpy.mockRestore();
+      }
+    });
+
+    it("activates compact masonry at 358px when a route allows 168px cards", () => {
+      view.maxColumns = 0;
+      const widthSpy = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(358);
+      try {
+        const renderer = vi.fn((m: Memo) => <div key={m.name} />);
+        renderList(renderer, { minColumnWidth: 168 });
+        expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: true });
+      } finally {
+        widthSpy.mockRestore();
+      }
     });
 
     it("forces compact once the width fits the grid", () => {

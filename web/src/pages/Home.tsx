@@ -13,6 +13,11 @@ import { State } from "@/types/proto/api/v1/common_pb";
 import { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { withTrashFilter } from "@/utils/noteTrash";
 
+// Two compact Home cards require 2 * 168px + the shared 12px masonry gap = 348px.
+// With the route's 16px Compact side padding, a representative 390px phone has 358px
+// available and gets two columns, while narrower phones fall back to one readable column.
+const HOME_MASONRY_MIN_COLUMN_WIDTH = 168;
+
 const Home = () => {
   const user = useCurrentUser();
   const { isUserSettingsInitialized } = useAuth();
@@ -69,6 +74,7 @@ const Home = () => {
             leadingFullWidth
             groupPinned
             notesSectionLabel="Notes"
+            minColumnWidth={HOME_MASONRY_MIN_COLUMN_WIDTH}
             renderLeading={({ useGrid }) => {
               if (!isUserSettingsInitialized) return null;
               return (
