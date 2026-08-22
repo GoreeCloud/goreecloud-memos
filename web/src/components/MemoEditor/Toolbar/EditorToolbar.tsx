@@ -227,12 +227,7 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
         {!valid && !isSaving && blockedMessage ? (
           <Tooltip>
             <TooltipTrigger render={<span className="inline-flex" tabIndex={0} aria-label={blockedMessage} />}>
-              <Button
-                className="min-h-11 px-4 sm:min-h-8 sm:px-3"
-                onClick={onSave}
-                disabled
-                aria-keyshortcuts={SAVE_KEY_SHORTCUTS}
-              >
+              <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" onClick={onSave} disabled aria-keyshortcuts={SAVE_KEY_SHORTCUTS}>
                 {t("editor.save")}
               </Button>
             </TooltipTrigger>
