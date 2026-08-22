@@ -33,6 +33,10 @@ import TagsSection from "./TagsSection";
 
 type NavIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
+const QUICK_FIND_KEY_SHORTCUTS = "Control+K Meta+K";
+const QUICK_FIND_SHORTCUT_HINT = "Ctrl/Cmd + K";
+const QUICK_FIND_TOOLTIP = `Search memos (${QUICK_FIND_SHORTCUT_HINT})`;
+
 const SidebarNavRow = ({
   to,
   label,
@@ -94,6 +98,8 @@ const GoreeCloudMemosSidebarContent = ({ currentUserName }: { currentUserName: s
             setQuickFindOpen(true);
           }}
           aria-label="Search memos"
+          aria-keyshortcuts={QUICK_FIND_KEY_SHORTCUTS}
+          title={QUICK_FIND_TOOLTIP}
         >
           <SearchIcon className="size-[18px]" strokeWidth={1.8} />
         </Button>
@@ -331,6 +337,8 @@ export const GoreeCloudMobileAppHeader = () => {
         className="gc-icon-button size-10 rounded-xl"
         onClick={() => setQuickFindOpen(true)}
         aria-label="Search memos"
+        aria-keyshortcuts={QUICK_FIND_KEY_SHORTCUTS}
+        title={QUICK_FIND_TOOLTIP}
       >
         <SearchIcon className="size-5" strokeWidth={1.8} />
       </Button>
