@@ -11,7 +11,7 @@ It intentionally does **not** create a second memo database, duplicate sync engi
 ## Architecture
 
 - Framework: Tauri 2
-- Current client acceptance candidate: `0.1.2`
+- Current client acceptance candidate: `0.1.3`
 - Linux target: AppImage and Debian package
 - Android target: APK
 - Application identifier: `com.goreecloud.memos`
@@ -36,7 +36,7 @@ Because the shell loads the canonical live service, a client APK can be newer th
 
 The icon is intentionally text-free and uses the Memos quick-capture document motif with GoreeCloud Glaze UI geometry and blue surface semantics. Platform launchers may apply their own icon mask, but the product symbol and source identity remain the same.
 
-The `0.1.2` acceptance candidate also increments the native package version so desktop software centers and Android launchers do not reuse the earlier `0.1.1` package identity when validating updated icon and metadata behavior. If a launcher continues to show a cached older icon after updating, uninstalling the prior debug/acceptance build before reinstalling is an acceptable test-only cache reset.
+The `0.1.3` acceptance candidate advances the native package identity after the current stabilization work so newly built Debian and Android packages can be distinguished from the earlier `0.1.2` acceptance artifacts. If a launcher continues to show a cached older icon after updating, uninstalling the prior debug/acceptance build before reinstalling is an acceptable test-only cache reset.
 
 ## Linux package metadata
 
@@ -49,6 +49,20 @@ Linux installer/catalog presentation is part of the same application-identity co
 - Linux CI validates the generated `.deb` with `appstreamcli`, inspects the Debian control fields, confirms the AppStream release version matches the native client version, verifies the desktop entry points to `goreecloud-memos-client`, and requires nonempty installed hicolor icon resources.
 
 This prevents a software center from silently presenting a stale framework/default identity while the installed launcher uses a different GoreeCloud Memos identity.
+
+## Package provenance and integrity
+
+Every current acceptance artifact is tied to one exact checked-out source revision.
+
+- CI verifies that Cargo, Tauri, and AppStream report the same native client version before packaging.
+- Pull-request client builds explicitly check out the pull-request head revision rather than relying on an implicit merge-ref checkout.
+- The Debian package is inspected after build and must report the expected package version, GoreeCloud maintainer identity, canonical homepage, current AppStream release, desktop identity, and installed icon resources.
+- The Android APK is inspected after build with Android package tooling and must report application ID `com.goreecloud.memos` and the expected native client version.
+- Linux and Android uploads are staged into self-contained artifact directories with extraction-root-relative SHA-256 manifests.
+- Each artifact directory includes a provenance record containing the exact source SHA, client version, application identifier, workflow/run identity, and artifact role.
+- The canonical GoreeCloud Memos SVG is included with its own SHA-256 record so package acceptance can be tied back to the exact product identity source used by CI.
+
+These checks make a stale Debian or Android package fail closed instead of being published under a current artifact name.
 
 ## Security boundary
 
@@ -67,7 +81,7 @@ The client is a constrained presentation shell, not a privileged native extensio
 - External links that request a new browser window are currently denied by the shell rather than handed off to the platform browser.
 - Offline drafts and native share-sheet capture are not part of this thin-shell client role.
 - Android CI creates a debug APK for direct device acceptance. Stable Android distribution requires a protected GoreeCloud signing key supplied through repository secrets; keystore material and passwords must never be committed to source control.
-- Linux and Android acceptance artifacts include SHA-256 checksum manifests plus the SHA-256 of the canonical icon source used by the packaging workflow.
+- Linux and Android acceptance artifacts include SHA-256 checksum manifests, exact-source provenance, plus the SHA-256 of the canonical icon source used by the packaging workflow.
 
 ## Linux development and build
 
@@ -126,6 +140,7 @@ For Linux acceptance, verify at minimum:
 
 The `GoreeCloud Memos Clients` GitHub Actions workflow performs:
 
+- Exact-source checkout and client-version contract validation.
 - Native desktop/Android icon generation from the canonical GoreeCloud Memos SVG.
 - Fail-closed verification that expected Linux and Android launcher resources were generated.
 - Rust unit tests for the client navigation boundary.
@@ -133,5 +148,7 @@ The `GoreeCloud Memos Clients` GitHub Actions workflow performs:
 - Debian control/AppStream/desktop/icon package inspection and AppStream validation.
 - Android target initialization.
 - Android ARM64 debug APK build for direct device testing.
-- SHA-256 checksum generation for packaged artifacts and the canonical icon source.
+- Android package ID/version inspection before upload.
+- Extraction-root-relative SHA-256 checksum generation for packaged artifacts and the canonical icon source.
+- Exact-source build-provenance generation.
 - Artifact upload for both platforms.
