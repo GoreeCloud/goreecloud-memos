@@ -36,6 +36,7 @@ GoreeCloud Memos is the lightweight GoreeCloud quick-note product. This list sep
 - Home/Capture responsive preferred masonry, including narrow-width fallback and rendered Chromium geometry acceptance
 - First-party attachment Download action in the full-screen media preview, preserving filenames and following the selected preview item
 - Discoverable Ctrl/Cmd + Enter save affordance with `aria-keyshortcuts` metadata while retaining validation-first blocked-save messaging
+- Discoverable Ctrl/Cmd + K Quick Find affordance on desktop and mobile search controls with `aria-keyshortcuts` metadata while retaining the existing scoped-search behavior
 - Additional source-level usability, accessibility, security, dependency, and container validation as development continues
 
 These source capabilities are not automatically part of the currently deployed v0.1.3 runtime. They require a later controlled Stable release, deployment, and applicable representative-client acceptance before they can be described as production behavior.
