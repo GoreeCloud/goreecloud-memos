@@ -1,12 +1,13 @@
-import { ChevronLeft, ChevronRight, InfoIcon, RotateCcw, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, InfoIcon, RotateCcw, X, ZoomIn, ZoomOut } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import MediaMetadataDetails from "@/components/MediaMetadataDetails";
 import MotionPhotoPreview from "@/components/MotionPhotoPreview";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
+import { getAttachmentUrl } from "@/utils/attachment";
 import { useTranslate } from "@/utils/i18n";
 import type { PreviewMediaItem } from "@/utils/media-item";
 
@@ -31,7 +32,7 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomScale, setZoomScale] = useState(MIN_ZOOM);
   const [showDetails, setShowDetails] = useState(false);
-  const previewItems = useMemo(
+  const previewItems = useMemo<PreviewMediaItem[]>(
     () => items ?? imgUrls.map((url) => ({ id: url, kind: "image" as const, sourceUrl: url, posterUrl: url, filename: "Image" })),
     [imgUrls, items],
   );
@@ -103,6 +104,14 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
     return null;
   }
 
+  const downloadAttachment = currentItem.attachments?.[0];
+  const downloadUrl = downloadAttachment
+    ? getAttachmentUrl(downloadAttachment)
+    : currentItem.kind === "motion"
+      ? currentItem.posterUrl
+      : currentItem.sourceUrl;
+  const downloadFilename = downloadAttachment?.filename || currentItem.filename || "attachment";
+
   return (
     <Dialog
       open={open}
@@ -144,6 +153,18 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <a
+                href={downloadUrl}
+                download={downloadFilename}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "icon" }),
+                  "rounded-full bg-white/10 text-white hover:bg-white/16 hover:text-white",
+                )}
+                aria-label={`Download ${downloadFilename}`}
+                title={`Download ${downloadFilename}`}
+              >
+                <Download className="h-4 w-4" />
+              </a>
               <Button
                 type="button"
                 onClick={() => setShowDetails((visible) => !visible)}
