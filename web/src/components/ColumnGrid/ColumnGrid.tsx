@@ -13,19 +13,23 @@ interface ColumnGridProps<T> {
   priorityKey?: string;
   /** Upper bound on the column count; 0 or undefined means as many as fit. */
   maxColumns?: number;
+  /** Minimum readable width for a column; defaults to the shared feed width. */
+  minColumnWidth?: number;
   /** Cap on each column's width in px; leftover space centers the grid. */
   maxColumnWidth?: number;
 }
 
 const LEADING_KEY = "__grid_leading__";
 
-const GRID_MIN_COLUMN_WIDTH = 260;
+export const DEFAULT_GRID_MIN_COLUMN_WIDTH = 260;
 export const GRID_GAP = 12;
 
 // The single source of truth for how many columns fit a given width. Callers use it to detect a
 // one-column layout and fall back to a plain flow list instead of a degenerate one-column grid.
-export const columnCountForWidth = (width: number): number =>
-  Math.max(1, Math.floor((width + GRID_GAP) / (GRID_MIN_COLUMN_WIDTH + GRID_GAP)));
+// Routes with intentionally denser cards can provide a smaller minimum without changing the
+// shared default used by every other feed.
+export const columnCountForWidth = (width: number, minColumnWidth = DEFAULT_GRID_MIN_COLUMN_WIDTH): number =>
+  Math.max(1, Math.floor((width + GRID_GAP) / (Math.max(1, minColumnWidth) + GRID_GAP)));
 
 const shortestColumn = (heights: number[]): number => {
   let index = 0;
@@ -77,6 +81,7 @@ function ColumnGrid<T>({
   leading,
   priorityKey,
   maxColumns,
+  minColumnWidth,
   maxColumnWidth,
 }: ColumnGridProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,7 +101,7 @@ function ColumnGrid<T>({
 
     const width = container.clientWidth;
     // What fits (each column >= the minimum width), then the user's max-columns ceiling on top.
-    const fit = columnCountForWidth(width);
+    const fit = columnCountForWidth(width, minColumnWidth);
     const count = maxColumns && maxColumns > 0 ? Math.min(fit, maxColumns) : fit;
     // Whole-pixel columns that fill the row, clamped to maxColumnWidth so few columns on a
     // wide screen stay readable instead of stretching.
@@ -185,7 +190,7 @@ function ColumnGrid<T>({
     }
 
     setContainerHeight(Math.max(0, ...columnY.map((h) => h - GRID_GAP)));
-  }, [items, getKey, estimateHeight, priorityKey, maxColumns, maxColumnWidth]);
+  }, [items, getKey, estimateHeight, priorityKey, maxColumns, minColumnWidth, maxColumnWidth]);
 
   // Keep a stable reference so observer callbacks always run the latest layout.
   const relayoutRef = useRef(relayout);
