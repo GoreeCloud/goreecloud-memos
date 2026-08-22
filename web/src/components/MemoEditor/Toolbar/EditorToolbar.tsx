@@ -15,6 +15,8 @@ import VisibilitySelector from "./VisibilitySelector";
 
 const isAssignableLabel = (label: string) => normalizeNoteLabel(label) === label && !/[.*+?^${}()|[\]\\]/u.test(label);
 const QUICK_CAPTURE_IDLE_SAVE_MS = 3000;
+const SAVE_KEY_SHORTCUTS = "Control+Enter Meta+Enter";
+const SAVE_SHORTCUT_HINT = "Ctrl/Cmd + Enter";
 
 const isPortalInteraction = (target: EventTarget | null) => {
   if (!(target instanceof Element)) return false;
@@ -225,16 +227,33 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
         {!valid && !isSaving && blockedMessage ? (
           <Tooltip>
             <TooltipTrigger render={<span className="inline-flex" tabIndex={0} aria-label={blockedMessage} />}>
-              <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" onClick={onSave} disabled>
+              <Button
+                className="min-h-11 px-4 sm:min-h-8 sm:px-3"
+                onClick={onSave}
+                disabled
+                aria-keyshortcuts={SAVE_KEY_SHORTCUTS}
+              >
                 {t("editor.save")}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top">{blockedMessage}</TooltipContent>
           </Tooltip>
         ) : (
-          <Button className="min-h-11 px-4 sm:min-h-8 sm:px-3" onClick={onSave} disabled={isSaving}>
-            {isSaving ? t("editor.saving") : t("editor.save")}
-          </Button>
+          <>
+            {!isSaving && (
+              <span aria-hidden="true" className="hidden whitespace-nowrap text-xs text-muted-foreground md:inline">
+                {SAVE_SHORTCUT_HINT}
+              </span>
+            )}
+            <Button
+              className="min-h-11 px-4 sm:min-h-8 sm:px-3"
+              onClick={onSave}
+              disabled={isSaving}
+              aria-keyshortcuts={SAVE_KEY_SHORTCUTS}
+            >
+              {isSaving ? t("editor.saving") : t("editor.save")}
+            </Button>
+          </>
         )}
       </div>
     </div>
