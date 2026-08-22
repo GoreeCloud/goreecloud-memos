@@ -21,9 +21,11 @@ $MARKER
 TRASH_BASE_CONTENT="GoreeCloud CI Trash persistence
 
 $MARKER-trash"
+TRASHED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 TRASH_CONTENT="$TRASH_BASE_CONTENT
 
-<!-- goreecloud-note-trash: archived -->"
+<!-- goreecloud-note-trash: archived -->
+<!-- goreecloud-note-trash-at: $TRASHED_AT -->"
 
 post_json() {
   path="$1"
@@ -187,4 +189,4 @@ trash_response="$(get_json "/api/v1/$trash_name" "$auth_header")"
 
 docker exec "$CONTAINER_NAME" test -f /var/opt/memos/memos_prod.db
 
-echo "GoreeCloud Markdown, checklist syntax, label derivation, pinned/Archive state, color metadata, and Trash workflow state survived restart."
+echo "GoreeCloud Markdown, checklist syntax, label derivation, pinned/Archive state, color metadata, Trash workflow state, and Trash retention metadata survived restart."
