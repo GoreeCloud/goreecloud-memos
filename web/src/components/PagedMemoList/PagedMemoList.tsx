@@ -53,6 +53,8 @@ interface Props {
   notesSectionLabel?: string;
   /** Route-specific minimum readable card width before the packed masonry layout activates. */
   minColumnWidth?: number;
+  /** Prefer a packed multi-column route when width allows, even if the global feed ceiling is one column. */
+  preferMultiColumn?: boolean;
 }
 
 function useAutoFetchWhenNotScrollable({
@@ -124,9 +126,13 @@ const PagedMemoList = (props: Props) => {
   const { isUserSettingsInitialized } = useAuth();
   const { filters } = useMemoFilterContext();
   const { maxColumns, compactMode } = useView();
-  // maxColumns is a ceiling: 1 = single reading column, 0 = as many as fit. The single
-  // column renders in normal document flow; anything wider becomes the packed grid.
-  const multiColumn = maxColumns !== 1;
+  // Most feeds honor the global ceiling exactly. A route such as Home can explicitly prefer
+  // the adaptive masonry canvas; in that case only a persisted one-column ceiling is ignored.
+  // Explicit 2/3-column ceilings and the unlimited value remain intact.
+  const effectiveMaxColumns = props.preferMultiColumn && maxColumns === 1 ? 0 : maxColumns;
+  // The single-column setting renders in normal document flow; anything wider becomes the
+  // packed grid once the physical width can fit at least two readable cards.
+  const multiColumn = effectiveMaxColumns !== 1;
 
   // Measure the available width: when it only fits one column anyway, render the flow
   // layout rather than a degenerate one-column grid (capped tiles, composer-as-tile).
@@ -258,7 +264,7 @@ const PagedMemoList = (props: Props) => {
       renderItem={(memo) => props.renderer(memo, { compact: effectiveCompact })}
       estimateHeight={estimateMemoCardHeight}
       priorityKey={gridPriorityKey}
-      maxColumns={maxColumns}
+      maxColumns={effectiveMaxColumns}
       minColumnWidth={props.minColumnWidth}
       maxColumnWidth={MAX_COLUMN_WIDTH}
     />
@@ -309,7 +315,7 @@ const PagedMemoList = (props: Props) => {
                   estimateHeight={estimateMemoCardHeight}
                   leading={props.leadingFullWidth ? undefined : gridLeading}
                   priorityKey={priorityKey}
-                  maxColumns={maxColumns}
+                  maxColumns={effectiveMaxColumns}
                   minColumnWidth={props.minColumnWidth}
                   maxColumnWidth={MAX_COLUMN_WIDTH}
                 />
