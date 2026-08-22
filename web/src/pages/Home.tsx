@@ -75,6 +75,7 @@ const Home = () => {
             groupPinned
             notesSectionLabel="Notes"
             minColumnWidth={HOME_MASONRY_MIN_COLUMN_WIDTH}
+            preferMultiColumn
             renderLeading={({ useGrid }) => {
               if (!isUserSettingsInitialized) return null;
               return (
