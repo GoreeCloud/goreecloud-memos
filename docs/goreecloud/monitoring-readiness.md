@@ -4,9 +4,23 @@
 
 I use this record to define the production availability-monitoring contract for GoreeCloud Memos while Uptime Kuma remains the authoritative GoreeCloud availability-monitoring platform.
 
-This document is a source-controlled acceptance contract. It does **not** claim that the live Uptime Kuma monitor has already been created.
+GoreeCloud Memos already has accepted production monitoring as part of the v0.1.2 production state. This document therefore governs **revalidation** of that existing monitoring relationship during the v0.1.3 production upgrade; it does not direct me to create a duplicate monitor or broaden the Caddy access boundary unnecessarily.
 
-## Target service
+## Current and target runtime
+
+Current accepted production image:
+
+```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be
+```
+
+Published v0.1.3 Stable target image:
+
+```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4
+```
+
+## Target service contract
 
 - Monitor name: `GoreeCloud Memos`
 - Primary endpoint: `https://memos.goreecloud.com/healthz`
@@ -18,62 +32,65 @@ This document is a source-controlled acceptance contract. It does **not** claim 
 - Production application container: `goreecloud-memos`
 - Application port: `5230/tcp` inside Docker only
 
-The monitor must validate the same private HTTPS/Caddy path used by approved clients rather than bypassing Caddy and checking the application container directly.
+The monitor validates the private HTTPS/Caddy path rather than bypassing Caddy and checking the application container through a newly exposed host port.
 
-## Private-source requirement
+## Existing private-source boundary
 
-The active Memos Caddy route currently permits approved NetBird client sources and denies other sources with HTTP 403. Before adding Uptime Kuma to the allowlist, I must inspect the **live** Uptime Kuma Docker network identity and confirm the exact source address Caddy observes.
+Before changing monitoring or Caddy during the v0.1.3 maintenance window, I inspect the **live** Uptime Kuma monitor identity and the exact source allowance already accepted for GoreeCloud Memos.
 
-I do not copy an address from another application's historical monitor contract and assume it is still correct. The live source identity must be observed and documented during the production monitoring change.
+If the existing monitor remains correct, I preserve it unchanged and revalidate it. I do not create a duplicate Memos monitor, copy a source address from another application's historical contract, or broaden the Memos allowlist to an unnecessary Docker subnet.
 
-If I authorize a Docker-network monitoring source, the Caddy rule must allow only the exact required monitoring source in addition to the approved NetBird client range. I do not broaden Memos to an entire unnecessary Docker subnet merely to make monitoring work.
+If the observed Uptime Kuma source identity has changed since the previous acceptance, I treat that as a separate narrow monitoring-source correction: back up the active Caddy configuration, identify the exact required source, apply only the least-privilege allowance, validate/reload Caddy, and verify both approved access and unintended-source denial before proceeding.
 
 ## Notification behavior
 
-The Memos monitor should use the existing GoreeCloud availability-alert path while Uptime Kuma remains authoritative.
+The Memos monitor uses the existing GoreeCloud availability-alert path while Uptime Kuma remains authoritative.
 
-Acceptance requires:
+v0.1.3 acceptance requires:
 
-- healthy service produces no false DOWN alert;
-- a controlled Memos outage transitions the monitor to DOWN;
+- the healthy service produces no false DOWN alert after cutover;
+- a controlled Memos outage during the approved maintenance window transitions the existing monitor to DOWN when practical;
 - the alert contains only the minimum service/outage information required for administration;
 - recovery transitions the monitor back to UP and produces the expected recovery notification;
 - monitoring credentials or notification secrets are not exposed in source, logs, screenshots, or permanent documentation; and
 - the monitor does not gain administrative access to Memos data or user content.
 
-## Acceptance procedure
+## v0.1.3 revalidation procedure
 
-Before marking Memos monitoring complete, I verify all of the following on the live target:
+Before marking v0.1.3 monitoring acceptance complete, I verify all of the following on the live target:
 
-1. Record the current Uptime Kuma version and backup/recovery point.
-2. Inspect the live Uptime Kuma source network and the source address seen by Caddy.
-3. Back up the active Caddy configuration before changing a Memos source allowlist.
-4. Add only the narrow monitoring-source allowance required for the Memos health endpoint.
-5. Validate and reload Caddy without altering the existing NetBird-only user-access model.
-6. Create the `GoreeCloud Memos` HTTPS monitor using the target contract above.
-7. Confirm TLS verification is enabled and the monitor reaches the private HTTPS endpoint.
-8. Confirm the healthy endpoint returns HTTP 200 and `Service ready.` without false alerts.
-9. Perform a controlled stop of only `goreecloud-memos` during an approved maintenance window.
-10. Confirm Uptime Kuma records DOWN and the approved outage notification is received.
-11. Restart only `goreecloud-memos` and wait for Docker health to return healthy.
-12. Confirm Uptime Kuma records recovery and the approved recovery notification is received.
-13. Confirm Caddy still returns HTTP 403 to an unapproved non-NetBird/non-monitoring source.
-14. Confirm the Memos backend still has no host-published port.
-15. Record the monitor identity, validation date, alert result, and rollback state without recording reusable secrets.
+1. Record the current Uptime Kuma version, existing `GoreeCloud Memos` monitor identity, current state, and rollback/recovery point without recording reusable secrets.
+2. Confirm the monitor target is exactly `https://memos.goreecloud.com/healthz` with TLS verification, HTTP 200, and response marker `Service ready.`.
+3. Inspect the current Caddy Memos route and identify the already accepted monitoring-source allowance.
+4. Confirm v0.1.2 is healthy and monitored before the application upgrade begins.
+5. Deploy v0.1.3 through the controlled Memos production checklist without restarting Uptime Kuma or Caddy unnecessarily.
+6. Confirm the existing monitor returns or remains UP after v0.1.3 becomes healthy.
+7. Confirm the private endpoint still returns HTTP 200 with `Service ready.` through the monitor path.
+8. Perform a controlled stop of only `goreecloud-memos` during the approved maintenance window when practical.
+9. Confirm Uptime Kuma records DOWN and the approved outage notification is received.
+10. Restart only `goreecloud-memos` and wait for Docker health to return healthy.
+11. Confirm Uptime Kuma records recovery and the approved recovery notification is received.
+12. Confirm Caddy still permits approved NetBird clients and the exact monitoring source while denying an unapproved non-NetBird/non-monitor source.
+13. Confirm the Memos backend still has no host-published port.
+14. Confirm monitoring logs/evidence contain no reusable credentials or private memo content.
+15. Record the monitor identity, validation time, DOWN/RECOVERED result, notification result, and rollback state.
 
 ## Rollback
 
-If the monitoring change causes unexpected access, false alerts, or publication behavior, I:
+If the v0.1.3 application upgrade fails but monitoring itself remains correct, I keep the monitor and Caddy source boundary intact while following the application rollback procedure.
 
-1. disable or remove only the new Memos Uptime Kuma monitor;
-2. restore the pre-change Caddy configuration if a monitoring-source allowance was added;
-3. validate and reload Caddy;
+If a monitoring-source correction made during the maintenance window causes unexpected access or false monitoring behavior, I:
+
+1. restore the pre-change Caddy configuration when the Caddy source allowance changed;
+2. validate and reload Caddy;
+3. restore or re-enable only the previously accepted Memos monitor configuration if it was changed;
 4. confirm approved NetBird clients can still reach Memos;
-5. confirm unapproved sources receive HTTP 403; and
-6. leave the Memos application runtime and data unchanged.
+5. confirm the intended monitor path works;
+6. confirm unapproved sources receive HTTP 403; and
+7. leave Memos user/application data unchanged except as required by the separate application rollback procedure.
 
 ## Completion rule
 
-I mark GoreeCloud Memos monitoring complete only when the live Uptime Kuma monitor exists, the private HTTPS path is verified, controlled DOWN and RECOVERED transitions have been observed, the administrator receives the expected notifications, and the Caddy source boundary remains least-privilege.
+I mark v0.1.3 monitoring acceptance complete only when the existing GoreeCloud Memos Uptime Kuma monitor is verified against the v0.1.3 runtime, the private HTTPS path remains correct, expected UP/DOWN/RECOVERED behavior and notifications are observed for the maintenance window when practical, and the Caddy source boundary remains least-privilege.
 
-Until that target-environment evidence exists, monitoring remains an open operational gate even though the Memos application itself is stable and currently usable.
+Until that target-environment evidence exists, the v0.1.3 release remains deployment-pending even though its source and immutable image were published successfully.

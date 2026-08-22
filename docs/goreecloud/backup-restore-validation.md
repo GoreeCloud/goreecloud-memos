@@ -2,11 +2,11 @@
 
 ## Status
 
-GoreeCloud Memos v0.1.0 is an accepted production deployment at `https://memos.goreecloud.com`. Its original production cutover included a verified pre-cutover archive and an isolated restore test before the historical Notes-branded runtime was retired.
+GoreeCloud Memos v0.1.2 is the accepted production deployment at `https://memos.goreecloud.com`.
 
-That cutover evidence proves the migration was recoverable at the time it was performed. It does **not** establish recurring long-term backup coverage for the current `/srv/docker/appdata/memos` production path.
+The published v0.1.3 Stable release is approved as the next production-upgrade target, but release publication does not prove that the live v0.1.2 data has a fresh application-consistent rollback point or that the v0.1.3 runtime has passed target-host acceptance.
 
-The current long-term Memos backup/restore gate therefore remains open until I verify current Kopia source coverage, create an application-consistent Memos recovery point, verify the resulting snapshot, and complete a fresh isolated restore using the current production data.
+The v0.1.3 production backup/restore gate remains open until I create and verify a fresh pre-upgrade v0.1.2 recovery point, complete a fresh isolated restore, retain the exact v0.1.2 runtime/configuration rollback state, and then deploy and validate v0.1.3 separately.
 
 ## Recovery layers
 
@@ -35,7 +35,7 @@ The SQLite database is expected at:
 /srv/docker/appdata/memos/memos_prod.db
 ```
 
-Attachments, thumbnail/cache data required by the application, and other application-managed persistent content under the same Memos directory must be included in the recovery set.
+Attachments and other application-managed persistent content under the same Memos directory must be included in the recovery set.
 
 ### Deployment reconstruction
 
@@ -65,24 +65,37 @@ I do not add reusable secrets to the Memos repository or assume that Kopia conta
 Current accepted production baseline:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1
+ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be
 ```
 
-Current validated Stable release available for controlled upgrade:
+Current accepted production source:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+ff3d5c6740b83bc55486ff51c5f6ec65436d91f9
 ```
 
-I keep the production and target identities separate until the live v0.1.1 rollout passes backup, runtime, private publication, application, monitoring, and rollback acceptance.
+Published Stable release available for controlled upgrade:
 
-## Current evidence and open question
+```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4
+```
 
-The initial v0.1.0 cutover proved that the historical data could be archived, checksum-verified, restored into an isolated v0.1.0 instance with networking disabled, and then migrated to the new Memos production paths without losing the SQLite database or representative attachment data.
+Published v0.1.3 source and tag:
 
-The current records do not establish that `/srv/docker/appdata/memos` was subsequently added to the live Kopia source set. I must inspect the current Kopia Compose source mounts before changing backup scope or claiming recurring Memos protection.
+```text
+70de16fb8dc08b1aadc42190566d5981f9ab2216
+goreecloud-v0.1.3
+```
 
-The retained `/srv/docker/backups/notes` cutover archive remains historical recovery evidence. It is not the current recurring Memos backup source.
+I keep the production and target identities separate until the live v0.1.3 rollout passes backup, runtime, private publication, application, monitoring, client, and rollback acceptance.
+
+## Current evidence and upgrade requirement
+
+Earlier production acceptance proved GoreeCloud Memos recovery and rollback at the time of the previous cutovers. That evidence remains valuable history but does not replace a fresh pre-v0.1.3 recovery point for the current v0.1.2 data.
+
+Before v0.1.3 deployment I must confirm the current Kopia/source coverage and create a new application-consistent v0.1.2 rollback point that reflects the state immediately before the new maintenance window.
+
+Historical Notes-branded cutover archives remain historical recovery evidence. They are not the current v0.1.2 rollback source.
 
 ## Application-consistent SQLite backup rule
 
@@ -92,22 +105,23 @@ Until I separately validate a SQLite-safe online backup method for this deployme
 
 1. Confirm the approved Kopia repository is reachable and healthy.
 2. Confirm the current Memos source path is included in the intended Kopia source set or prepare an approved quiesced recovery artifact under the protected backup path.
-3. Record the currently running immutable Memos image reference and stack state.
+3. Record the currently running immutable v0.1.2 image reference and stack state.
 4. Gracefully stop only `goreecloud-memos`.
 5. Confirm the application stopped cleanly.
-6. Create the application-consistent recovery point while SQLite is quiescent.
-7. Restart only `goreecloud-memos` on the previously approved production image.
-8. Wait for `/healthz` to return `Service ready.`.
-9. Confirm the private HTTPS application is available again.
-10. Run or complete the intended Kopia snapshot.
-11. Verify the new snapshot and confirm the Memos recovery data is present.
-12. Record the snapshot identity and validation result without recording repository credentials or private key material.
+6. Create the application-consistent v0.1.2 recovery point while SQLite is quiescent.
+7. Generate and verify a SHA-256 checksum for the exact recovery artifact when an archive is used.
+8. Restart only `goreecloud-memos` on the unchanged v0.1.2 production image.
+9. Wait for Docker health and `/healthz` to return `Service ready.`.
+10. Confirm the private HTTPS application is available again.
+11. Run or complete the intended Kopia snapshot.
+12. Verify the new snapshot or protected recovery artifact and confirm the Memos recovery data is present.
+13. Record the recovery identity and validation result without recording repository credentials or private key material.
 
 A stopped-application snapshot is a temporary conservative strategy. A future validated SQLite-native online backup process may replace it when it provides equal or stronger consistency and recoverability.
 
 ## Backup-scope change requirements
 
-Before adding GoreeCloud Memos to Kopia, I inspect the live Kopia stack with `docs/goreecloud/backup-live-preflight.md`.
+Before relying on GoreeCloud Memos backup coverage, I inspect the live Kopia stack with `docs/goreecloud/backup-live-preflight.md`.
 
 If the Memos application-data path is not already protected, the intended direct source is:
 
@@ -117,26 +131,27 @@ If the Memos application-data path is not already protected, the intended direct
 
 The active Kopia container must receive that source only through the existing approved read-only source-mount model.
 
-After a Kopia Compose source change, I refresh the Kopia container as required so the live container mount set matches the edited configuration. Editing the Compose file alone is not evidence that an existing container has the new mount.
+After a Kopia Compose source change, I refresh only Kopia as required so the live container mount set matches the edited configuration. Editing the Compose file alone is not evidence that an existing container has the new mount.
 
 ## Isolated restore test
 
-I restore a selected known-good Memos recovery point into a clean isolated directory and validate it without overwriting or repointing production data.
+I restore the fresh pre-v0.1.3 v0.1.2 recovery point into a clean isolated directory and validate it without overwriting or repointing production data.
 
 The test must:
 
-1. Select and record the source Kopia snapshot or approved application-consistent recovery artifact.
+1. Select and record the source Kopia snapshot or approved application-consistent v0.1.2 recovery artifact.
 2. Restore the complete Memos application-data directory into a clean temporary validation location.
 3. Verify restored files are present and readable.
 4. Verify ownership and permissions are appropriate for runtime UID/GID `10001:10001` before application startup.
 5. Start an isolated validation instance that uses the restored directory instead of `/srv/docker/appdata/memos`.
 6. Use no host-published backend port and no production Caddy hostname.
 7. Prefer `network_mode: none` when the validation goal does not require browser/API interaction; otherwise use an isolated non-production Docker network with no production publication path.
-8. Start the restored application with the exact currently accepted production image or the explicitly approved target image being validated for upgrade.
-9. Confirm database initialization/migration completes without corrupting the restored dataset.
+8. Start the restored application with the exact v0.1.2 production image first, proving the rollback data is usable by the rollback runtime.
+9. Confirm database initialization completes without corrupting the restored dataset.
 10. Confirm `/healthz` returns `Service ready.`.
 11. When an isolated authenticated path is intentionally provided, sign in with an approved restored or disposable validation identity and verify representative application state.
-12. Stop and remove the isolated validation instance after the test without deleting the source backup snapshot.
+12. Optionally start a second disposable isolated instance from a copy of the restored data using the exact v0.1.3 target image to rehearse forward upgrade behavior without changing the primary rollback restore.
+13. Stop and remove isolated validation instances after the test without deleting the source backup snapshot or recovery artifact.
 
 ## Restore acceptance checks
 
@@ -162,31 +177,32 @@ At minimum I verify:
 
 Where practical, I compare known validation content, counts, sizes, or checksums against the pre-restore record.
 
-## v0.1.1 production-upgrade backup gate
+## v0.1.3 production-upgrade backup gate
 
-Before replacing the current v0.1.0 production image with v0.1.1, I require:
+Before replacing the current v0.1.2 production image with v0.1.3, I require:
 
-- a current application-consistent v0.1.0 recovery point;
-- verified readability or snapshot inspection;
-- an isolated restore that succeeds against the protected production data;
-- the exact v0.1.0 rollback image and pre-upgrade deployment configuration retained;
-- the exact v0.1.1 immutable image recorded;
-- the updated deployment preflight passing through the authoritative private-DNS path; and
+- a fresh application-consistent v0.1.2 recovery point;
+- checksum/readability or snapshot verification;
+- an isolated v0.1.2 rollback restore that starts and passes representative validation;
+- the exact v0.1.2 rollback image and pre-upgrade deployment configuration retained;
+- the exact v0.1.3 immutable image recorded;
+- the private-DNS-aware deployment preflight prepared for the v0.1.3 digest;
+- the existing Uptime Kuma Memos monitor and Caddy source allowance identified for revalidation; and
 - no unresolved data-integrity or restore discrepancy.
 
-If v0.1.1 changes the production database before acceptance and rollback is required, I do not point v0.1.0 at a potentially upgraded database unless downgrade compatibility has been explicitly proven. The conservative rollback is the v0.1.0 image together with the pre-upgrade v0.1.0 recovery data and configuration.
+If v0.1.3 changes the production database before acceptance and rollback is required, I do not point v0.1.2 at a potentially upgraded database unless downgrade compatibility has been explicitly proven. The conservative rollback is the v0.1.2 image together with the fresh pre-upgrade v0.1.2 recovery data and configuration.
 
 ## Backup gate acceptance rule
 
-I may mark the current GoreeCloud Memos long-term backup/restore gate complete only after all of the following are true:
+I may mark the v0.1.3 production backup/restore gate complete only after all of the following are true:
 
 - the live Memos application-data path is confirmed in the approved recurring backup scope or an equally approved recurring application-consistent artifact path is established;
-- an application-consistent Memos backup has completed successfully;
-- the resulting Kopia snapshot has been inspected or verified;
+- a fresh application-consistent v0.1.2 pre-upgrade backup has completed successfully;
+- the resulting Kopia snapshot or recovery artifact has been inspected or verified;
 - the required protected configuration and independent secrets-recovery path are available;
-- an isolated restore has completed successfully;
+- an isolated v0.1.2 rollback restore has completed successfully;
 - the restored Memos instance starts and passes representative application validation;
 - restored ownership and permissions are correct; and
 - the result is documented in the Memos and Kopia change records as applicable.
 
-The backup/restore gate is an operational acceptance requirement. It does not change the fact that v0.1.0 is currently the accepted live production runtime and v0.1.1 is the validated Stable release awaiting a separate controlled host rollout.
+This backup/restore gate is an operational acceptance requirement. Until the later deployment and post-deployment gates pass, v0.1.2 remains the accepted live production runtime and v0.1.3 remains the published Stable release awaiting controlled host rollout.

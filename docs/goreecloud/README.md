@@ -25,34 +25,40 @@ https://memos.goreecloud.com
 Current accepted production release:
 
 ```text
-goreecloud-v0.1.0
+goreecloud-v0.1.2
 ```
 
 Current accepted production image:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1
+ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be
 ```
 
-Current validated Stable release available for controlled production upgrade:
+Current accepted production source:
 
 ```text
-goreecloud-v0.1.1
+ff3d5c6740b83bc55486ff51c5f6ec65436d91f9
 ```
 
-Validated v0.1.1 image:
+Current published Stable release awaiting controlled production deployment:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+goreecloud-v0.1.3
 ```
 
-Validated v0.1.1 source:
+Published v0.1.3 image:
 
 ```text
-ca52b1a7a25925b02cb4bf19b05e38581265fd02
+ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4
 ```
 
-The v0.1.1 artifact and the live production runtime remain separate states until the controlled VPS upgrade and target-environment acceptance are completed.
+Published v0.1.3 source:
+
+```text
+70de16fb8dc08b1aadc42190566d5981f9ab2216
+```
+
+The v0.1.3 release and the live v0.1.2 production runtime remain separate states until the controlled VPS upgrade and target-environment acceptance are completed. Later `main` commits do not silently become part of the immutable v0.1.3 release.
 
 ## Product boundary
 
@@ -97,6 +103,7 @@ Live stack: /srv/docker/stacks/memos/docker-compose.yml
 Docker network: proxy
 Private DNS / NetBird target: 100.71.27.119
 Backend port: 5230/tcp inside Docker only
+Runtime identity: 10001:10001
 ```
 
 The backend is not published directly to the host. Caddy provides the private HTTPS publication boundary and approved clients use the GoreeCloud private network path.
@@ -105,7 +112,7 @@ The VPS system resolver may return Porkbun public proxy addresses for `memos.gor
 
 ## Recovery and monitoring boundary
 
-The original production cutover included a verified archive and isolated restore. That evidence does not automatically prove recurring backup coverage for the current Memos production path.
+The accepted v0.1.2 production state includes recovery/rollback history and Uptime Kuma monitoring. Historical acceptance does not replace a fresh pre-v0.1.3 application-consistent rollback point or target-runtime monitoring revalidation.
 
 Current recovery acceptance is defined by:
 
@@ -116,10 +123,16 @@ Current availability-monitoring acceptance is defined by:
 
 - `docs/goreecloud/monitoring-readiness.md`
 
-The remaining operational work for the v0.1.1 production upgrade is target-host work: verify current recurring backup coverage and a fresh isolated restore, deploy the exact v0.1.1 immutable image, run the private-DNS-aware deployment preflight and application acceptance, and establish live Uptime Kuma DOWN/RECOVERED evidence without weakening the Caddy access boundary.
+The remaining operational work for the v0.1.3 production upgrade is target-host work: inspect the actual v0.1.2 runtime; create and checksum/verify a fresh application-consistent v0.1.2 recovery point; complete a fresh isolated v0.1.2 rollback restore; deploy the exact v0.1.3 immutable image; run the private-DNS-aware deployment preflight; verify v0.1.3 application and real-client workflows; and revalidate the existing Uptime Kuma monitor with controlled DOWN/RECOVERED evidence without weakening the Caddy access boundary.
+
+## v0.1.3 feature-acceptance emphasis
+
+The production acceptance pass must exercise the material behavior delivered by v0.1.3, including draft label selection before first save, label persistence/filtering, Trash Delete All and retention behavior, attachment upload/retrieval and failure handling, quick-capture autosave/Undo, clipboard flows, exports, authentication/session continuity, restart persistence, and representative desktop/mobile web behavior.
+
+Native Linux and Android wrapper artifacts remain separately versioned distribution targets. An Android debug acceptance APK is not a protected-signing Stable Android release.
 
 ## Release and deployment rule
 
-A Stable GoreeCloud Memos image is not considered deployed merely because CI passed or the image was published. Production acceptance requires live-host evidence for the intended immutable image, persistent data, private DNS, Caddy/TLS path, NetBird access, application workflows, backup/restore, monitoring, and rollback.
+A Stable GoreeCloud Memos image is not considered deployed merely because CI passed, a tag exists, or the image was published. Production acceptance requires live-host evidence for the intended immutable image, persistent data, private DNS, Caddy/TLS path, NetBird access, application workflows, backup/restore, monitoring, clients, and rollback.
 
 Likewise, source-only deployment or recovery tooling changes made after a Stable tag do not silently replace that Stable application image. Runtime promotion remains an explicit controlled operation.
