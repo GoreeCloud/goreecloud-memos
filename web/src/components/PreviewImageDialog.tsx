@@ -1,8 +1,8 @@
-import { ChevronLeft, ChevronRight, InfoIcon, RotateCcw, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, InfoIcon, RotateCcw, X, ZoomIn, ZoomOut } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import MediaMetadataDetails from "@/components/MediaMetadataDetails";
 import MotionPhotoPreview from "@/components/MotionPhotoPreview";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import useMediaQuery from "@/hooks/useMediaQuery";
@@ -144,6 +144,18 @@ function PreviewImageDialog({ open, onOpenChange, imgUrls = [], items, initialIn
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <a
+                href={currentItem.sourceUrl}
+                download={currentItem.filename || "attachment"}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "icon" }),
+                  "rounded-full bg-white/10 text-white hover:bg-white/16 hover:text-white",
+                )}
+                aria-label={`Download ${currentItem.filename || "attachment"}`}
+                title={`Download ${currentItem.filename || "attachment"}`}
+              >
+                <Download className="h-4 w-4" />
+              </a>
               <Button
                 type="button"
                 onClick={() => setShowDetails((visible) => !visible)}
