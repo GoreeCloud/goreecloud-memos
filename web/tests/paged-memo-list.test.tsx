@@ -27,7 +27,7 @@ vi.mock("@/components/MemoFilters", () => ({ default: () => <div data-testid="me
 const memo = { name: "memos/1", content: "hello", updateTime: undefined } as unknown as Memo;
 const renderList = (
   renderer: (memo: Memo, options: { compact: boolean }) => React.ReactElement = (m) => <div key={m.name} />,
-  options: { leading?: React.ReactNode; minColumnWidth?: number } = {},
+  options: { leading?: React.ReactNode; minColumnWidth?: number; preferMultiColumn?: boolean } = {},
 ) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -35,6 +35,7 @@ const renderList = (
         renderer={renderer}
         renderLeading={options.leading ? () => options.leading : undefined}
         minColumnWidth={options.minColumnWidth}
+        preferMultiColumn={options.preferMultiColumn}
       />
     </QueryClientProvider>,
   );
@@ -186,6 +187,30 @@ describe("<PagedMemoList>", () => {
         const renderer = vi.fn((m: Memo) => <div key={m.name} />);
         renderList(renderer, { minColumnWidth: 168 });
         expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: true });
+      } finally {
+        widthSpy.mockRestore();
+      }
+    });
+
+    it("prefers route masonry at 358px even when the global ceiling is one column", () => {
+      view.maxColumns = 1;
+      const widthSpy = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(358);
+      try {
+        const renderer = vi.fn((m: Memo) => <div key={m.name} />);
+        renderList(renderer, { minColumnWidth: 168, preferMultiColumn: true });
+        expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: true });
+      } finally {
+        widthSpy.mockRestore();
+      }
+    });
+
+    it("keeps the preferred route in one-column flow when two readable cards cannot fit", () => {
+      view.maxColumns = 1;
+      const widthSpy = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(320);
+      try {
+        const renderer = vi.fn((m: Memo) => <div key={m.name} />);
+        renderList(renderer, { minColumnWidth: 168, preferMultiColumn: true });
+        expect(renderer).toHaveBeenCalledWith(expect.objectContaining({ name: "memos/1" }), { compact: false });
       } finally {
         widthSpy.mockRestore();
       }
