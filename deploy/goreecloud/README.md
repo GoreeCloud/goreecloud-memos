@@ -4,7 +4,7 @@
 
 I use this package as the source-controlled deployment reference for **GoreeCloud Memos**, the lightweight GoreeCloud quick-note service derived from upstream Memos.
 
-GoreeCloud Memos is already an accepted private production service at `https://memos.goreecloud.com`. The original Notes-branded cutover is complete. This package now governs reproducible maintenance, upgrades, recovery, and production acceptance rather than an unperformed initial cutover.
+GoreeCloud Memos is an accepted private production service at `https://memos.goreecloud.com`. The original Notes-branded cutover is complete. This package governs reproducible maintenance, upgrades, recovery, and production acceptance rather than an unperformed initial cutover.
 
 ## Current production state
 
@@ -13,7 +13,8 @@ Current accepted production runtime:
 ```text
 Host: goreecloud-vps-01
 Container: goreecloud-memos
-Image: ghcr.io/goreecloud/memos:goreecloud-v0.1.0@sha256:15f523fb1ac2b946339d9216d741b4368fbfd8631159487acc20b4133702ace1
+Image: ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be
+Source: ff3d5c6740b83bc55486ff51c5f6ec65436d91f9
 Internal port: 5230/tcp
 Data: /srv/docker/appdata/memos
 Protected configuration: /srv/docker/secrets/memos
@@ -28,19 +29,20 @@ The backend does not publish port 5230 to the host. Caddy reaches `goreecloud-me
 
 ## Current validated upgrade target
 
-The validated Stable v0.1.1 runtime artifact is:
+The published GoreeCloud Memos v0.1.3 Stable runtime artifact is:
 
 ```text
-ghcr.io/goreecloud/memos:goreecloud-v0.1.1@sha256:ec9fd1b02fb0ae545487c6b109b0254794898b4799fcea34e667dd50b4346075
+ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4
 ```
 
-Its Stable source commit is:
+Its Stable source commit and tag are:
 
 ```text
-ca52b1a7a25925b02cb4bf19b05e38581265fd02
+70de16fb8dc08b1aadc42190566d5981f9ab2216
+goreecloud-v0.1.3
 ```
 
-The application image remains distinct from later source-only deployment/recovery tooling improvements on `main`. I do not substitute an unvalidated rebuild for the published Stable v0.1.1 digest.
+The v0.1.3 registry digest was independently resolved from GHCR after publication. Later `main` commits are not part of that release. I do not substitute a later source revision, rebuild, floating tag, or tag-only reference for the exact v0.1.3 immutable image above.
 
 ## Repository and live-host boundary
 
@@ -135,7 +137,7 @@ For the current VPS architecture I explicitly select the approved private DNS se
 GOREECLOUD_MEMOS_EXPECTED_PRIVATE_IP=100.71.27.119 \
 GOREECLOUD_MEMOS_PRIVATE_DNS_SERVER=100.71.27.119 \
 GOREECLOUD_MEMOS_HTTPS_TARGET_IP=100.71.27.119 \
-GOREECLOUD_MEMOS_EXPECTED_IMAGE='ghcr.io/goreecloud/memos:goreecloud-vX.Y.Z@sha256:<validated-digest>' \
+GOREECLOUD_MEMOS_EXPECTED_IMAGE='ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4' \
 sh scripts/goreecloud-memos-deployment-preflight.sh
 ```
 
@@ -150,9 +152,9 @@ I use these current records:
 - `docs/goreecloud/backup-live-preflight.md`
 - `docs/goreecloud/backup-restore-validation.md`
 
-The original v0.1.0 production cutover already proved a pre-cutover archive and isolated restore. That historical acceptance does not prove recurring long-term backup coverage for the current `/srv/docker/appdata/memos` data.
+The v0.1.2 production cutover established an accepted production baseline and retained recovery history. Historical recovery evidence does not replace a fresh pre-v0.1.3 recovery point.
 
-Before the v0.1.1 production upgrade, I require a current application-consistent v0.1.0 recovery point and a fresh isolated restore. Until a separately validated SQLite-safe online backup method exists, I use the documented conservative quiesced-data procedure.
+Before the v0.1.3 production upgrade, I require a current application-consistent v0.1.2 recovery point, verification of the resulting recovery artifact or snapshot, and a fresh isolated restore. Until a separately validated SQLite-safe online backup method exists, I use the documented conservative quiesced-data procedure.
 
 ## Monitoring acceptance
 
@@ -164,7 +166,7 @@ docs/goreecloud/monitoring-readiness.md
 
 Uptime Kuma remains the active availability-monitoring platform until a separately accepted GoreeCloud Monitor cutover occurs.
 
-The Memos monitor must validate:
+The existing Memos monitor validates:
 
 ```text
 https://memos.goreecloud.com/healthz
@@ -172,40 +174,43 @@ https://memos.goreecloud.com/healthz
 
 with valid TLS, HTTP 200, and response marker `Service ready.`.
 
-Before allowing a monitoring source through Caddy, I inspect the live Uptime Kuma source identity. I do not reuse another application's historical source address without verification and I do not broaden the Memos access boundary to an unnecessary Docker subnet.
+For the v0.1.3 cutover I revalidate the live monitor identity, Caddy source boundary, healthy state, and controlled DOWN/RECOVERED behavior rather than assuming the previously accepted monitor proves the new runtime.
 
 ## Upgrade procedure
 
-The controlled v0.1.0 → v0.1.1 procedure is maintained in:
+The controlled v0.1.2 → v0.1.3 procedure is maintained in:
 
 ```text
 deploy/goreecloud/DEPLOYMENT-CHECKLIST.md
 ```
 
-The upgrade changes only the approved Memos image reference unless a separately documented target-environment finding requires another change. I do not restart or reconfigure unrelated services merely because Memos is being upgraded.
+The upgrade changes only the approved Memos image reference unless a separately documented target-environment finding requires another controlled correction. I do not restart or reconfigure unrelated services merely because Memos is being upgraded.
 
-After recreation, I run the private-DNS-aware preflight and complete application, backup, monitoring, publication, and rollback acceptance.
+After recreation, I run the private-DNS-aware preflight and complete application, backup, monitoring, publication, client, and rollback acceptance.
 
 ## Rollback
 
-I retain the exact v0.1.0 immutable image and pre-upgrade production recovery point until v0.1.1 is fully accepted.
+I retain the exact v0.1.2 immutable image, previous deployment configuration, and fresh pre-upgrade v0.1.2 recovery point until v0.1.3 is fully production-accepted.
 
-If v0.1.1 modifies the database and rollback is required, I do not point the older v0.1.0 binary at the modified database unless downgrade compatibility is explicitly proven. The conservative rollback is the v0.1.0 image together with the pre-upgrade v0.1.0 data and deployment configuration.
+If v0.1.3 modifies the database and rollback is required, I do not point the older v0.1.2 binary at the modified database unless downgrade compatibility is explicitly proven. The conservative rollback is the exact v0.1.2 image together with the pre-upgrade v0.1.2 data and deployment configuration.
 
 ## Production approval rule
 
-I call a new Memos version deployed only after target-environment evidence confirms:
+I call v0.1.3 deployed and production-accepted only after target-environment evidence confirms:
 
-- exact immutable image identity;
+- exact immutable v0.1.3 image identity;
 - healthy container and local `/healthz`;
 - approved non-root runtime and mounts;
 - no backend host-port publication;
 - authoritative private DNS and private HTTPS/Caddy access;
 - approved NetBird client access and unintended-source denial;
-- authentication and representative quick-note workflows;
+- authentication and representative quick-note workflows, including v0.1.3 draft labels, Trash Delete All/retention behavior, attachment transfer, quick-capture/Undo, and clipboard flows;
 - restart persistence;
 - current backup and fresh isolated restore;
-- Uptime Kuma DOWN/RECOVERED monitoring acceptance; and
-- a recorded rollback state.
+- Uptime Kuma monitoring revalidation and controlled DOWN/RECOVERED acceptance;
+- representative desktop and real-device web/PWA acceptance; and
+- a recorded v0.1.2 rollback state.
 
-Repository CI alone is never sufficient evidence of live production acceptance.
+Repository CI and release publication alone are never sufficient evidence of live production acceptance.
+
+Native Linux and Android wrappers remain separately versioned client artifacts. A debug Android APK is an acceptance package and must not be described as a protected-signing Stable Android distribution.
