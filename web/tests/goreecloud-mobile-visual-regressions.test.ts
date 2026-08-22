@@ -21,6 +21,7 @@ describe("GoreeCloud Memos physical mobile visual regression contract", () => {
   it("keeps the Home capture surface eligible for two compact masonry columns on representative phones", () => {
     expect(homePage).toContain("const HOME_MASONRY_MIN_COLUMN_WIDTH = 168;");
     expect(homePage).toContain("minColumnWidth={HOME_MASONRY_MIN_COLUMN_WIDTH}");
+    expect(homePage).toContain("preferMultiColumn");
     expect(homePage).toContain("leadingFullWidth");
     expect(homePage).toContain("groupPinned");
   });
