@@ -106,10 +106,17 @@ const QuickFindDialog = () => {
               event.preventDefault();
               submitQuery();
             }}
-            className="h-10 border-0 bg-transparent px-0 !text-[14px] shadow-none focus-visible:ring-0"
+            className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 !text-[14px] shadow-none focus-visible:ring-0"
             placeholder={`${t("common.search")} ${scopeLabel}`}
             aria-label={`${t("common.search")} ${scopeLabel}`}
           />
+          <span
+            className="max-w-24 shrink-0 truncate rounded-md border border-border/60 bg-muted/50 px-2 py-1 text-[11px] font-medium text-muted-foreground sm:max-w-32"
+            title={`${t("common.search")} ${scopeLabel}`}
+            aria-hidden="true"
+          >
+            {scopeLabel}
+          </span>
           <Button
             type="submit"
             variant="ghost"
