@@ -121,7 +121,8 @@ func (r *Runner) stampLegacyTrash(ctx context.Context, memoID int32, now time.Ti
 	}
 
 	content := withTrashTimestamp(latest.Content, now)
-	return r.Store.UpdateMemo(ctx, &store.UpdateMemo{ID: latest.ID, Content: &content})
+	updatedTs := latest.UpdatedTs
+	return r.Store.UpdateMemo(ctx, &store.UpdateMemo{ID: latest.ID, Content: &content, UpdatedTs: &updatedTs})
 }
 
 func (r *Runner) deleteExpiredTrash(ctx context.Context, memoID int32, now time.Time) (bool, error) {
