@@ -23,6 +23,7 @@ import (
 	"github.com/usememos/memos/server/router/mcp"
 	"github.com/usememos/memos/server/router/rss"
 	"github.com/usememos/memos/server/runner/s3presign"
+	"github.com/usememos/memos/server/runner/trashretention"
 	"github.com/usememos/memos/store"
 )
 
@@ -151,23 +152,34 @@ func (s *Server) Shutdown(ctx context.Context) {
 }
 
 func (s *Server) startBackgroundRunners(ctx context.Context) {
-	// Create a separate context for each background runner
-	// This allows us to control cancellation for each runner independently
+	// Create a separate context for each background runner.
+	// This allows us to control cancellation for each runner independently.
 	s3Context, s3Cancel := context.WithCancel(ctx)
+	trashContext, trashCancel := context.WithCancel(ctx)
 
-	// Store the cancel function so we can properly shut down runners
-	s.backgroundRunnerCancels = append(s.backgroundRunnerCancels, s3Cancel)
+	// Store the cancel functions so we can properly shut down runners.
+	s.backgroundRunnerCancels = append(s.backgroundRunnerCancels, s3Cancel, trashCancel)
 
-	// Create and start S3 presign runner
+	// Create and start the S3 presign runner.
 	s3presignRunner := s3presign.NewRunner(s.Store)
 	s3presignRunner.RunOnce(ctx)
-
-	// Start continuous S3 presign runner
 	s.backgroundRunnerWG.Add(1)
 	go func() {
 		defer s.backgroundRunnerWG.Done()
 		s3presignRunner.Run(s3Context)
 		slog.Info("s3presign runner stopped")
+	}()
+
+	// GoreeCloud Trash retention runs once at startup and then hourly. Legacy
+	// Trash entries without a reliable timestamp receive a fresh 30-day grace
+	// period instead of being deleted based on unrelated memo update times.
+	trashRetentionRunner := trashretention.NewRunner(s.Store)
+	trashRetentionRunner.RunOnce(ctx)
+	s.backgroundRunnerWG.Add(1)
+	go func() {
+		defer s.backgroundRunnerWG.Done()
+		trashRetentionRunner.Run(trashContext)
+		slog.Info("trash retention runner stopped")
 	}()
 
 	slog.Info("background runners started")
