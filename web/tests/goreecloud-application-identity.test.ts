@@ -131,4 +131,20 @@ describe("GoreeCloud Memos application identity", () => {
     expect(clientWorkflowSource).toContain("Validate Debian installer metadata");
     expect(clientWorkflowSource).toContain("appstreamcli validate --no-net");
   });
+
+  it("binds native acceptance packages to one exact source and version contract", () => {
+    expect(clientWorkflowSource).toContain("Checkout exact source");
+    expect(clientWorkflowSource).toContain("ref: ${{ github.event.pull_request.head.sha || github.sha }}");
+    expect(clientWorkflowSource).toContain("Verify exact source and client version contract");
+    expect(clientWorkflowSource).toContain('test "$SOURCE_SHA" = "$EXPECTED_SOURCE_SHA"');
+    expect(clientWorkflowSource).toContain('test "$CLIENT_VERSION" = "$CARGO_VERSION"');
+    expect(clientWorkflowSource).toContain("Validate Android package identity");
+    expect(clientWorkflowSource).toContain('dump badging "$APK"');
+    expect(clientWorkflowSource).toContain("package: name='com.goreecloud.memos'");
+    expect(clientWorkflowSource).toContain("versionName='$CLIENT_VERSION'");
+    expect(clientWorkflowSource).toContain("BUILD-PROVENANCE.txt");
+    expect(clientWorkflowSource).toContain("source_sha=$SOURCE_SHA");
+    expect(clientWorkflowSource).toContain("client_version=$CLIENT_VERSION");
+    expect(clientWorkflowSource).toContain("sha256sum --check SHA256SUMS");
+  });
 });
