@@ -2,12 +2,14 @@
 
 ## Purpose
 
-I use this read-only checklist on `goreecloud-vps-01` before changing Kopia source scope or claiming that the current GoreeCloud Memos production data is protected by the long-term application backup path.
+I use this read-only checklist on `goreecloud-vps-01` before changing the GoreeCloud Memos production runtime or claiming that the current production data is protected by a usable rollback/recovery path.
 
 This preflight makes **no configuration changes**. Passing it does not prove that a current usable snapshot exists and does not replace an isolated restore test.
 
 ## Current production baseline
 
+- Accepted production version: `goreecloud-v0.1.2`
+- Accepted production image: `ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be`
 - Production container: `goreecloud-memos`
 - Production application data: `/srv/docker/appdata/memos`
 - Production SQLite database: `/srv/docker/appdata/memos/memos_prod.db`
@@ -16,6 +18,7 @@ This preflight makes **no configuration changes**. Passing it does not prove tha
 - Kopia Compose: `/srv/docker/stacks/kopia/compose.yaml`
 - Shared backup-artifact path: `/srv/docker/backups`
 - Production hostname: `https://memos.goreecloud.com`
+- Approved upgrade target: `ghcr.io/goreecloud/memos:goreecloud-v0.1.3@sha256:13b45db6b0977d5b4c89afba2a1d5d0eacf9bc1ad884f86c0c719958de1b84f4`
 
 The historical Notes-branded Memos runtime and `/srv/docker/appdata/notes` path were retired after the stable Memos cutover. I do not use those retired paths as the active Memos backup source.
 
@@ -26,11 +29,20 @@ sudo test -d /srv/docker/appdata/memos && echo 'PASS: Memos appdata exists'
 sudo test -f /srv/docker/appdata/memos/memos_prod.db && echo 'PASS: Memos SQLite exists'
 
 sudo docker inspect goreecloud-memos \
+  --format '{{.Config.Image}} {{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}'
+
+sudo docker inspect goreecloud-memos \
   --format '{{range .Mounts}}{{println .Source "->" .Destination}}{{end}}'
 
 sudo docker exec goreecloud-memos \
   test -f /var/opt/memos/memos_prod.db \
   && echo 'PASS: container sees Memos SQLite'
+```
+
+Expected runtime image before the v0.1.3 cutover:
+
+```text
+ghcr.io/goreecloud/memos:goreecloud-v0.1.2@sha256:98cea4ed48e6c8dea2c70a7c88b5b246ae8569a69ad5fe749127a91720ef00be
 ```
 
 Expected persistent-data relationship:
@@ -39,7 +51,7 @@ Expected persistent-data relationship:
 /srv/docker/appdata/memos -> /var/opt/memos
 ```
 
-The configuration path should also remain read-only inside the container.
+The configuration path must remain read-only inside the container and protected outside ordinary source control.
 
 ## 2. Validate the authoritative Kopia Compose without expanding secrets
 
@@ -77,11 +89,11 @@ sudo grep -nF '/srv/docker/backups:/source/backups:ro' \
   /srv/docker/stacks/kopia/compose.yaml || true
 ```
 
-The existing GoreeCloud backup architecture historically protects `/srv/docker/backups`. A quiesced Memos recovery artifact stored there can provide an additional recovery layer, but the artifact still requires its own Kopia snapshot and isolated restore validation.
+The GoreeCloud backup architecture protects `/srv/docker/backups`. A fresh quiesced v0.1.2 Memos recovery artifact stored there can provide the pre-v0.1.3 application-consistent rollback point, but the artifact still requires checksum validation, Kopia snapshot coverage where applicable, and isolated restore verification.
 
-The retained `/srv/docker/backups/notes` material is historical cutover/retirement evidence. It is not a substitute for current recurring Memos backup coverage.
+Historical `/srv/docker/backups/notes` material is migration history, not the current rollback source.
 
-## 5. Confirm secrets remain outside Kopia filesystem snapshot scope
+## 5. Confirm secrets remain outside ordinary Kopia filesystem snapshot scope
 
 ```bash
 if sudo grep -nE '/srv/docker/secrets[^:]*:/source' \
@@ -118,33 +130,54 @@ Before changing the Memos runtime or relying on a new application backup, I conf
 
 - the off-VPS Kopia repository is reachable and healthy;
 - the current OVHcloud provider restore point remains available as a separate VPS-level recovery layer;
-- the current production image reference and previous Stable image reference are recorded;
-- the Memos stack and protected configuration can be reconstructed without exposing reusable credentials; and
-- there is sufficient local space for any temporary application-consistent recovery artifact or isolated restore directory.
+- the exact v0.1.2 production image and v0.1.3 target image are recorded;
+- the current Memos stack and protected configuration can be reconstructed without exposing reusable credentials;
+- sufficient local space exists for the new quiesced v0.1.2 recovery artifact and isolated restore directory; and
+- the v0.1.2 application is healthy before any maintenance stop begins.
 
-## 8. Stop conditions
+## 8. Pre-v0.1.3 application-consistent recovery point
 
-I stop without changing backup scope if any of these conditions are unresolved:
+Unless an equally strong validated online SQLite method is in use, I create the fresh rollback point conservatively:
+
+1. Record the current exact v0.1.2 runtime image and stack state.
+2. Gracefully stop only `goreecloud-memos`.
+3. Confirm the container stopped cleanly.
+4. Create a timestamped archive of `/srv/docker/appdata/memos` under the approved Memos backup path.
+5. Generate and verify a SHA-256 checksum for that exact archive.
+6. Restart only `goreecloud-memos` on the unchanged v0.1.2 image.
+7. Wait for Docker health to return `healthy` and `/healthz` to return `Service ready.`.
+8. Ensure the new recovery artifact is captured by the approved backup path.
+9. Complete a fresh isolated restore using `docs/goreecloud/backup-restore-validation.md`.
+10. Record only non-secret recovery identifiers and verification results.
+
+I do not proceed to v0.1.3 until the isolated restore succeeds.
+
+## 9. Stop conditions
+
+I stop without changing production if any of these conditions are unresolved:
 
 - the Memos data path or SQLite file is missing;
+- the running Memos container is not the expected v0.1.2 immutable image;
 - the running Memos container does not use the expected persistent bind mount;
 - Kopia Compose does not validate cleanly;
 - the intended Memos protection method is unclear;
-- a live SQLite snapshot would be treated as application-consistent without validation;
-- a secret-bearing path appears under Kopia `/source`;
-- the off-VPS Kopia repository is unavailable or unhealthy; or
-- rollback image, data, or reconstruction information is not available.
+- a live SQLite copy would be treated as application-consistent without validation;
+- a secret-bearing path appears under Kopia `/source` unexpectedly;
+- the off-VPS Kopia repository is unavailable or unhealthy;
+- the fresh v0.1.2 recovery artifact cannot be checksum-verified;
+- the isolated restore fails; or
+- rollback image, data, configuration, or reconstruction information is unavailable.
 
 ## What this preflight does not prove
 
 This inspection does not prove:
 
-- an application-consistent current Memos recovery point exists;
+- a new application-consistent v0.1.2 recovery point has been created;
 - a Kopia snapshot contains the intended Memos recovery set;
 - the snapshot is verified and readable;
 - attachments and all application state are recoverable;
 - protected credentials required for reconstruction are available;
 - an isolated restored GoreeCloud Memos instance starts and works; or
-- the proposed `goreecloud-v0.1.1` production upgrade is accepted.
+- the proposed `goreecloud-v0.1.3` production upgrade is accepted.
 
-The production backup/restore gate remains governed by `docs/goreecloud/backup-restore-validation.md` and stays open until a current application-consistent Memos backup and isolated restore are actually completed and validated.
+The production backup/restore gate remains governed by `docs/goreecloud/backup-restore-validation.md` and stays open until a fresh pre-v0.1.3 recovery point and isolated restore are actually completed and validated.
