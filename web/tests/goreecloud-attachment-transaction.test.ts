@@ -8,10 +8,15 @@ const memoServiceSource = readFileSync(join(process.cwd(), "src/components/MemoE
 describe("GoreeCloud Memos attachment transaction safety", () => {
   it("cleans up every successfully uploaded file when a later file in the same batch fails", () => {
     expect(uploadServiceSource).toContain("cleanupUnlinkedAttachments");
-    expect(uploadServiceSource).toContain("attachmentServiceClient.deleteAttachment({ name })");
     expect(uploadServiceSource).toContain("Promise.allSettled");
     expect(uploadServiceSource).toContain("await uploadService.cleanupUnlinkedAttachments(attachments)");
     expect(uploadServiceSource).toContain("throw error;");
+  });
+
+  it("re-checks server linkage before deleting rollback candidates", () => {
+    expect(uploadServiceSource).toContain("attachmentServiceClient.getAttachment({ name })");
+    expect(uploadServiceSource).toContain("if (attachment.memo) return;");
+    expect(uploadServiceSource).toContain("attachmentServiceClient.deleteAttachment({ name })");
   });
 
   it("cleans newly uploaded files when the memo read or write transaction fails", () => {
