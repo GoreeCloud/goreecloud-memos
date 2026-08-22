@@ -105,6 +105,8 @@ func (r *Runner) Sweep(ctx context.Context, now time.Time) (SweepStats, error) {
 			if deleted {
 				stats.Deleted++
 			}
+		default:
+			continue
 		}
 	}
 
