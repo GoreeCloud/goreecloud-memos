@@ -1,29 +1,27 @@
-# GoreeCloud Memos Native Foundation
+# Native GoreeCloud Memos
 
-This directory begins the original GoreeCloud-owned implementation of GoreeCloud Memos.
+This directory contains the original GoreeCloud-owned native Memos implementation path.
 
-## Product role
+## Current foundation
 
-GoreeCloud Memos is the lightweight quick-capture application in GoreeCloud Suite. Its native implementation is intentionally focused on immediate capture, simple retrieval, labels, pinning, Archive, recoverable Trash, attachments where justified, portable export, responsive clients, and controlled interoperability with GoreeCloud Notes.
+The current native source establishes an application-owned Memo domain with:
 
-## Transition boundary
+- required normalized memo and owner identifiers;
+- non-empty memo content;
+- Active, Archived, and Trashed lifecycle states;
+- pinning;
+- recoverable restoration to Active;
+- native memo editing that trims content, rejects empty edits without mutating the existing memo, and updates the UTC modification timestamp only after a valid edit; and
+- focused unit coverage for identity, capture, editing, lifecycle, and pinning behavior.
 
-The existing Memos-derived application remains the accepted production source/runtime until a native replacement independently satisfies migration, equivalence, recovery, security, privacy, Glaze UI, Everkeep, client, release, and production-acceptance gates.
+The native foundation also carries the mandatory GoreeCloud platform-system contract for Glaze UI, Wardveil Security, Privacy Shield, and Everkeep. Source validation is fail-closed and does not convert implementation evidence into production acceptance.
 
-The upstream-derived source tree is retained only as transition, compatibility, migration, provenance, and product-reference material. New native product logic must not depend on upstream Memos application architecture, UI, workflows, or general application code.
+## Architecture boundary
 
-## Initial native architecture
+All future GoreeCloud Memos application behavior on this path must be original GoreeCloud-owned implementation. The existing upstream-derived Memos application tree and accepted production runtime remain protected migration, compatibility, provenance, and rollback material; they are not the long-term native product architecture.
 
-The initial native foundation uses:
+Narrow external dependencies may be used only where they are appropriate supporting foundations rather than substitute application implementations.
 
-- Go for the application service and domain model;
-- versioned HTTP APIs owned by GoreeCloud;
-- application-owned memo and lifecycle contracts;
-- local-first development without external telemetry;
-- explicit Glaze UI, Wardveil Security, Privacy Shield, and Everkeep integration contracts;
-- migration tooling that reads protected existing Memos data without mutating the source; and
-- deterministic tests before any production cutover.
+## Release boundary
 
-## Current milestone
-
-Milestone 0 establishes the native product boundary, domain model, API health contract, platform-system integration manifest, validation tooling, and continuous integration. It does not authorize deployment or migration.
+This native source is a development foundation. It does not authorize production deployment, user-data migration, retirement of the accepted Memos runtime, DNS/Caddy/NetBird changes, or Stable qualification.
