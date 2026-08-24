@@ -22,6 +22,6 @@ All future GoreeCloud Memos application behavior on this path must be original G
 
 Narrow external dependencies may be used only where they are appropriate supporting foundations rather than substitute application implementations.
 
-## Release boundary
+## Acceptance boundary
 
-This native source is a development foundation. It does not authorize production deployment, user-data migration, retirement of the accepted Memos runtime, DNS/Caddy/NetBird changes, or Stable qualification.
+This native source remains a development foundation. A green source test or workflow proves only the tested source contract. Production deployment, user-data migration, retirement of the accepted Memos runtime, DNS/Caddy/NetBird changes, and Stable qualification remain separately controlled and require their own evidence.
