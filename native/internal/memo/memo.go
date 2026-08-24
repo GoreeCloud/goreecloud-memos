@@ -14,7 +14,11 @@ const (
 	LifecycleTrashed  Lifecycle = "trashed"
 )
 
-var ErrEmptyContent = errors.New("memo content must not be empty")
+var (
+	ErrEmptyContent = errors.New("memo content must not be empty")
+	ErrInvalidID    = errors.New("memo id must not be empty")
+	ErrInvalidOwner = errors.New("memo owner id must not be empty")
+)
 
 type Memo struct {
 	ID        string
@@ -27,7 +31,15 @@ type Memo struct {
 }
 
 func New(id, ownerID, content string, now time.Time) (Memo, error) {
+	id = strings.TrimSpace(id)
+	ownerID = strings.TrimSpace(ownerID)
 	content = strings.TrimSpace(content)
+	if id == "" {
+		return Memo{}, ErrInvalidID
+	}
+	if ownerID == "" {
+		return Memo{}, ErrInvalidOwner
+	}
 	if content == "" {
 		return Memo{}, ErrEmptyContent
 	}
@@ -39,6 +51,16 @@ func New(id, ownerID, content string, now time.Time) (Memo, error) {
 		CreatedAt: now.UTC(),
 		UpdatedAt: now.UTC(),
 	}, nil
+}
+
+func (m *Memo) Edit(content string, now time.Time) error {
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return ErrEmptyContent
+	}
+	m.Content = content
+	m.UpdatedAt = now.UTC()
+	return nil
 }
 
 func (m *Memo) Archive(now time.Time) {
