@@ -11,8 +11,9 @@ The current native source establishes an application-owned Memo domain with:
 - Active, Archived, and Trashed lifecycle states;
 - pinning;
 - recoverable restoration to Active;
-- native memo editing that trims content, rejects empty edits without mutating existing state, and updates the UTC modification timestamp only after a valid edit; and
-- focused unit coverage for identity, capture, editing, lifecycle, and pinning behavior.
+- native memo editing that trims content, rejects empty edits without mutating existing state, and updates the UTC modification timestamp only after a valid edit;
+- lightweight memo labels with whitespace normalization, case-insensitive lookup/deduplication, explicit removal, and no timestamp mutation for duplicate or missing-label no-ops; and
+- focused unit coverage for identity, capture, editing, lifecycle, pinning, and label behavior.
 
 The native foundation also carries the mandatory GoreeCloud platform-system contract for Glaze UI, Wardveil Security, Privacy Shield, and Everkeep. Source validation is fail-closed and does not convert implementation evidence into production acceptance.
 
