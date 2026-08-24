@@ -25,6 +25,7 @@ type Memo struct {
 	OwnerID   string
 	Content   string
 	Pinned    bool
+	Labels    []string
 	Lifecycle Lifecycle
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -47,6 +48,7 @@ func New(id, ownerID, content string, now time.Time) (Memo, error) {
 		ID:        id,
 		OwnerID:   ownerID,
 		Content:   content,
+		Labels:    []string{},
 		Lifecycle: LifecycleActive,
 		CreatedAt: now.UTC(),
 		UpdatedAt: now.UTC(),
