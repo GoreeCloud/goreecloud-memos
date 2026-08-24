@@ -1,0 +1,45 @@
+name: Native Memos Foundation
+
+on:
+  pull_request:
+    paths:
+      - "native/**"
+      - ".github/workflows/native-foundation.yml"
+  push:
+    branches:
+      - "feature/native-rebuild-foundation"
+    paths:
+      - "native/**"
+      - ".github/workflows/native-foundation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  native-go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache-dependency-path: native/go.mod
+      - name: Format check
+        run: test -z "$(gofmt -l .)"
+      - name: Unit tests
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+
+  platform-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Validate platform integration manifest
+        run: python native/scripts/validate_platform_integrations.py
