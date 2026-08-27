@@ -15,9 +15,10 @@ const (
 )
 
 var (
-	ErrEmptyContent = errors.New("memo content must not be empty")
-	ErrInvalidID    = errors.New("memo id must not be empty")
-	ErrInvalidOwner = errors.New("memo owner id must not be empty")
+	ErrEmptyContent    = errors.New("memo content must not be empty")
+	ErrInvalidID       = errors.New("memo id must not be empty")
+	ErrInvalidOwner    = errors.New("memo owner id must not be empty")
+	ErrInvalidReminder = errors.New("memo reminder time must not be zero")
 )
 
 type Memo struct {
@@ -26,6 +27,7 @@ type Memo struct {
 	Content   string
 	Pinned    bool
 	Labels    []string
+	RemindAt  *time.Time
 	Lifecycle Lifecycle
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -83,4 +85,31 @@ func (m *Memo) Restore(now time.Time) {
 func (m *Memo) SetPinned(pinned bool, now time.Time) {
 	m.Pinned = pinned
 	m.UpdatedAt = now.UTC()
+}
+
+func (m *Memo) SetReminder(remindAt, now time.Time) error {
+	if remindAt.IsZero() {
+		return ErrInvalidReminder
+	}
+
+	normalized := remindAt.UTC()
+	if m.RemindAt != nil && m.RemindAt.Equal(normalized) {
+		return nil
+	}
+
+	m.RemindAt = &normalized
+	m.UpdatedAt = now.UTC()
+	return nil
+}
+
+func (m *Memo) ClearReminder(now time.Time) {
+	if m.RemindAt == nil {
+		return
+	}
+	m.RemindAt = nil
+	m.UpdatedAt = now.UTC()
+}
+
+func (m Memo) ReminderDue(now time.Time) bool {
+	return m.Lifecycle == LifecycleActive && m.RemindAt != nil && !m.RemindAt.After(now.UTC())
 }
