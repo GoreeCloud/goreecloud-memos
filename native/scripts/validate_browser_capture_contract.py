@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACT = ROOT / "platform" / "browser_capture.json"
+CONTRACT = ROOT / "platform" / "browser_capture_contract.json"
 ALLOWED_KINDS = {"page", "link", "selection"}
 TOP_LEVEL_KEYS = {
     "schema",
