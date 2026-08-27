@@ -10,7 +10,7 @@ func TestMatchesQuerySearchesContentAndLabels(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	if err := m.AddLabel("Home", time.Unix(60, 0)); err != nil {
+	if _, err := m.AddLabel("Home", time.Unix(60, 0)); err != nil {
 		t.Fatalf("AddLabel returned error: %v", err)
 	}
 
@@ -37,7 +37,7 @@ func TestHasLabelNormalizesCaseAndWhitespace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	if err := m.AddLabel("Errands", time.Unix(60, 0)); err != nil {
+	if _, err := m.AddLabel("Errands", time.Unix(60, 0)); err != nil {
 		t.Fatalf("AddLabel returned error: %v", err)
 	}
 
