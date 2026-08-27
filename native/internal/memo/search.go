@@ -19,18 +19,3 @@ func (m Memo) MatchesQuery(query string) bool {
 	}
 	return false
 }
-
-// HasLabel reports whether a memo carries the requested label.
-// Label matching is normalized for surrounding whitespace and case.
-func (m Memo) HasLabel(label string) bool {
-	label = strings.ToLower(strings.TrimSpace(label))
-	if label == "" {
-		return false
-	}
-	for _, existing := range m.Labels {
-		if strings.ToLower(existing) == label {
-			return true
-		}
-	}
-	return false
-}
