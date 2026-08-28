@@ -1,0 +1,23 @@
+name: Echo Security Upgrade
+
+on:
+  pull_request:
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "scripts/verify_echo_security_upgrade.py"
+      - ".github/workflows/echo-security-upgrade.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-floor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Validate fixed Echo dependency floor
+        run: python scripts/verify_echo_security_upgrade.py

@@ -1,0 +1,37 @@
+{
+  "schema": "goreecloud.platform-integrations/v1",
+  "application": "GoreeCloud Memos",
+  "implementation": "native",
+  "stableQualificationBlocked": true,
+  "systems": {
+    "glazeUI": {
+      "required": true,
+      "status": "planned",
+      "contract": "current-stable"
+    },
+    "wardveilSecurity": {
+      "required": true,
+      "status": "foundation",
+      "evidence": [
+        "owner-scoped domain model",
+        "fail-closed validation"
+      ]
+    },
+    "privacyShield": {
+      "required": true,
+      "status": "foundation",
+      "evidence": [
+        "no telemetry dependency",
+        "owner identity is explicit in the memo model"
+      ]
+    },
+    "everkeep": {
+      "required": true,
+      "status": "planned",
+      "evidence": [
+        "existing production data remains protected during transition"
+      ]
+    }
+  },
+  "releaseBoundary": "No native deployment, migration cutover, or Stable release is authorized by this manifest."
+}
