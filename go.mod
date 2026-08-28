@@ -17,7 +17,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/joho/godotenv v1.5.1
-	github.com/labstack/echo/v5 v5.2.0
+	github.com/labstack/echo/v5 v5.3.1
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/moby/moby/api v1.54.2
 	github.com/modelcontextprotocol/go-sdk v1.6.1
