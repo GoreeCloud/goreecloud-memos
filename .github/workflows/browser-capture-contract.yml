@@ -3,14 +3,14 @@ name: Browser Capture Contract
 on:
   pull_request:
     paths:
-      - "native/platform/browser_capture.json"
+      - "native/platform/browser_capture_contract.json"
       - "native/scripts/validate_browser_capture_contract.py"
       - ".github/workflows/browser-capture-contract.yml"
   push:
     branches:
       - "agent/browser-capture-contract"
     paths:
-      - "native/platform/browser_capture.json"
+      - "native/platform/browser_capture_contract.json"
       - "native/scripts/validate_browser_capture_contract.py"
       - ".github/workflows/browser-capture-contract.yml"
 
