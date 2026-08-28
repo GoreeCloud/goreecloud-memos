@@ -3,6 +3,7 @@ package capture
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -58,7 +59,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var extra any
-	if err := decoder.Decode(&extra); err == nil {
+	if err := decoder.Decode(&extra); err != io.EOF {
 		http.Error(w, "invalid capture request", http.StatusBadRequest)
 		return
 	}
