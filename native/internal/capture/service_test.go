@@ -45,7 +45,7 @@ func TestCaptureBindsMemoToAuthenticatedOwnerAndNormalizesSource(t *testing.T) {
 	if created.Content != "selected text\n\nSource: https://example.test/page" {
 		t.Fatalf("content = %q", created.Content)
 	}
-	if len(writer.created) != 1 || writer.created[0] != created {
+	if len(writer.created) != 1 || writer.created[0].ID != created.ID || writer.created[0].OwnerID != created.OwnerID || writer.created[0].Content != created.Content {
 		t.Fatalf("writer did not receive created memo: %#v", writer.created)
 	}
 }
@@ -57,20 +57,21 @@ func TestCaptureFailsClosedWithoutOwnerOrForInvalidPayload(t *testing.T) {
 		t.Fatalf("new service: %v", err)
 	}
 
-	for name, owner, input, target := range map[string]struct {
+	tests := map[string]struct {
 		owner  string
 		input  Input
 		target error
 	}{
-		"owner": {"", Input{Kind: KindPage, Content: "hello"}, ErrUnauthenticated},
-		"kind":  {"owner", Input{Kind: "other", Content: "hello"}, ErrInvalidKind},
-		"size":  {"owner", Input{Kind: KindPage, Content: strings.Repeat("x", MaxContentBytes+1)}, ErrContentTooLarge},
+		"owner":  {"", Input{Kind: KindPage, Content: "hello"}, ErrUnauthenticated},
+		"kind":   {"owner", Input{Kind: "other", Content: "hello"}, ErrInvalidKind},
+		"size":   {"owner", Input{Kind: KindPage, Content: strings.Repeat("x", MaxContentBytes+1)}, ErrContentTooLarge},
 		"source": {"owner", Input{Kind: KindLink, Content: "hello", SourceURL: "file:///etc/passwd"}, ErrInvalidSource},
-	} {
+	}
+	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			_, err := service.Capture(context.Background(), owner, input)
-			if !errors.Is(err, target) {
-				t.Fatalf("error = %v, want %v", err, target)
+			_, err := service.Capture(context.Background(), test.owner, test.input)
+			if !errors.Is(err, test.target) {
+				t.Fatalf("error = %v, want %v", err, test.target)
 			}
 		})
 	}
