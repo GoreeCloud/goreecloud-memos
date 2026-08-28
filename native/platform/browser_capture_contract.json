@@ -1,0 +1,27 @@
+{
+  "schema": "goreecloud.browser-capture/v1",
+  "service": "GoreeCloud Memos",
+  "destination": "https://memos.goreecloud.com",
+  "acceptedKinds": ["page", "link", "selection"],
+  "requirements": {
+    "authenticated": true,
+    "reviewedAdapter": true,
+    "oneTimeIntent": true,
+    "privateBrowsingExportAllowed": false,
+    "capturedContentInURLAllowed": false,
+    "leastPrivilege": true,
+    "ownerScopedWrite": true
+  },
+  "implementation": {
+    "serviceWriteEndpointReady": false,
+    "browserAdapterReady": false,
+    "productionApproved": false
+  },
+  "openGates": [
+    "define and review authenticated quick-capture endpoint",
+    "bind captured memo writes to authenticated owner scope",
+    "validate content, source-link, and payload limits",
+    "complete Privacy Shield and Wardveil review",
+    "complete exact-build Browser and Memos compatibility acceptance"
+  ]
+}
