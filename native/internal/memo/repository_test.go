@@ -38,6 +38,7 @@ func TestMemoryRepositoryDefensivelyCopiesMutableMemoFields(t *testing.T) {
 	}
 	value.Labels = []string{"work"}
 	remindAt := now.Add(time.Hour)
+	expectedReminder := remindAt
 	value.RemindAt = &remindAt
 	if err := repository.Save(value); err != nil {
 		t.Fatal(err)
@@ -53,7 +54,7 @@ func TestMemoryRepositoryDefensivelyCopiesMutableMemoFields(t *testing.T) {
 	if stored.Labels[0] != "work" {
 		t.Fatalf("repository label mutated through caller: %q", stored.Labels[0])
 	}
-	if !stored.RemindAt.Equal(remindAt) {
+	if !stored.RemindAt.Equal(expectedReminder) {
 		t.Fatalf("repository reminder mutated through caller: %v", stored.RemindAt)
 	}
 
@@ -63,7 +64,7 @@ func TestMemoryRepositoryDefensivelyCopiesMutableMemoFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if again.Labels[0] != "work" || !again.RemindAt.Equal(remindAt) {
+	if again.Labels[0] != "work" || !again.RemindAt.Equal(expectedReminder) {
 		t.Fatal("Get returned repository-owned mutable state")
 	}
 }
