@@ -90,6 +90,61 @@ func syncDirectory(path string) error {
 	return directory.Sync()
 }
 
+func (repository *FileRepository) validateOwnerDirectory(ownerDir string) error {
+	info, err := os.Lstat(ownerDir)
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+		return errors.New("memo owner path is not a protected directory")
+	}
+	if info.Mode().Perm()&0o077 != 0 {
+		return errors.New("memo owner directory permissions are broader than owner-only")
+	}
+	resolved, err := filepath.EvalSymlinks(ownerDir)
+	if err != nil {
+		return err
+	}
+	if filepath.Clean(resolved) != filepath.Clean(ownerDir) {
+		return errors.New("memo owner directory resolves outside its repository path")
+	}
+	return nil
+}
+
+func (repository *FileRepository) prepareOwnerDirectory(ownerDir string) error {
+	if err := os.Mkdir(ownerDir, 0o700); err != nil && !errors.Is(err, os.ErrExist) {
+		return fmt.Errorf("create memo owner directory: %w", err)
+	}
+	if err := repository.validateOwnerDirectory(ownerDir); err != nil {
+		return fmt.Errorf("validate memo owner directory: %w", err)
+	}
+	if err := os.Chmod(ownerDir, 0o700); err != nil {
+		return fmt.Errorf("protect memo owner directory: %w", err)
+	}
+	return nil
+}
+
+func validateProtectedMemoRecord(path string) error {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+		return errors.New("memo record is not a protected regular file")
+	}
+	if info.Mode().Perm()&0o077 != 0 {
+		return errors.New("memo record permissions are broader than owner-only")
+	}
+	return nil
+}
+
+func readProtectedMemoRecord(path string) ([]byte, error) {
+	if err := validateProtectedMemoRecord(path); err != nil {
+		return nil, err
+	}
+	return os.ReadFile(path)
+}
+
 func (repository *FileRepository) Save(value Memo) error {
 	ownerID := normalizeRepositoryIdentity(value.OwnerID)
 	memoID := normalizeRepositoryIdentity(value.ID)
@@ -109,11 +164,8 @@ func (repository *FileRepository) Save(value Memo) error {
 	defer repository.mu.Unlock()
 
 	ownerDir := filepath.Dir(path)
-	if err := os.MkdirAll(ownerDir, 0o700); err != nil {
-		return fmt.Errorf("create memo owner directory: %w", err)
-	}
-	if err := os.Chmod(ownerDir, 0o700); err != nil {
-		return fmt.Errorf("protect memo owner directory: %w", err)
+	if err := repository.prepareOwnerDirectory(ownerDir); err != nil {
+		return err
 	}
 
 	temporary, err := os.CreateTemp(ownerDir, ".memo-*")
@@ -160,7 +212,13 @@ func (repository *FileRepository) Get(ownerID, memoID string) (Memo, error) {
 
 	repository.mu.RLock()
 	defer repository.mu.RUnlock()
-	bytes, err := os.ReadFile(path)
+	ownerDir := filepath.Dir(path)
+	if err := repository.validateOwnerDirectory(ownerDir); errors.Is(err, os.ErrNotExist) {
+		return Memo{}, ErrMemoNotFound
+	} else if err != nil {
+		return Memo{}, fmt.Errorf("validate memo owner directory: %w", err)
+	}
+	bytes, err := readProtectedMemoRecord(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return Memo{}, ErrMemoNotFound
 	}
@@ -193,10 +251,12 @@ func (repository *FileRepository) List(ownerID string) ([]Memo, error) {
 
 	repository.mu.RLock()
 	defer repository.mu.RUnlock()
-	entries, err := os.ReadDir(ownerDir)
-	if errors.Is(err, os.ErrNotExist) {
+	if err := repository.validateOwnerDirectory(ownerDir); errors.Is(err, os.ErrNotExist) {
 		return []Memo{}, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("validate memo owner directory: %w", err)
 	}
+	entries, err := os.ReadDir(ownerDir)
 	if err != nil {
 		return nil, fmt.Errorf("list memo owner directory: %w", err)
 	}
@@ -206,7 +266,7 @@ func (repository *FileRepository) List(ownerID string) ([]Memo, error) {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
 			continue
 		}
-		bytes, err := os.ReadFile(filepath.Join(ownerDir, entry.Name()))
+		bytes, err := readProtectedMemoRecord(filepath.Join(ownerDir, entry.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("read memo list record: %w", err)
 		}
@@ -214,8 +274,12 @@ func (repository *FileRepository) List(ownerID string) ([]Memo, error) {
 		if err := json.Unmarshal(bytes, &record); err != nil {
 			return nil, fmt.Errorf("decode memo list record: %w", err)
 		}
+		memoID := normalizeRepositoryIdentity(record.Memo.ID)
 		if record.Version != fileMemoRecordVersion || normalizeRepositoryIdentity(record.Memo.OwnerID) != ownerID {
 			return nil, errors.New("memo list record failed owner/version validation")
+		}
+		if memoID == "" || entry.Name() != repositoryDigest(memoID)+".json" {
+			return nil, errors.New("memo list record failed path identity validation")
 		}
 		values = append(values, cloneMemo(record.Memo))
 	}
@@ -238,12 +302,21 @@ func (repository *FileRepository) Delete(ownerID, memoID string) error {
 
 	repository.mu.Lock()
 	defer repository.mu.Unlock()
-	if err := os.Remove(path); errors.Is(err, os.ErrNotExist) {
+	ownerDir := filepath.Dir(path)
+	if err := repository.validateOwnerDirectory(ownerDir); errors.Is(err, os.ErrNotExist) {
 		return ErrMemoNotFound
 	} else if err != nil {
+		return fmt.Errorf("validate memo owner directory: %w", err)
+	}
+	if err := validateProtectedMemoRecord(path); errors.Is(err, os.ErrNotExist) {
+		return ErrMemoNotFound
+	} else if err != nil {
+		return fmt.Errorf("validate memo record before delete: %w", err)
+	}
+	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("delete memo record: %w", err)
 	}
-	if err := syncDirectory(filepath.Dir(path)); err != nil {
+	if err := syncDirectory(ownerDir); err != nil {
 		return fmt.Errorf("sync memo deletion: %w", err)
 	}
 	return nil
