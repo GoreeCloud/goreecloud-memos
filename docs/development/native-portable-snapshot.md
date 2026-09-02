@@ -84,8 +84,8 @@ This is intentional. A restore or migration path still requires a controlled des
 
 No current function silently overwrites durable memo state.
 
-## Exact-head Development evidence
+## Development evidence boundary
 
-PR #37 head `907ce6302e9fa9ec2bee06935685000bf925836e` passed Native Memos Foundation #63 / run `33587296175`, including format check, unit tests, `go vet`, and platform-integration-manifest validation.
+Strict-decoder source revision `907ce6302e9fa9ec2bee06935685000bf925836e` passed Native Memos Foundation #63 / run `33587296175`, including format check, unit tests, `go vet`, and platform-integration-manifest validation.
 
-This exact-head evidence establishes the current Development source/test/build checkpoint only. It does not establish restore testing, recovery validation, production acceptance, or full Everkeep protection without the distinct evidence required for those states.
+Subsequent documentation-only revisions do not change that runtime result, but the current pull-request head must still pass its own exact-head gate before promotion. No source/test/build checkpoint establishes restore testing, recovery validation, production acceptance, or full Everkeep protection without the distinct evidence required for those states.
