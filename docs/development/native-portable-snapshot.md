@@ -38,10 +38,13 @@ Decode requires an explicit target owner and assigns that owner only after the e
 
 ## Validation behavior
 
-Decode fails closed when it encounters:
+Decode uses a strict JSON decoder and fails closed when it encounters:
 
 - an empty target owner;
 - malformed JSON;
+- unknown envelope fields;
+- unknown memo-record fields;
+- appended or trailing JSON values;
 - an unsupported format or schema version;
 - a zero export timestamp;
 - a missing memo array;
@@ -54,6 +57,8 @@ Decode fails closed when it encounters:
 - a zero reminder instant.
 
 Timestamps are normalized to UTC when materialized.
+
+Strict schema rejection is intentional: an unrecognized field must be introduced through an explicit versioned schema change rather than being silently accepted by an older decoder.
 
 ## Integrity boundary
 
@@ -79,6 +84,8 @@ This is intentional. A restore or migration path still requires a controlled des
 
 No current function silently overwrites durable memo state.
 
-## Everkeep evidence state
+## Exact-head Development evidence
 
-This slice may be described as a Development portability implementation after its exact source revision passes the applicable native CI. It must not be described as restore tested, recovery validated, production accepted, or fully Everkeep protected without the distinct evidence required for those states.
+PR #37 head `907ce6302e9fa9ec2bee06935685000bf925836e` passed Native Memos Foundation #63 / run `33587296175`, including format check, unit tests, `go vet`, and platform-integration-manifest validation.
+
+This exact-head evidence establishes the current Development source/test/build checkpoint only. It does not establish restore testing, recovery validation, production acceptance, or full Everkeep protection without the distinct evidence required for those states.
