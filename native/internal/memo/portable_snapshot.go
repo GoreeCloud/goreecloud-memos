@@ -1,10 +1,12 @@
 package memo
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 )
@@ -103,9 +105,19 @@ func DecodePortableSnapshot(payload []byte, targetOwnerID string) ([]Memo, error
 	}
 
 	var envelope portableSnapshotEnvelope
-	if err := json.Unmarshal(payload, &envelope); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&envelope); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidPortableSnapshot, err)
 	}
+	var trailing json.RawMessage
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return nil, fmt.Errorf("%w: payload contains multiple JSON values", ErrInvalidPortableSnapshot)
+		}
+		return nil, fmt.Errorf("%w: trailing JSON data: %v", ErrInvalidPortableSnapshot, err)
+	}
+
 	if envelope.Format != portableSnapshotFormat || envelope.SchemaVersion != portableSnapshotVersion {
 		return nil, ErrUnsupportedSnapshot
 	}
