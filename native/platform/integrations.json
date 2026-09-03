@@ -6,12 +6,13 @@
   "systems": {
     "glazeUI": {
       "required": true,
-      "status": "planned",
+      "status": "foundation",
       "contract": "1.0.0",
       "sourceRevision": "70909bbdccad378fb7281ae1842e2f5beed64c38",
       "evidence": [
-        "current GLAZE UI V1.0 target is pinned",
-        "no accepted rendered native application implementation is claimed"
+        "native Android Kotlin/Jetpack Compose Home and Capture source exists without WebView or INTERNET permission",
+        "GLAZE UI V1.0 geometry and Light/Dark foundation mappings are pinned to the exact canonical source revision",
+        "rendered accessibility, representative-device, Human Visual Excellence, release, and production acceptance remain pending"
       ]
     },
     "wardveilSecurity": {
@@ -27,7 +28,8 @@
       "status": "foundation",
       "evidence": [
         "no telemetry dependency",
-        "owner identity is explicit in the memo model"
+        "owner identity is explicit in the memo model",
+        "native Android foundation has no network permission or production data authority"
       ]
     },
     "everkeep": {
@@ -38,5 +40,5 @@
       ]
     }
   },
-  "releaseBoundary": "No native deployment, migration cutover, rendered GLAZE UI V1.0 acceptance, or Stable release is authorized by this manifest."
+  "releaseBoundary": "No native Android migration, production data binding, rendered GLAZE UI V1.0 acceptance, deployment, or Stable release is authorized by this manifest."
 }
