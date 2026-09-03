@@ -129,7 +129,7 @@ The `native/` tree is an original GoreeCloud-owned rebuild path. Current source 
 - an owner-scoped durable single-node file repository with fail-closed filesystem safeguards; and
 - a versioned portable memo snapshot format with strict integrity and schema validation.
 
-There is currently **no accepted user-facing native application workflow** in this repository that replaces the accepted web/server runtime. The native line does not yet establish an accepted Glaze UI 2.2 rendered application, production GoreeCloud Identity session integration, Wardveil Security acceptance, Privacy Shield acceptance, Everkeep backup/restore integration, GoreeCloud Mesh registration, production service API, controlled user-data migration, deployment, release, or Stable qualification.
+There is currently **no accepted user-facing native application workflow** in this repository that replaces the accepted web/server runtime. GLAZE UI V1.0 (`1.0.0`) is the required current native interface target, but the native line does not yet establish an accepted rendered GLAZE UI V1.0 application, production GoreeCloud Identity session integration, Wardveil Security acceptance, Privacy Shield acceptance, Everkeep backup/restore integration, GoreeCloud Mesh registration, production service API, controlled user-data migration, deployment, release, or Stable qualification.
 
 Developers and reviewers must therefore treat native source behavior as Development evidence only.
 
