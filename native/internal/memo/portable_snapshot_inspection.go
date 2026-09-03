@@ -1,6 +1,10 @@
 package memo
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 const portableSnapshotInspectionOwner = "goreecloud-memos-snapshot-inspection"
 
@@ -26,9 +30,12 @@ func InspectPortableSnapshot(payload []byte) (PortableSnapshotSummary, error) {
 		return PortableSnapshotSummary{}, err
 	}
 
+	// DecodePortableSnapshot already performed strict schema, trailing-value, format,
+	// checksum, and record validation. This second parse reads only the validated
+	// exported_at metadata needed for the minimized projection.
 	var envelope portableSnapshotEnvelope
-	if err := decodePortableSnapshotEnvelope(payload, &envelope); err != nil {
-		return PortableSnapshotSummary{}, err
+	if err := json.Unmarshal(payload, &envelope); err != nil {
+		return PortableSnapshotSummary{}, fmt.Errorf("%w: cannot read validated snapshot metadata: %v", ErrInvalidPortableSnapshot, err)
 	}
 
 	summary := PortableSnapshotSummary{
