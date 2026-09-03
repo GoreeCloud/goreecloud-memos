@@ -7,7 +7,12 @@
     "glazeUI": {
       "required": true,
       "status": "planned",
-      "contract": "current-stable"
+      "contract": "1.0.0",
+      "sourceRevision": "70909bbdccad378fb7281ae1842e2f5beed64c38",
+      "evidence": [
+        "current GLAZE UI V1.0 target is pinned",
+        "no accepted rendered native application implementation is claimed"
+      ]
     },
     "wardveilSecurity": {
       "required": true,
@@ -33,5 +38,5 @@
       ]
     }
   },
-  "releaseBoundary": "No native deployment, migration cutover, or Stable release is authorized by this manifest."
+  "releaseBoundary": "No native deployment, migration cutover, rendered GLAZE UI V1.0 acceptance, or Stable release is authorized by this manifest."
 }
