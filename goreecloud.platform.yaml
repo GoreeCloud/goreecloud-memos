@@ -84,9 +84,11 @@ recovery:
     - accepted Everkeep backup and restore integration
     - controlled migration from the retained production runtime
   documentation:
+    - USER-MANUAL.md
     - native/README.md
     - docs/development/native-portable-snapshot.md
   evidence:
+    - memos-user-manual
     - memos-portable-snapshot-source
     - memos-portable-snapshot-doc
     - memos-native-ci-65
@@ -137,11 +139,18 @@ conformance:
     - {id: export-portability, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-portable-snapshot-doc, memos-native-ci-65], note: "Source-level round-trip and integrity tests exist; user-facing export/import and clean-target acceptance remain pending."}
     - {id: security-validation, mandatory: true, status: pending, evidence: [memos-file-repository-source, memos-native-ci-65]}
     - {id: privacy-validation, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-native-ci-65]}
-    - {id: required-documentation, mandatory: true, status: pending, evidence: [memos-native-readme, memos-portable-snapshot-doc], note: "The repository-local mandatory documentation baseline is not yet complete for the native rebuild."}
+    - {id: required-documentation, mandatory: true, status: pass, evidence: [memos-user-manual, memos-native-readme, memos-portable-snapshot-doc], note: "The mandatory root user manual and native Development/recovery documentation are present. Documentation does not establish runtime, platform-system, recovery, or production acceptance."}
     - {id: required-tests, mandatory: true, status: pass, evidence: [memos-native-ci-65], note: "Native Memos Foundation #65 passed the durable repository and portable snapshot source line at revision 5549f9dc70d0e47742bcddb54dff6ff9c36920f3."}
     - {id: release-evidence, mandatory: true, status: pending, evidence: [], note: "The native rebuild has no release or production acceptance evidence."}
 evidence:
   acceptance:
+    - id: memos-user-manual
+      kind: documentation
+      location: USER-MANUAL.md
+      revision: null
+      observed_at: null
+      producer: GoreeCloud/goreecloud-memos
+      description: Source-current user and developer manual that explicitly separates the accepted web/server runtime from the original native Development rebuild and its portability/recovery boundaries.
     - id: memos-native-readme
       kind: documentation
       location: native/README.md
