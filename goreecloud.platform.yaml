@@ -1,203 +1,136 @@
-schema_version: "1.0"
+schema_version: "0.1"
+
 component:
-  id: goreecloud.memos
+  type: application
+  id: goreecloud-memos
   product_name: GoreeCloud Memos
-  kind: application
   repository: GoreeCloud/goreecloud-memos
-  lifecycle: Development
-  version: "0.1.0-dev"
-  supported_platforms:
-    - server
-  user_facing: true
+
+lifecycle: development
+version: "0.1.0-dev"
+
+supported_platforms:
+  - server
+
 api:
-  version: null
+  versions: []
   endpoints: []
-glaze_ui:
-  applicable: true
-  required_version: "2.2.0"
-  implemented_version: null
-  migration_status: required
-  evidence:
-    - memos-platform-integrations
+
 platform_systems:
   manager:
-    status: "Applicable — Nonconformant"
-    justification: The native Memos rebuild is not yet registered through the accepted GoreeCloud platform visibility path and has no Manager acceptance evidence.
+    status: planned
+    version: null
     evidence:
-      - memos-native-readme
-  identity:
-    status: "Applicable — Nonconformant"
-    justification: Native memo operations are owner-scoped, but accepted GoreeCloud Identity authentication, session, and owner-binding integration is not yet implemented.
-    evidence:
-      - memos-file-repository-source
-  wardveil_security:
-    status: "Applicable — Nonconformant"
-    justification: The durable repository has fail-closed filesystem and owner-isolation safeguards, but these source controls are not accepted Wardveil Security integration.
-    evidence:
-      - memos-file-repository-source
-      - memos-native-ci-65
+      - native/README.md
+    notes: The original native Memos rebuild is not registered through the accepted GoreeCloud platform visibility path and has no accepted Manager integration evidence.
   privacy_shield:
-    status: "Applicable — Nonconformant"
-    justification: The native foundation is owner-scoped and the portable snapshot omits the source owner identifier, but Privacy Shield integration and acceptance are not established.
+    status: planned
+    version: null
     evidence:
-      - memos-portable-snapshot-source
-      - memos-native-ci-65
+      - native/internal/memo/portable_snapshot.go
+      - native/internal/memo/portable_snapshot_inspection.go
+      - docs/development/native-portable-snapshot.md
+      - docs/development/native-portable-snapshot-inspection.md
+    notes: The native foundation is owner-scoped, the portable snapshot omits source-owner identity, and snapshot preflight returns aggregate counts only, but accepted Privacy Shield integration and production privacy validation are not established.
+  wardveil_security:
+    status: planned
+    version: null
+    evidence:
+      - native/internal/memo/file_repository.go
+    notes: The durable Development repository has fail-closed path, mode, symlink, atomic-write, and owner-isolation safeguards, but these source controls do not establish accepted Wardveil Security integration.
   everkeep:
-    status: "Applicable — Nonconformant"
-    justification: A versioned portable snapshot codec exists as Development source, but Everkeep backup, restore, recovery, and continuity acceptance are not established.
+    status: planned
+    version: null
     evidence:
-      - memos-portable-snapshot-source
-      - memos-portable-snapshot-doc
-      - memos-native-ci-65
-  mesh:
-    status: "Applicable — Nonconformant"
-    justification: A reviewed Browser capture contract exists, but its service endpoint and adapter readiness remain intentionally false and canonical Mesh registration is not established.
-    evidence:
-      - memos-browser-capture-contract
+      - native/internal/memo/portable_snapshot.go
+      - native/internal/memo/portable_snapshot_inspection.go
+      - docs/development/native-portable-snapshot.md
+      - docs/development/native-portable-snapshot-inspection.md
+    notes: A versioned portable snapshot codec and privacy-minimized read-only preflight exist as Development portability foundations. They do not provide repository restore, clean-target recovery, backup lineage, or accepted Everkeep integration.
   glaze_ui:
-    status: "Applicable — Migration Required"
-    justification: The native rebuild has no accepted Glaze UI 2.2.0 rendered application implementation yet; the retained upstream-derived runtime is transition and rollback material rather than the native UI authority.
+    status: planned
+    version: "1.0.0"
     evidence:
-      - memos-platform-integrations
-mesh:
-  registration: required
-  capabilities:
-    - quick-memo-domain
-    - owner-scoped-memo-persistence
-    - portable-memo-snapshot
-  dependencies: []
-  published_events: []
-  consumed_events: []
-  evidence: []
+      - native/platform/integrations.json
+      - native/README.md
+      - USER-MANUAL.md
+    notes: GLAZE UI V1.0 is the required current interface target. The original native rebuild has no accepted rendered native application implementation yet, so this declaration records the target without fabricating implementation or consumer acceptance.
+  mesh:
+    status: planned
+    version: null
+    evidence:
+      - native/platform/browser_capture_contract.json
+    notes: A reviewed Browser capture contract exists, but endpoint, adapter, production readiness, canonical Mesh registration, capability publication, and runtime acceptance remain unestablished.
+    capabilities: []
+    dependencies: []
+    published_events: []
+    consumed_events: []
+  identity:
+    status: planned
+    version: null
+    evidence:
+      - native/internal/memo/file_repository.go
+    notes: Native memo operations are explicitly owner-scoped, but owner scoping is not GoreeCloud Identity. Accepted authentication, session, and owner-binding integration are not implemented.
+
 health:
-  liveness: []
-  readiness: []
-recovery:
-  backup_required: true
-  backup_status: required_missing
-  restore_required: true
-  restore_status: required_missing
-  last_verified_restore: null
-  recovery_dependencies:
-    - native durable memo repository
-    - accepted GoreeCloud Identity owner binding
-    - accepted Everkeep backup and restore integration
-    - controlled migration from the retained production runtime
-  documentation:
+  health_endpoint: null
+  readiness_endpoint: null
+
+continuity:
+  backup:
+    required: true
+    requirements:
+      - Preserve accepted production data during transition while defining the approved native Memos backup scope.
+      - Establish accepted Everkeep-compatible backup scheduling, integrity, retention, privacy, credential recovery, and independent-copy evidence before native production use.
+  restore:
+    required: true
+    requirements:
+      - Implement an authorized clean-target native restore path with explicit GoreeCloud Identity owner binding, transactional persistence, conflict policy, failure handling, and auditability.
+      - Keep snapshot decoding and inspection separate from repository overwrite until restore authority is explicitly implemented and accepted.
+  export:
+    required: true
+    requirements:
+      - Preserve goreecloud-memos-portable-snapshot/1 semantics for supported memo identity, content, labels, reminder, lifecycle, pinning, and timestamps.
+      - Omit source-owner identity and require explicit target-owner materialization without treating the format as backup or restore.
+  portability:
+    required: true
+    requirements:
+      - Fail closed on unsupported format/schema versions, checksum mismatch, duplicate identifiers, invalid lifecycle/timestamps, malformed records, unknown fields, and trailing data.
+      - Keep the aggregate snapshot-inspection projection content-minimized and read-only.
+      - Validate user-facing export/import and clean-target reconstruction before product-wide portability is claimed.
+
+external_dependencies: []
+
+compatibility:
+  requires:
+    - goreecloud-platform-contract>=0.1
+    - glaze-ui==1.0.0
+  provides:
+    - goreecloud-memos-portable-snapshot/1
+
+conformance:
+  status: nonconformant
+  validated_at: null
+  evidence:
     - USER-MANUAL.md
     - native/README.md
+    - native/platform/integrations.json
+    - native/platform/browser_capture_contract.json
+    - native/internal/memo/file_repository.go
+    - native/internal/memo/portable_snapshot.go
+    - native/internal/memo/portable_snapshot_inspection.go
     - docs/development/native-portable-snapshot.md
-  evidence:
-    - memos-user-manual
-    - memos-portable-snapshot-source
-    - memos-portable-snapshot-doc
-    - memos-native-ci-65
-data_portability:
-  export_capability: implemented_unverified
-  export_formats:
-    - goreecloud-memos-portable-snapshot/1
-  last_export_validation: null
-  portability_requirements:
-    - preserve memo identity, content, labels, reminder, lifecycle, pinning, and timestamps
-    - omit source owner identity from portable payloads
-    - require an explicit target owner during materialization
-    - validate schema version, integrity checksum, duplicate identifiers, timestamps, lifecycle values, and unknown fields fail-closed
-    - keep decode and inspection separate from repository overwrite or restore execution
-  evidence:
-    - memos-portable-snapshot-source
-    - memos-portable-snapshot-doc
-    - memos-native-ci-65
-external_dependencies: []
-compatibility:
-  platform_releases: []
-  api_requirements:
-    - A native service API and authentication contract must be separately implemented and accepted before network exposure.
-  schema_requirements:
-    - goreecloud.platform/1.0
-    - goreecloud-memos-portable-snapshot/1
-  component_requirements:
-    - Glaze UI 2.2.0 before rendered native application acceptance
-    - GoreeCloud Identity accepted owner/session integration before Stable
-    - Wardveil Security and Privacy Shield accepted integration before Stable
-    - Everkeep accepted backup and restore integration before Stable
-    - GoreeCloud Mesh registration before platform acceptance
-conformance:
-  declared_state: migration_required
-  stable_eligible: false
-  checks:
-    - {id: glaze-ui, mandatory: true, status: pending, evidence: [memos-platform-integrations], note: "Native Glaze UI 2.2.0 application implementation and acceptance are not established."}
-    - {id: goreecloud-identity, mandatory: true, status: pending, evidence: [memos-file-repository-source], note: "Owner scoping is not Identity integration."}
-    - {id: wardveil-security, mandatory: true, status: pending, evidence: [memos-file-repository-source, memos-native-ci-65], note: "Filesystem hardening is Development evidence, not Wardveil acceptance."}
-    - {id: privacy-shield, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-native-ci-65]}
-    - {id: everkeep-recovery, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-portable-snapshot-doc]}
-    - {id: mesh-registration, mandatory: true, status: pending, evidence: [memos-browser-capture-contract]}
-    - {id: api-compatibility, mandatory: true, status: pending, evidence: [], note: "No native network API is claimed in this Development checkpoint."}
-    - {id: accessibility, mandatory: true, status: pending, evidence: [], note: "The native rebuild has no accepted rendered application surface yet."}
-    - {id: platform-acceptance, mandatory: true, status: pending, evidence: []}
-    - {id: backup, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source], note: "Portable export source is not an accepted backup implementation."}
-    - {id: restore, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source], note: "Snapshot decoding does not write or overwrite repository state and is not an accepted restore path."}
-    - {id: export-portability, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-portable-snapshot-doc, memos-native-ci-65], note: "Source-level round-trip and integrity tests exist; user-facing export/import and clean-target acceptance remain pending."}
-    - {id: security-validation, mandatory: true, status: pending, evidence: [memos-file-repository-source, memos-native-ci-65]}
-    - {id: privacy-validation, mandatory: true, status: pending, evidence: [memos-portable-snapshot-source, memos-native-ci-65]}
-    - {id: required-documentation, mandatory: true, status: pass, evidence: [memos-user-manual, memos-native-readme, memos-portable-snapshot-doc], note: "The mandatory root user manual and native Development/recovery documentation are present. Documentation does not establish runtime, platform-system, recovery, or production acceptance."}
-    - {id: required-tests, mandatory: true, status: pass, evidence: [memos-native-ci-65], note: "Native Memos Foundation #65 passed the durable repository and portable snapshot source line at revision 5549f9dc70d0e47742bcddb54dff6ff9c36920f3."}
-    - {id: release-evidence, mandatory: true, status: pending, evidence: [], note: "The native rebuild has no release or production acceptance evidence."}
-evidence:
-  acceptance:
-    - id: memos-user-manual
-      kind: documentation
-      location: USER-MANUAL.md
-      revision: null
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Source-current user and developer manual that explicitly separates the accepted web/server runtime from the original native Development rebuild and its portability/recovery boundaries.
-    - id: memos-native-readme
-      kind: documentation
-      location: native/README.md
-      revision: null
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Native rebuild architecture and acceptance boundary. Documentation does not establish platform or production acceptance.
-    - id: memos-platform-integrations
-      kind: source
-      location: native/platform/integrations.json
-      revision: null
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Existing fail-closed native platform-system integration declaration; Glaze UI and Everkeep remain unaccepted and Stable qualification is blocked.
-    - id: memos-browser-capture-contract
-      kind: source
-      location: native/platform/browser_capture_contract.json
-      revision: null
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Reviewed Browser capture contract with endpoint, adapter, and production readiness deliberately not established.
-    - id: memos-file-repository-source
-      kind: source
-      location: native/internal/memo/file_repository.go
-      revision: 5549f9dc70d0e47742bcddb54dff6ff9c36920f3
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Development single-node durable owner-scoped memo repository with path, mode, symlink, atomic-commit, and crash-durability safeguards.
-    - id: memos-portable-snapshot-source
-      kind: source
-      location: native/internal/memo/portable_snapshot.go
-      revision: 5549f9dc70d0e47742bcddb54dff6ff9c36920f3
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Versioned portable snapshot codec with source-owner omission, explicit target-owner materialization, SHA-256 integrity verification, and strict fail-closed decoding.
-    - id: memos-portable-snapshot-doc
-      kind: documentation
-      location: docs/development/native-portable-snapshot.md
-      revision: 5549f9dc70d0e47742bcddb54dff6ff9c36920f3
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Development portability, privacy, restore, and Everkeep evidence boundaries for the native snapshot foundation.
-    - id: memos-native-ci-65
-      kind: automated_test
-      location: https://github.com/GoreeCloud/goreecloud-memos/actions/runs/33587411598
-      revision: 5549f9dc70d0e47742bcddb54dff6ff9c36920f3
-      observed_at: null
-      producer: GoreeCloud/goreecloud-memos
-      description: Native Memos Foundation #65 passed format, unit tests, go vet, and the native platform integration manifest validation on the durable repository and portable snapshot Development head.
-  release: []
+    - docs/development/native-portable-snapshot-inspection.md
+  blockers:
+    - The original native rebuild has no accepted rendered GLAZE UI V1.0 application implementation or accessibility/device/Human Visual Excellence/release acceptance.
+    - GoreeCloud Identity authentication, session, and owner-binding integration are not established.
+    - Wardveil Security integration and acceptance are not established.
+    - Privacy Shield integration and acceptance are not established.
+    - Everkeep integration plus accepted native backup, restore, and clean-target recovery are not established.
+    - GoreeCloud Mesh registration, Browser capture endpoint/adapter readiness, capability publication, and runtime acceptance are not established.
+    - Manager platform visibility and administrative integration acceptance are not established.
+    - No native network API is claimed or accepted in this Development checkpoint.
+    - The portable snapshot and aggregate preflight are bounded source-level portability evidence, not accepted backup, restore, or production export/import workflows.
+    - Controlled migration from the retained accepted web/server runtime into the native rebuild is not implemented or approved.
+    - Native deployment, production acceptance, release approval, and Stable qualification remain outstanding.
+    - Platform Contract adoption and source CI do not by themselves authorize production or Stable qualification.
