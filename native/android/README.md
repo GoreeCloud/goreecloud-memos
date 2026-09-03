@@ -33,8 +33,10 @@ The Development application ID is `com.goreecloud.memos.native.dev`, while Kotli
 
 Source maps the currently consumed foundation subset to GLAZE UI V1.0 (`1.0.0`) at exact canonical source revision `70909bbdccad378fb7281ae1842e2f5beed64c38`. This is a source-level consumer foundation only. Deep Dark, reduced-transparency/increased-contrast equivalents, complete semantic-color/state coverage, animation/motion evaluation, screen-reader acceptance, large-font acceptance, adaptive/foldable behavior, Touch Assistance mode, Human Visual Excellence review, and representative physical-device acceptance remain open.
 
-## Validation
+## Validation and acceptance artifact
 
 `native/android/scripts/check_native_android.py` fails closed if the new source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1 target metadata drifts, or the native Home loses its Compose staggered-card, Back, or IME-focus contracts.
 
-Android CI also runs lint, JVM unit tests, and a debug APK build. Those gates establish Development source/build evidence only; they do not authorize release, migration, production deployment, or Stable qualification.
+Android CI also runs lint, JVM unit tests, and a debug APK build. A successful exact-head run stages the APK with `BUILD-PROVENANCE.txt` and a verified `SHA256SUMS` file, then uploads the set as `goreecloud-memos-native-android-dev`. The provenance binds the artifact to the exact source SHA, Development version, `.native.dev` package identity, workflow run, and session-only data-authority boundary.
+
+This artifact exists for controlled side-by-side Development acceptance against the transitional Tauri client. It is not a signed Stable Android release and does not authorize production data binding, migration, deployment, or replacement of the retained client.
