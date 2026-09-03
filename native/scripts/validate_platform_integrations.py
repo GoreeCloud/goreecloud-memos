@@ -7,6 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "platform" / "integrations.json"
 REQUIRED = {"glazeUI", "wardveilSecurity", "privacyShield", "everkeep"}
 ALLOWED_STATUS = {"planned", "foundation", "implemented", "validated", "accepted"}
+GLAZE_VERSION = "1.0.0"
+GLAZE_SOURCE_REVISION = "70909bbdccad378fb7281ae1842e2f5beed64c38"
 
 
 def main() -> None:
@@ -29,6 +31,16 @@ def main() -> None:
             raise SystemExit(f"{name} must remain required")
         if entry.get("status") not in ALLOWED_STATUS:
             raise SystemExit(f"{name} has invalid status")
+
+    glaze = systems["glazeUI"]
+    if glaze.get("status") != "planned":
+        raise SystemExit(
+            "native Memos must remain planned for Glaze until a rendered implementation is established"
+        )
+    if glaze.get("contract") != GLAZE_VERSION:
+        raise SystemExit(f"Glaze target must be GLAZE UI V1.0 ({GLAZE_VERSION})")
+    if glaze.get("sourceRevision") != GLAZE_SOURCE_REVISION:
+        raise SystemExit("Glaze target must pin the exact canonical V1 source revision")
 
     if not data.get("stableQualificationBlocked"):
         statuses = {systems[name]["status"] for name in REQUIRED}
