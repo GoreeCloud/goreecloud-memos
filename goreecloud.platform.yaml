@@ -11,6 +11,7 @@ version: "0.1.0-dev"
 
 supported_platforms:
   - server
+  - android
 
 api:
   versions: []
@@ -29,15 +30,17 @@ platform_systems:
     evidence:
       - native/internal/memo/portable_snapshot.go
       - native/internal/memo/portable_snapshot_inspection.go
+      - native/android/README.md
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
-    notes: The native foundation is owner-scoped, the portable snapshot omits source-owner identity, and snapshot preflight returns aggregate counts only, but accepted Privacy Shield integration and production privacy validation are not established.
+    notes: The native foundation is owner-scoped, the portable snapshot omits source-owner identity, snapshot preflight returns aggregate counts only, and the Android Home/Capture foundation has no network or production-data authority, but accepted Privacy Shield integration and production privacy validation are not established.
   wardveil_security:
     status: planned
     version: null
     evidence:
       - native/internal/memo/file_repository.go
-    notes: The durable Development repository has fail-closed path, mode, symlink, atomic-write, and owner-isolation safeguards, but these source controls do not establish accepted Wardveil Security integration.
+      - native/android/scripts/check_native_android.py
+    notes: The durable Development repository has fail-closed path, mode, symlink, atomic-write, and owner-isolation safeguards and the Android source rejects WebView/network authority, but these source controls do not establish accepted Wardveil Security integration.
   everkeep:
     status: planned
     version: null
@@ -46,15 +49,20 @@ platform_systems:
       - native/internal/memo/portable_snapshot_inspection.go
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
-    notes: A versioned portable snapshot codec and privacy-minimized read-only preflight exist as Development portability foundations. They do not provide repository restore, clean-target recovery, backup lineage, or accepted Everkeep integration.
+    notes: A versioned portable snapshot codec and privacy-minimized read-only preflight exist as Development portability foundations. The Android UI uses session-only in-memory state and does not provide repository restore, clean-target recovery, backup lineage, or accepted Everkeep integration.
   glaze_ui:
-    status: planned
+    status: partial
     version: "1.0.0"
     evidence:
       - native/platform/integrations.json
-      - native/README.md
-      - USER-MANUAL.md
-    notes: GLAZE UI V1.0 is the required current interface target. The original native rebuild has no accepted rendered native application implementation yet, so this declaration records the target without fabricating implementation or consumer acceptance.
+      - native/android/app/src/main/java/com/goreecloud/memos/MainActivity.kt
+      - native/android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt
+      - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeMetrics.kt
+      - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeTheme.kt
+      - native/android/scripts/check_native_android.py
+      - native/android/README.md
+      - docs/development/native-android-home-capture.md
+    notes: A Kotlin/Jetpack Compose Android Home/Capture foundation now maps the consumed GLAZE UI V1.0 geometry and Light/Dark foundation to native Android behavior at exact canonical source revision 70909bbdccad378fb7281ae1842e2f5beed64c38. Complete rendered, accessibility, semantic-state, motion, adaptive, representative-device, Human Visual Excellence, release, and production acceptance remain incomplete.
   mesh:
     status: planned
     version: null
@@ -70,7 +78,7 @@ platform_systems:
     version: null
     evidence:
       - native/internal/memo/file_repository.go
-    notes: Native memo operations are explicitly owner-scoped, but owner scoping is not GoreeCloud Identity. Accepted authentication, session, and owner-binding integration are not implemented.
+    notes: Native memo operations are explicitly owner-scoped, but owner scoping is not GoreeCloud Identity. The Android foundation intentionally has no authenticated production data binding. Accepted authentication, session, and owner-binding integration are not implemented.
 
 health:
   health_endpoint: null
@@ -99,12 +107,16 @@ continuity:
       - Keep the aggregate snapshot-inspection projection content-minimized and read-only.
       - Validate user-facing export/import and clean-target reconstruction before product-wide portability is claimed.
 
-external_dependencies: []
+external_dependencies:
+  - name: Android platform
+    purpose: Native Activity lifecycle, Jetpack Compose rendering, IME interaction, Back navigation, system bars, accessibility, and application execution environment.
+    required: true
 
 compatibility:
   requires:
     - goreecloud-platform-contract>=0.1
     - glaze-ui==1.0.0
+    - android-api>=29
   provides:
     - goreecloud-memos-portable-snapshot/1
 
@@ -119,10 +131,17 @@ conformance:
     - native/internal/memo/file_repository.go
     - native/internal/memo/portable_snapshot.go
     - native/internal/memo/portable_snapshot_inspection.go
+    - native/android/README.md
+    - native/android/app/src/main/java/com/goreecloud/memos/MainActivity.kt
+    - native/android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt
+    - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeMetrics.kt
+    - native/android/scripts/check_native_android.py
     - docs/development/native-portable-snapshot.md
     - docs/development/native-portable-snapshot-inspection.md
+    - docs/development/native-android-home-capture.md
   blockers:
-    - The original native rebuild has no accepted rendered GLAZE UI V1.0 application implementation or accessibility/device/Human Visual Excellence/release acceptance.
+    - The original native rebuild now has a source-level Kotlin/Jetpack Compose Android Home/Capture foundation, but no accepted GLAZE UI V1.0 rendered/accessibility/device/Human Visual Excellence/release acceptance.
+    - The Android foundation is session-only and has no authorized production memo repository, API, synchronization, or migration binding.
     - GoreeCloud Identity authentication, session, and owner-binding integration are not established.
     - Wardveil Security integration and acceptance are not established.
     - Privacy Shield integration and acceptance are not established.
@@ -132,5 +151,5 @@ conformance:
     - No native network API is claimed or accepted in this Development checkpoint.
     - The portable snapshot and aggregate preflight are bounded source-level portability evidence, not accepted backup, restore, or production export/import workflows.
     - Controlled migration from the retained accepted web/server runtime into the native rebuild is not implemented or approved.
-    - Native deployment, production acceptance, release approval, and Stable qualification remain outstanding.
+    - Native deployment, protected Android release signing, representative-device production acceptance, release approval, and Stable qualification remain outstanding.
     - Platform Contract adoption and source CI do not by themselves authorize production or Stable qualification.

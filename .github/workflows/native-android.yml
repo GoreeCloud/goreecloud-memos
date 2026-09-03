@@ -1,0 +1,105 @@
+name: Native Memos Android
+
+on:
+  pull_request:
+    paths:
+      - "native/android/**"
+      - "native/platform/integrations.json"
+      - "native/scripts/validate_platform_integrations.py"
+      - "docs/development/native-android-home-capture.md"
+      - "goreecloud.platform.yaml"
+      - ".github/workflows/native-android.yml"
+  push:
+    branches:
+      - "agent/native-android-home-capture"
+    paths:
+      - "native/android/**"
+      - "native/platform/integrations.json"
+      - "native/scripts/validate_platform_integrations.py"
+      - "docs/development/native-android-home-capture.md"
+      - "goreecloud.platform.yaml"
+      - ".github/workflows/native-android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: native/android
+    steps:
+      - name: Check out exact candidate revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact source and Development identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          test "$SOURCE_SHA" = "$EXPECTED_SOURCE_SHA"
+
+          APPLICATION_ID="$(sed -n 's/.*applicationId = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)"
+          VERSION_NAME="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)"
+          test "$APPLICATION_ID" = "com.goreecloud.memos.native.dev"
+          test "$VERSION_NAME" = "0.1.0-dev"
+
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "APPLICATION_ID=$APPLICATION_ID" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Validate native Android boundary
+        run: python3 scripts/check_native_android.py
+      - name: Validate platform integration manifest
+        working-directory: .
+        run: python3 native/scripts/validate_platform_integrations.py
+      - name: Lint, test, and build native Android Development APK
+        run: gradle --no-daemon :app:lintDebug :app:testDebugUnitTest :app:assembleDebug --stacktrace
+      - name: Stage self-verifying native Android acceptance artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find app/build/outputs/apk/debug -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+
+          ARTIFACT_ROOT="artifact-native-android"
+          rm -rf "$ARTIFACT_ROOT"
+          mkdir -p "$ARTIFACT_ROOT"
+          cp "$APK" "$ARTIFACT_ROOT/"
+
+          cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
+          repository=GoreeCloud/goreecloud-memos
+          source_sha=$SOURCE_SHA
+          version_name=$VERSION_NAME
+          application_id=$APPLICATION_ID
+          workflow=$GITHUB_WORKFLOW
+          run_id=$GITHUB_RUN_ID
+          run_attempt=$GITHUB_RUN_ATTEMPT
+          artifact_role=android-native-development-acceptance
+          data_authority=session-only-in-memory
+          EOF
+
+          (
+            cd "$ARTIFACT_ROOT"
+            sha256sum ./*.apk > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+      - name: Upload native Android Development APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: goreecloud-memos-native-android-dev
+          if-no-files-found: error
+          path: native/android/artifact-native-android/*

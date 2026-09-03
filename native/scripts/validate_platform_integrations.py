@@ -9,6 +9,11 @@ REQUIRED = {"glazeUI", "wardveilSecurity", "privacyShield", "everkeep"}
 ALLOWED_STATUS = {"planned", "foundation", "implemented", "validated", "accepted"}
 GLAZE_VERSION = "1.0.0"
 GLAZE_SOURCE_REVISION = "70909bbdccad378fb7281ae1842e2f5beed64c38"
+ANDROID_EVIDENCE = {
+    ROOT / "android/app/src/main/java/com/goreecloud/memos/MainActivity.kt",
+    ROOT / "android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt",
+    ROOT / "android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeMetrics.kt",
+}
 
 
 def main() -> None:
@@ -33,14 +38,17 @@ def main() -> None:
             raise SystemExit(f"{name} has invalid status")
 
     glaze = systems["glazeUI"]
-    if glaze.get("status") != "planned":
+    if glaze.get("status") != "foundation":
         raise SystemExit(
-            "native Memos must remain planned for Glaze until a rendered implementation is established"
+            "native Memos Glaze status must remain foundation until broader implementation and acceptance are established"
         )
     if glaze.get("contract") != GLAZE_VERSION:
         raise SystemExit(f"Glaze target must be GLAZE UI V1.0 ({GLAZE_VERSION})")
     if glaze.get("sourceRevision") != GLAZE_SOURCE_REVISION:
         raise SystemExit("Glaze target must pin the exact canonical V1 source revision")
+    missing_android = sorted(str(path.relative_to(ROOT)) for path in ANDROID_EVIDENCE if not path.is_file())
+    if missing_android:
+        raise SystemExit(f"native Android Glaze foundation evidence is missing: {missing_android}")
 
     if not data.get("stableQualificationBlocked"):
         statuses = {systems[name]["status"] for name in REQUIRED}
