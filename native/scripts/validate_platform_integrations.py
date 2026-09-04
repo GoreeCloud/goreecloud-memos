@@ -7,12 +7,14 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "platform" / "integrations.json"
 REQUIRED = {"glazeUI", "wardveilSecurity", "privacyShield", "everkeep"}
 ALLOWED_STATUS = {"planned", "foundation", "implemented", "validated", "accepted"}
-GLAZE_VERSION = "1.0.0"
-GLAZE_SOURCE_REVISION = "70909bbdccad378fb7281ae1842e2f5beed64c38"
+GLAZE_VERSION = "1.1.0"
+GLAZE_SOURCE_REVISION = "15cc76d2bcd4065552dc31c77145b63f34d9e7b2"
 ANDROID_EVIDENCE = {
     ROOT / "android/app/src/main/java/com/goreecloud/memos/MainActivity.kt",
     ROOT / "android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt",
     ROOT / "android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeMetrics.kt",
+    ROOT / "android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeTheme.kt",
+    ROOT / "android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt",
 }
 
 
@@ -43,9 +45,9 @@ def main() -> None:
             "native Memos Glaze status must remain foundation until broader implementation and acceptance are established"
         )
     if glaze.get("contract") != GLAZE_VERSION:
-        raise SystemExit(f"Glaze target must be GLAZE UI V1.0 ({GLAZE_VERSION})")
+        raise SystemExit(f"Glaze target must be GLAZE UI V1.1 ({GLAZE_VERSION})")
     if glaze.get("sourceRevision") != GLAZE_SOURCE_REVISION:
-        raise SystemExit("Glaze target must pin the exact canonical V1 source revision")
+        raise SystemExit("Glaze target must pin the exact Stable V1.1 source revision")
     missing_android = sorted(str(path.relative_to(ROOT)) for path in ANDROID_EVIDENCE if not path.is_file())
     if missing_android:
         raise SystemExit(f"native Android Glaze foundation evidence is missing: {missing_android}")

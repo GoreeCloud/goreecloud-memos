@@ -3,10 +3,16 @@ package com.goreecloud.memos.ui.theme
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Native Android mapping of the GLAZE UI V1.0 subset consumed by Memos. */
+/**
+ * Native Android mapping of the GLAZE UI V1.1 foundation/optical subset consumed by Memos.
+ *
+ * V1.1 preserves the inherited V1 spacing, structural radius, and interaction-target
+ * contracts. Optical geometry references are recorded separately so they do not silently
+ * redefine structural curvature or hit targets.
+ */
 object GlazeMetrics {
-    const val targetVersion = "1.0.0"
-    const val sourceRevision = "70909bbdccad378fb7281ae1842e2f5beed64c38"
+    const val targetVersion = "1.1.0"
+    const val sourceRevision = "15cc76d2bcd4065552dc31c77145b63f34d9e7b2"
 
     val space1: Dp = 4.dp
     val space2: Dp = 8.dp
@@ -25,4 +31,11 @@ object GlazeMetrics {
 
     val minimumTarget: Dp = 48.dp
     val touchAssistanceTarget: Dp = 56.dp
+
+    // V1.1 optical geometry references, intentionally separate from structural radii.
+    val opticalMicro: Dp = 8.dp
+    val opticalControl: Dp = 16.dp
+    val opticalContainer: Dp = 24.dp
+    val opticalHero: Dp = 32.dp
+    val opticalCapsule: Dp = 999.dp
 }

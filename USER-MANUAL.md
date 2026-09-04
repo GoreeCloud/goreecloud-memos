@@ -126,10 +126,13 @@ The `native/` tree is an original GoreeCloud-owned rebuild path. Current source 
 - pinning;
 - labels and lightweight search/filter behavior;
 - reminder domain state;
-- an owner-scoped durable single-node file repository with fail-closed filesystem safeguards; and
-- a versioned portable memo snapshot format with strict integrity and schema validation.
+- an owner-scoped durable single-node file repository with fail-closed filesystem safeguards;
+- a versioned portable memo snapshot format with strict integrity and schema validation; and
+- a native Android Home/Capture Development surface with text-share and New memo launcher entry points whose memo state remains session-only and isolated from the accepted production library.
 
-There is currently **no accepted user-facing native application workflow** in this repository that replaces the accepted web/server runtime. GLAZE UI V1.0 (`1.0.0`) is the required current native interface target, but the native line does not yet establish an accepted rendered GLAZE UI V1.0 application, production GoreeCloud Identity session integration, Wardveil Security acceptance, Privacy Shield acceptance, Everkeep backup/restore integration, GoreeCloud Mesh registration, production service API, controlled user-data migration, deployment, release, or Stable qualification.
+The native Android source now targets GLAZE UI V1.1 (`1.1.0`) at exact Stable source revision `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`. It defines V1.1 optical geometry and an explicit Deep Dark source palette, but the current Android runtime still follows system Light/Dark only; Deep Dark requires a separately reviewed runtime appearance policy. A bounded non-semantic Deep Teal + Soft Amber atmosphere source contract also exists but is not rendered by the Home/Capture surface and does not inspect memo/draft content, queued shares, editor metadata, location, time, weather, identity state, or platform security/privacy state.
+
+There is currently **no accepted native application workflow that replaces the accepted web/server runtime**. The native line does not yet establish complete rendered/accessibility/device GLAZE UI V1.1 acceptance, production GoreeCloud Identity session integration, Wardveil Security acceptance, Privacy Shield acceptance, Everkeep backup/restore integration, GoreeCloud Mesh registration, production service API, controlled user-data migration, deployment, release, or Stable qualification.
 
 Developers and reviewers must therefore treat native source behavior as Development evidence only.
 
