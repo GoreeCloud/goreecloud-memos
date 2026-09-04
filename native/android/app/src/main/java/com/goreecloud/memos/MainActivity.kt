@@ -39,7 +39,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
+        // Consume the incoming share/shortcut payload into the minimized native capture model.
+        // Do not replace Activity.intent with the new payload: Memos does not need to retain the
+        // shared text after parsing it, and keeping it there unnecessarily extends sensitive-text
+        // lifetime across later lifecycle operations.
         incomingCapture = intent.toNativeCaptureRequest()
     }
 
