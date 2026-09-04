@@ -39,10 +39,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goreecloud.memos.ui.theme.GlazeMetrics
 
 @Composable
-fun MemosHomeRoute(viewModel: HomeViewModel = viewModel()) {
+fun MemosHomeRoute(
+    viewModel: HomeViewModel = viewModel(),
+    incomingCapture: NativeCaptureRequest? = null,
+    onIncomingCaptureConsumed: (Long) -> Unit = {},
+) {
     val state = viewModel.uiState
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(incomingCapture?.token) {
+        incomingCapture?.let { request ->
+            viewModel.beginExternalCapture(request.text)
+            onIncomingCaptureConsumed(request.token)
+        }
+    }
 
     BackHandler(enabled = state.composerExpanded) {
         focusManager.clearFocus()
@@ -114,6 +125,7 @@ fun MemosHomeScreen(
                 QuickCapture(
                     expanded = state.composerExpanded,
                     draft = state.draft,
+                    pendingCaptureCount = state.pendingCaptures.size,
                     onExpand = onExpandComposer,
                     onDraftChange = onDraftChange,
                     onCancel = onCancelDraft,
@@ -162,6 +174,7 @@ private fun NativeDevelopmentNotice() {
 private fun QuickCapture(
     expanded: Boolean,
     draft: String,
+    pendingCaptureCount: Int,
     onExpand: () -> Unit,
     onDraftChange: (String) -> Unit,
     onCancel: () -> Unit,
@@ -210,6 +223,9 @@ private fun QuickCapture(
             modifier = Modifier.padding(GlazeMetrics.space4),
             verticalArrangement = Arrangement.spacedBy(GlazeMetrics.space3),
         ) {
+            if (pendingCaptureCount > 0) {
+                PendingCaptureNotice(pendingCaptureCount)
+            }
             OutlinedTextField(
                 value = draft,
                 onValueChange = onDraftChange,
@@ -241,6 +257,25 @@ private fun QuickCapture(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PendingCaptureNotice(count: Int) {
+    Surface(
+        shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Text(
+            text = if (count == 1) {
+                "1 shared capture is waiting. Save or cancel this draft to continue."
+            } else {
+                "$count shared captures are waiting. Save or cancel this draft to continue."
+            },
+            modifier = Modifier.padding(horizontal = GlazeMetrics.space3, vertical = GlazeMetrics.space2),
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 

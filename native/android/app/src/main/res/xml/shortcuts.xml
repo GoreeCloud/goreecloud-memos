@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_memos_native_dev"
+        android:shortcutId="new_memo"
+        android:shortcutLongLabel="@string/shortcut_new_memo_long"
+        android:shortcutShortLabel="@string/shortcut_new_memo">
+        <intent
+            android:action="com.goreecloud.memos.action.NEW_MEMO"
+            android:targetClass="com.goreecloud.memos.MainActivity"
+            android:targetPackage="com.goreecloud.memos.native.dev" />
+    </shortcut>
+</shortcuts>

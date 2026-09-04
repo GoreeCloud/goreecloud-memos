@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "app"
 MANIFEST = (APP / "src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 BUILD = (APP / "build.gradle.kts").read_text(encoding="utf-8")
+SHORTCUTS = (APP / "src/main/res/xml/shortcuts.xml").read_text(encoding="utf-8")
 SOURCE_ROOT = APP / "src/main/java"
 SOURCES = "\n".join(path.read_text(encoding="utf-8") for path in SOURCE_ROOT.rglob("*.kt"))
 METRICS = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeMetrics.kt").read_text(encoding="utf-8")
@@ -34,6 +35,10 @@ def main() -> None:
     require("LazyVerticalStaggeredGrid" in HOME, "Home must remain a native Compose staggered-card surface")
     require("BackHandler" in HOME, "native Back behavior must remain explicit")
     require("FocusRequester" in HOME, "native IME focus behavior must remain explicit")
+    require("android.intent.action.SEND" in MANIFEST and 'android:mimeType="text/plain"' in MANIFEST, "native text share capture must remain declared")
+    require("android.app.shortcuts" in MANIFEST, "native launcher shortcut metadata must remain declared")
+    require("com.goreecloud.memos.action.NEW_MEMO" in SHORTCUTS, "native New memo shortcut action must remain declared")
+    require("Intent.ACTION_SEND" in ACTIVITY and "Intent.EXTRA_TEXT" in ACTIVITY, "native Activity must explicitly consume text share intents")
 
 
 if __name__ == "__main__":
