@@ -185,27 +185,52 @@ jobs:
             -wipe-data \
             -gpu swiftshader_indirect \
             > "$RUNNER_TEMP/goreecloud-memos-emulator.log" 2>&1 &
-          echo "EMULATOR_PID=$!" >> "$GITHUB_ENV"
+          EMULATOR_PID=$!
+          echo "EMULATOR_PID=$EMULATOR_PID" >> "$GITHUB_ENV"
 
-          adb wait-for-device
-          for attempt in $(seq 1 120); do
-            if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; then
+          DEVICE_SERIAL=""
+          for attempt in $(seq 1 90); do
+            if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+              exit 1
+            fi
+            DEVICE_SERIAL="$(adb devices | awk '$1 ~ /^emulator-/ {print $1; exit}')"
+            if [ -n "$DEVICE_SERIAL" ]; then
               break
             fi
             sleep 2
           done
 
-          if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; then
+          if [ -z "$DEVICE_SERIAL" ]; then
+            cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+            exit 1
+          fi
+          echo "DEVICE_SERIAL=$DEVICE_SERIAL" >> "$GITHUB_ENV"
+
+          BOOT_COMPLETED=""
+          for attempt in $(seq 1 120); do
+            if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+              exit 1
+            fi
+            BOOT_COMPLETED="$(adb -s "$DEVICE_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            if [ "$BOOT_COMPLETED" = "1" ]; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$BOOT_COMPLETED" != "1" ]; then
             cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
             exit 1
           fi
 
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          adb shell wm size
-          adb shell wm density
-          adb shell getprop ro.build.version.sdk
+          adb -s "$DEVICE_SERIAL" shell settings put global window_animation_scale 0
+          adb -s "$DEVICE_SERIAL" shell settings put global transition_animation_scale 0
+          adb -s "$DEVICE_SERIAL" shell settings put global animator_duration_scale 0
+          adb -s "$DEVICE_SERIAL" shell wm size
+          adb -s "$DEVICE_SERIAL" shell wm density
+          adb -s "$DEVICE_SERIAL" shell getprop ro.build.version.sdk
       - name: Run native Android emulator acceptance
         run: gradle --no-daemon :app:connectedDebugAndroidTest --stacktrace
       - name: Stage emulator acceptance evidence
@@ -236,11 +261,11 @@ jobs:
             echo "data_authority=session-only-in-memory"
             echo "production_network_authority=none"
             printf "emulator_sdk="
-            adb shell getprop ro.build.version.sdk | tr -d '\r'
+            adb -s "$DEVICE_SERIAL" shell getprop ro.build.version.sdk | tr -d '\r'
             printf "emulator_size="
-            adb shell wm size | tr -d '\r'
+            adb -s "$DEVICE_SERIAL" shell wm size | tr -d '\r'
             printf "emulator_density="
-            adb shell wm density | tr -d '\r'
+            adb -s "$DEVICE_SERIAL" shell wm density | tr -d '\r'
           } > "$ARTIFACT_ROOT/EMULATOR-PROVENANCE.txt"
 
           (
@@ -267,5 +292,9 @@ jobs:
         shell: bash
         run: |
           if command -v adb >/dev/null 2>&1; then
-            adb emu kill || true
+            if [ -n "${DEVICE_SERIAL:-}" ]; then
+              adb -s "$DEVICE_SERIAL" emu kill || true
+            else
+              adb emu kill || true
+            fi
           fi
