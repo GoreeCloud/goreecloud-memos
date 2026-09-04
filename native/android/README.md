@@ -6,7 +6,7 @@ This directory is the first committed Android-native application foundation for 
 
 The long-term Android product is native Android software, not a WebView, Tauri presentation shell, PWA wrapper, or embedded copy of `https://memos.goreecloud.com`. The retained Tauri client remains transition, compatibility, and rollback material while this native line is developed and accepted separately.
 
-The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge system presentation, native staggered cards, and Android resources. GLAZE UI V1.0 is mapped into these Android-native patterns rather than reproducing the web layout.
+The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge system presentation, native staggered cards, and Android resources. GLAZE UI V1.1 is mapped into these Android-native patterns rather than reproducing the web layout.
 
 ## Current Home/Capture surface
 
@@ -19,7 +19,8 @@ The surface provides:
 - Save into session-only in-memory Development state;
 - native staggered memo cards with content-driven heights and a 168 dp adaptive minimum card width;
 - local pin/unpin prioritization for session memos;
-- GLAZE UI V1.0 Light/Dark foundation colors, 4/8/12/16/20/24/32/48/64 dp spacing, 12/20/28 dp radius tiers, 48 dp normal targets, and a 56 dp touch-assistance target token.
+- GLAZE UI V1.1 Light/Dark foundation colors, inherited 4/8/12/16/20/24/32/48/64 dp structural spacing, 12/20/28 dp structural radius tiers, separate 8/16/24/32 dp optical geometry plus capsule, 48 dp normal targets, and a 56 dp Touch Assistance target token; and
+- an explicit V1.1 Deep Dark source palette plus a bounded non-semantic Deep Teal + Soft Amber atmosphere source contract that are not automatically selected or rendered by the current Home/Capture surface.
 
 ## Android-native capture entry points
 
@@ -39,11 +40,15 @@ The Development application ID is `com.goreecloud.memos.native.dev`, while Kotli
 
 ## GLAZE UI acceptance boundary
 
-Source maps the currently consumed foundation subset to GLAZE UI V1.0 (`1.0.0`) at exact canonical source revision `70909bbdccad378fb7281ae1842e2f5beed64c38`. This is a source-level consumer foundation only. Deep Dark, reduced-transparency/increased-contrast equivalents, complete semantic-color/state coverage, animation/motion evaluation, screen-reader acceptance, large-font acceptance, adaptive/foldable behavior, Touch Assistance mode, Human Visual Excellence review, and representative physical-device acceptance remain open.
+Source maps the currently consumed foundation subset to GLAZE UI V1.1 (`1.1.0`) at exact Stable source revision `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`. Android system appearance currently selects only the mapped Light or Dark scheme. The explicit Deep Dark palette is source capability only until a separately reviewed runtime appearance policy selects it.
+
+`GlazeAtmosphere` similarly defines bounded non-semantic Deep Teal + Soft Amber source values but is not consumed by `HomeScreen`. It cannot inspect memo text, draft text, queued shares, editor metadata, location, time, weather, identity state, privacy/security state, or other user/environmental content, and it does not enable Environmental Color Memory, remote derivation, sample persistence, or semantic inference.
+
+This remains a source-level consumer foundation only. Complete rendered visual acceptance, runtime Deep Dark policy, reduced-transparency/increased-contrast and other accessibility/resilience equivalents, complete semantic-color/state coverage, motion evaluation, screen-reader acceptance, large-font/200% text acceptance, RTL/localization, adaptive/foldable behavior, Touch Assistance mode, Human Visual Excellence review, representative physical-device acceptance, release, production approval, and Stable qualification remain open.
 
 ## Validation and acceptance artifact
 
-`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1 target metadata drifts, the native Home loses its Compose staggered-card/Back/IME-focus contracts, or the native text-share/New-memo entry points disappear.
+`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1.1 target metadata drifts, the Deep Dark/optical/atmosphere source boundary regresses, the atmosphere contract becomes a Home renderer dependency, the native Home loses its Compose staggered-card/Back/IME-focus contracts, or the native text-share/New-memo entry points disappear.
 
 Android CI runs lint, JVM unit tests, and a debug APK build. A successful exact-head run stages the APK with `BUILD-PROVENANCE.txt` and a verified `SHA256SUMS` file, then uploads the set as `goreecloud-memos-native-android-dev`. The provenance binds the artifact to the exact source SHA, Development version, `.native.dev` package identity, workflow run, and session-only data-authority boundary.
 
