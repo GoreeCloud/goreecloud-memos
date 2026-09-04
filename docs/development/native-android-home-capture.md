@@ -20,18 +20,22 @@ The Home surface keeps quick capture immediately available, uses a full-line com
 
 The collapsed composer is at least 48 dp high. Expanding it requests native text focus and opens the software keyboard. Android Back collapses the expanded composer while preserving the Activity-scoped draft; explicit Cancel clears it. Save trims content, refuses blank drafts, creates one session-only memo, clears the draft, and closes the composer.
 
-## GLAZE UI V1.0 mapping
+## GLAZE UI V1.1 mapping
 
-The consumed native subset targets exact GLAZE UI V1.0 source revision `70909bbdccad378fb7281ae1842e2f5beed64c38`:
+The consumed native subset targets exact GLAZE UI V1.1 Stable source revision `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`:
 
-- spacing: 4, 8, 12, 16, 20, 24, 32, 48, and 64 dp;
-- foundation radii: 12, 20, and 28 dp plus pill geometry;
+- structural spacing: 4, 8, 12, 16, 20, 24, 32, 48, and 64 dp;
+- structural radii: 12, 20, and 28 dp plus pill geometry;
+- separate V1.1 optical geometry: 8, 16, 24, and 32 dp plus capsule;
 - normal touch-oriented interaction floor: 48 dp;
 - Touch Assistance target token: 56 dp;
 - Light/Dark semantic surface mappings adapted through Android Material 3;
-- solid durable reading surfaces rather than browser-style visual effects.
+- an explicit V1.1 Deep Dark source palette that is not automatically selected by Android system dark mode; and
+- a bounded non-semantic Deep Teal + Soft Amber atmosphere source contract that is not rendered by the Home/Capture surface.
 
-This mapping is a source foundation, not complete consumer acceptance. Deep Dark, complete semantic/state mappings, motion, reduced-transparency/increased-contrast/native forced-colors equivalents, accessibility, large text, foldables, tablets, representative devices, and Human Visual Excellence remain acceptance gates.
+The current `GlazeTheme` remains binary at runtime: Android system appearance selects Light or Dark only. Selecting Deep Dark requires a separately reviewed appearance policy. `GlazeAtmosphere` is source capability only and cannot observe memo text, draft text, queued shares, editor metadata, location, time, weather, account state, or platform security/privacy state. Environmental Color Memory, remote derivation, persistent samples, and semantic inference remain disabled.
+
+This mapping is a source foundation, not complete consumer acceptance. Complete rendered visual acceptance, runtime Deep Dark policy, complete semantic/state mappings, motion, reduced-transparency/increased-contrast/native forced-colors equivalents, screen-reader and switch-access acceptance, 200% text/reflow, RTL/localization, foldables/tablets, representative devices, Touch Assistance mode, Human Visual Excellence, release, production approval, and Stable qualification remain acceptance gates.
 
 ## Security, privacy, and platform limits
 
