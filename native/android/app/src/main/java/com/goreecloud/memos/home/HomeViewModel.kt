@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
 /**
- * Activity-scoped Development state holder for the first native Home/Capture slice.
+ * Activity-scoped Development state holder for the first native Home/Capture slices.
  *
  * It deliberately has no repository, server, Identity, sync, or durable-storage authority.
  */
@@ -18,6 +18,10 @@ class HomeViewModel : ViewModel() {
 
     fun expandComposer() {
         uiState = HomeReducer.expandComposer(uiState)
+    }
+
+    fun beginExternalCapture(text: String?) {
+        uiState = HomeReducer.beginExternalCapture(uiState, text)
     }
 
     fun updateDraft(draft: String) {

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GoreeCloud Memos Native Dev</string>
+    <string name="shortcut_new_memo">New memo</string>
+    <string name="shortcut_new_memo_long">Open native quick capture</string>
 </resources>
