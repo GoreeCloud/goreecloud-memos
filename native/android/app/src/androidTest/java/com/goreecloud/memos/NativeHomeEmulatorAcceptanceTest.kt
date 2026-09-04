@@ -62,7 +62,10 @@ class NativeHomeEmulatorAcceptanceTest {
             setClass(composeRule.activity, MainActivity::class.java)
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, sharedText)
-            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            // Reuse the ActivityScenario-owned MainActivity rather than leaving an
+            // additional activity instance above it at rule teardown. CLEAR_TOP also
+            // exercises the production singleTop/onNewIntent delivery path explicitly.
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
 
         composeRule.runOnUiThread {
