@@ -6,11 +6,11 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,14 +59,15 @@ class NativeHomeEmulatorAcceptanceTest {
     @Test
     fun textShareIntentEntersTheNativeComposer() {
         val sharedText = "Shared into native Memos"
+        val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            setClass(targetContext, MainActivity::class.java)
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, sharedText)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
 
-        composeRule.runOnUiThread {
-            composeRule.activity.onNewIntent(shareIntent)
-        }
+        targetContext.startActivity(shareIntent)
         composeRule.waitForIdle()
 
         composeRule.onNode(hasSetTextAction()).assertTextContains(sharedText)
