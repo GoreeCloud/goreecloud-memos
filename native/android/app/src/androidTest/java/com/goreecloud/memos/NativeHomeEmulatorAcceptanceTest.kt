@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,14 +63,11 @@ class NativeHomeEmulatorAcceptanceTest {
             setClass(composeRule.activity, MainActivity::class.java)
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, sharedText)
-            // Reuse the ActivityScenario-owned MainActivity rather than leaving an
-            // additional activity instance above it at rule teardown. CLEAR_TOP also
-            // exercises the production singleTop/onNewIntent delivery path explicitly.
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
 
         composeRule.runOnUiThread {
-            composeRule.activity.startActivity(shareIntent)
+            InstrumentationRegistry.getInstrumentation()
+                .callActivityOnNewIntent(composeRule.activity, shareIntent)
         }
         composeRule.waitForIdle()
 
