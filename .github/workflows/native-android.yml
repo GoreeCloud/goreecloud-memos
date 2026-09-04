@@ -158,6 +158,12 @@ jobs:
           test -x "$AVDMANAGER"
 
           "$SDKMANAGER" --install "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"
+
+          AVD_HOME="$RUNNER_TEMP/android-avd"
+          mkdir -p "$AVD_HOME"
+          export ANDROID_AVD_HOME="$AVD_HOME"
+          echo "ANDROID_AVD_HOME=$AVD_HOME" >> "$GITHUB_ENV"
+
           printf 'no\n' | "$AVDMANAGER" create avd \
             --force \
             --name goreecloud-memos-ci \
@@ -166,12 +172,17 @@ jobs:
 
           test -x "$ANDROID_HOME/platform-tools/adb"
           test -x "$ANDROID_HOME/emulator/emulator"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx "goreecloud-memos-ci"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
       - name: Boot Android handheld emulator
         shell: bash
         run: |
           set -euo pipefail
+          test -n "${ANDROID_AVD_HOME:-}"
+          test -f "$ANDROID_AVD_HOME/goreecloud-memos-ci.ini"
+          emulator -list-avds | grep -Fx "goreecloud-memos-ci"
+
           if [ -e /dev/kvm ]; then
             sudo chmod 666 /dev/kvm
           fi
