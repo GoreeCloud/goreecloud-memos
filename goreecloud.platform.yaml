@@ -35,14 +35,16 @@ platform_systems:
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
       - docs/development/native-android-glaze-v1.1.md
-    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, and a network-free Android capture foundation reduce exposure. The V1.1 atmosphere mapping adds no memo-content sampling, remote derivation, sample-history persistence, telemetry, or semantic inference. Accepted Privacy Shield integration and production privacy validation are not established.
+      - docs/development/native-android-emulator-acceptance.md
+    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, and a network-free Android capture foundation reduce exposure. The V1.1 atmosphere mapping adds no memo-content sampling, remote derivation, sample-history persistence, telemetry, or semantic inference. The emulator acceptance suite uses only session-memory test content and grants no production data authority. Accepted Privacy Shield integration and production privacy validation are not established.
   wardveil_security:
     result: applicable-blocked
     version: null
     evidence:
       - native/internal/memo/file_repository.go
       - native/android/scripts/check_native_android.py
-    notes: Development source includes fail-closed repository safeguards and static Android network/WebView/GLAZE source-boundary checks, but accepted Wardveil Security integration is not established.
+      - .github/workflows/native-android.yml
+    notes: Development source includes fail-closed repository safeguards, static Android network/WebView/GLAZE source-boundary checks, and an exact-head emulator test workflow, but accepted Wardveil Security integration is not established.
   everkeep:
     result: applicable-blocked
     version: null
@@ -62,10 +64,13 @@ platform_systems:
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeTheme.kt
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt
       - native/android/app/src/test/java/com/goreecloud/memos/ui/theme/GlazeV11SourceContractTest.kt
+      - native/android/app/src/androidTest/java/com/goreecloud/memos/NativeHomeEmulatorAcceptanceTest.kt
       - native/android/scripts/check_native_android.py
+      - .github/workflows/native-android.yml
       - docs/development/native-android-home-capture.md
       - docs/development/native-android-glaze-v1.1.md
-    notes: Repository-local Development source now targets current Stable GLAZE UI V1.1 / 1.1.0. It preserves inherited Light/Dark runtime behavior, records explicit Deep Dark source capability and V1.1 optical geometry, and keeps atmosphere unrendered/non-semantic. Complete rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative-device, Human Visual Excellence, release, and production acceptance remain required.
+      - docs/development/native-android-emulator-acceptance.md
+    notes: Repository-local Development source targets current Stable GLAZE UI V1.1 / 1.1.0 and now defines a Memos-owned Android handheld emulator acceptance suite for the native Development boundary, quick capture, Back/draft preservation, and text-share capture. It preserves inherited Light/Dark runtime behavior, records explicit Deep Dark source capability and V1.1 optical geometry, and keeps atmosphere unrendered/non-semantic. Complete rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative-device, Human Visual Excellence, release, and production acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -141,8 +146,9 @@ conformance:
     - docs/development/native-portable-snapshot-inspection.md
     - docs/development/native-android-home-capture.md
     - docs/development/native-android-glaze-v1.1.md
+    - docs/development/native-android-emulator-acceptance.md
   blockers:
-    - GLAZE UI V1.1 / 1.1.0 source mapping exists, but application-specific rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative-device, Human Visual Excellence, release, and production acceptance remain outstanding.
+    - GLAZE UI V1.1 / 1.1.0 source mapping and a bounded Android emulator acceptance suite exist, but complete application-specific rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative physical-device, Human Visual Excellence, release, and production acceptance remain outstanding.
     - The Android foundation remains session-only and has no authorized production memo repository, API, synchronization, or migration binding.
     - GoreeCloud Identity authentication, session, and owner-binding integration are not established.
     - Wardveil Security integration and acceptance are not established.
