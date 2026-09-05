@@ -86,4 +86,35 @@ class NativeHomeEmulatorAcceptanceTest {
 
         composeRule.onNode(hasSetTextAction()).assertTextContains(sharedText)
     }
+
+    @Test
+    fun activityRecreationDoesNotReplayConsumedLaunchShare() {
+        val sharedText = "Do not replay this consumed share"
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            setClass(composeRule.activity, MainActivity::class.java)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, sharedText)
+        }
+
+        // Model an Activity that was originally launched from this external share. Deliver the
+        // capture into the current Activity, then leave that same launch Intent attached so a
+        // framework recreation would see it again through Activity.intent.
+        composeRule.runOnUiThread {
+            composeRule.activity.setIntent(shareIntent)
+            InstrumentationRegistry.getInstrumentation()
+                .callActivityOnNewIntent(composeRule.activity, shareIntent)
+        }
+        composeRule.waitForIdle()
+        composeRule.onNode(hasSetTextAction()).assertTextContains(sharedText)
+        composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
+        composeRule.onNodeWithText(sharedText).assertIsDisplayed()
+
+        composeRule.activityRule.scenario.recreate()
+        composeRule.waitForIdle()
+
+        // The existing session memo remains, but the consumed launch share must not be interpreted
+        // as a new capture merely because Android recreated the Activity.
+        composeRule.onNodeWithText(sharedText).assertIsDisplayed()
+        composeRule.onNodeWithText("Take a memo…").assertIsDisplayed()
+    }
 }
