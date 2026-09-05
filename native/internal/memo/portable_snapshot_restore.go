@@ -106,8 +106,15 @@ func RestorePortableSnapshotCleanTarget(
 		if err != nil {
 			return portableRestoreCommitAmbiguous("verify committed portable memo record", err)
 		}
-		if _, err := decodeFileMemoRecord(bytes, targetOwnerID, value.ID); err != nil {
+		actual, err := decodeFileMemoRecord(bytes, targetOwnerID, value.ID)
+		if err != nil {
 			return portableRestoreCommitAmbiguous("verify committed portable memo record identity", err)
+		}
+		if !portableRestoreMemoEqual(value, actual) {
+			return portableRestoreCommitAmbiguous(
+				"verify committed portable memo record content",
+				ErrPortableRestoreStateMismatch,
+			)
 		}
 	}
 
