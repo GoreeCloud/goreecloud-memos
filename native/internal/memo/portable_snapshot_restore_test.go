@@ -37,7 +37,7 @@ func TestRestorePortableSnapshotCleanTargetCommitsCompleteTargetOwner(t *testing
 	if err != nil {
 		t.Fatalf("NewFileRepository() error = %v", err)
 	}
-	if err := RestorePortableSnapshotCleanTarget(repository, payload, " target-owner "); err != nil {
+	if err := RestorePortableSnapshotCleanTarget(repository, payload, "target-owner"); err != nil {
 		t.Fatalf("RestorePortableSnapshotCleanTarget() error = %v", err)
 	}
 
@@ -72,6 +72,32 @@ func TestRestorePortableSnapshotCleanTargetCommitsCompleteTargetOwner(t *testing
 	}
 	if info.Mode().Perm()&0o077 != 0 {
 		t.Fatalf("owner directory permissions = %o, want owner-only", info.Mode().Perm())
+	}
+}
+
+func TestRestorePortableSnapshotCleanTargetRejectsNonCanonicalTargetOwner(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 9, 5, 6, 30, 0, 0, time.UTC)
+	payload, err := CreatePortableSnapshot(NewMemoryRepository(), "source-owner", now)
+	if err != nil {
+		t.Fatalf("CreatePortableSnapshot() error = %v", err)
+	}
+	repository, err := NewFileRepository(t.TempDir())
+	if err != nil {
+		t.Fatalf("NewFileRepository() error = %v", err)
+	}
+
+	err = RestorePortableSnapshotCleanTarget(repository, payload, " target-owner ")
+	if !errors.Is(err, ErrInvalidPortableSnapshot) {
+		t.Fatalf("RestorePortableSnapshotCleanTarget() error = %v, want invalid snapshot", err)
+	}
+	ownerDir, err := repository.ownerDirectory("target-owner")
+	if err != nil {
+		t.Fatalf("ownerDirectory() error = %v", err)
+	}
+	if _, err := os.Lstat(ownerDir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("target owner directory exists after non-canonical target, error = %v", err)
 	}
 }
 
