@@ -32,8 +32,16 @@ func TestPortableRestoreMemoEqualCoversCompletePortableMeaning(t *testing.T) {
 			value.ID = "memo-2"
 			return value
 		},
+		"noncanonical id": func(value Memo) Memo {
+			value.ID = " memo-1 "
+			return value
+		},
 		"owner": func(value Memo) Memo {
 			value.OwnerID = "other-owner"
+			return value
+		},
+		"noncanonical owner": func(value Memo) Memo {
+			value.OwnerID = " target-owner "
 			return value
 		},
 		"content": func(value Memo) Memo {
