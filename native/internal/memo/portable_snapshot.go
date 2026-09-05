@@ -98,6 +98,8 @@ func CreatePortableSnapshot(repository Repository, ownerID string, exportedAt ti
 // DecodePortableSnapshot verifies and materializes a portable snapshot for an explicit
 // target owner. The target identity and every portable memo ID must already be canonical;
 // decoding never turns trim-dependent external identity text into repository authority.
+// Checksum evidence must likewise use the exact lowercase hex representation emitted by
+// CreatePortableSnapshot rather than a case- or whitespace-normalized equivalent.
 // It does not write to a Repository. Callers must perform any restore or migration as a
 // separately authorized operation so conflicts and rollback can be handled deliberately
 // rather than through an implicit overwrite.
@@ -139,7 +141,7 @@ func DecodePortableSnapshot(payload []byte, targetOwnerID string) ([]Memo, error
 	if err != nil {
 		return nil, err
 	}
-	if !strings.EqualFold(checksum, strings.TrimSpace(envelope.SHA256)) {
+	if envelope.SHA256 != checksum {
 		return nil, ErrPortableSnapshotIntegrity
 	}
 
