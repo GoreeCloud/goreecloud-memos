@@ -6,13 +6,15 @@ This document describes the current source-level portability foundation for the 
 
 ## Purpose
 
-The native Memos domain exposes a bounded, versioned JSON snapshot format for preserving memo content and meaning independently of the current repository implementation. The durable native `FileRepository` also exposes a bounded clean-target materialization primitive for this format. These source capabilities support the Everkeep portability and recovery direction without claiming accepted backup, production restore, migration, or recovery readiness.
+The native Memos domain exposes a bounded, versioned JSON snapshot format for preserving memo content and meaning independently of the current repository implementation. The durable native `FileRepository` also exposes a bounded clean-target materialization primitive and a read-only exact-state reconciliation helper for this format. These source capabilities support the Everkeep portability and recovery direction without claiming accepted backup, production restore, migration, or recovery readiness.
 
 The current implementation is in:
 
 - `native/internal/memo/portable_snapshot.go`;
-- `native/internal/memo/portable_snapshot_restore.go`; and
-- `native/internal/memo/portable_snapshot_restore_test.go`.
+- `native/internal/memo/portable_snapshot_restore.go`;
+- `native/internal/memo/portable_snapshot_restore_test.go`;
+- `native/internal/memo/portable_snapshot_reconcile.go`; and
+- `native/internal/memo/portable_snapshot_reconcile_test.go`.
 
 ## Snapshot contents
 
@@ -38,9 +40,11 @@ The envelope also records:
 
 The source owner identifier is intentionally omitted from the portable payload. Export remains owner-scoped because `CreatePortableSnapshot` requires an explicit owner and obtains records through the owner-scoped `Repository` contract.
 
-Decode requires an explicit target owner and assigns that owner only after the envelope, checksum, and memo records pass validation. The clean-target writer likewise requires its caller to supply the target owner and materializes only the decoded target-owner records.
+Decode requires an explicit target owner and assigns that owner only after the envelope, checksum, and memo records pass validation. The clean-target writer and reconciliation helper likewise require their caller to supply the target owner and operate only against the decoded target-owner records.
 
-Neither the codec nor the clean-target writer authenticates a GoreeCloud Identity session, chooses an owner on behalf of the caller, proves that the caller is authorized for the requested owner, or establishes production restore authority. Those bindings must be supplied by a separately accepted integration before user-facing or production recovery use.
+Neither the codec, clean-target writer, nor reconciliation helper authenticates a GoreeCloud Identity session, chooses an owner on behalf of the caller, proves that the caller is authorized for the requested owner, or establishes production restore authority. Those bindings must be supplied by a separately accepted integration before user-facing or production recovery use.
+
+The reconciliation result returns only success or bounded error categories. It does not expose memo IDs, content, labels, reminder values, or other memo fields through result text.
 
 ## Validation behavior
 
@@ -94,7 +98,27 @@ Once the directory rename has made target-owner state visible, any subsequent ve
 
 The operation does not merge or overwrite target state already observed by the repository instance. It is a single-node primitive and does not claim exclusion against hostile or non-cooperating processes or independent repository instances racing on the same filesystem root.
 
-It also does not provide:
+## Post-ambiguous-state reconciliation boundary
+
+`ReconcilePortableSnapshotCleanTarget` is a read-only state verifier for a supplied portable snapshot and explicit target owner. It is intended to help resolve a prior `ErrPortableRestoreCommitAmbiguous` outcome without performing another restore write.
+
+The helper:
+
+- strictly decodes and validates the complete supplied snapshot before comparing repository state;
+- requires the target-owner directory to exist, including when the expected snapshot is empty, so a missing target cannot be mistaken for a successfully committed empty restore;
+- takes one repository-instance write lock while reading and synchronizing the target state, preventing cooperating writes through that repository instance from changing the state mid-verification;
+- validates the protected target-owner directory;
+- treats directories, non-JSON files, malformed records, unprotected records, owner/version/path-identity failures, duplicate IDs, missing records, extra records, and any portable memo-field difference as `ErrPortableRestoreStateMismatch`;
+- compares memo identity, target owner, content, pinned state, labels and label order, reminder value, lifecycle, creation time, and update time without including those private values in errors; and
+- after an exact match, synchronizes both the target-owner directory and repository root before returning success.
+
+A validation or synchronization failure whose current durable result cannot be stated safely remains `ErrPortableRestoreCommitAmbiguous`. A mismatch does not mutate, delete, merge, or repair the target state.
+
+Successful reconciliation establishes only that the current protected owner state exactly matches the supplied validated snapshot and that the relevant directories synchronized successfully at the time of verification. It does not prove that a particular restore call created that state, prove artifact provenance or recovery lineage, authenticate or authorize the target owner, protect against non-cooperating filesystem writers, or establish Everkeep/production recovery acceptance.
+
+## Remaining recovery boundaries
+
+The source-level portability path does not provide:
 
 - GoreeCloud Identity authentication or owner authorization;
 - conflict resolution or merge semantics;
@@ -113,4 +137,6 @@ No current function silently merges portable content into existing durable memo 
 
 Strict-decoder source revision `907ce6302e9fa9ec2bee06935685000bf925836e` passed Native Memos Foundation #63 / run `33587296175`, including format check, unit tests, `go vet`, and platform-integration-manifest validation.
 
-The clean-target restore source and tests are newer Development work and require successful exact-head Platform Contract, Native Memos Foundation, and Native Memos Android workflows before they can be recorded as an accepted Development checkpoint. Source presence alone does not establish restore testing, Everkeep acceptance, production recovery, migration readiness, release qualification, or Stable status.
+Clean-target restore revision `0a9128eab67557e93dfdfb23a026ac36cde41b57` passed Platform Contract run `33949425358`, Native Memos Foundation run `33949425099`, and Native Memos Android run `33949425105`, including Android 15 handheld emulator acceptance. That exact revision is the currently accepted Development recovery-source checkpoint.
+
+The newer exact-state reconciliation source and tests require their own successful exact-head Platform Contract, Native Memos Foundation, and Native Memos Android workflows before they can replace that accepted checkpoint. Source presence alone does not establish reconciliation acceptance, Everkeep acceptance, production recovery, migration readiness, release qualification, or Stable status.
