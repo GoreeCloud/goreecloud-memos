@@ -99,7 +99,8 @@ func readPortableRestoreOwnerStateLocked(
 		}
 		memoID := normalizeRepositoryIdentity(record.Memo.ID)
 		if record.Version != fileMemoRecordVersion ||
-			normalizeRepositoryIdentity(record.Memo.OwnerID) != ownerID ||
+			record.Memo.OwnerID != ownerID ||
+			record.Memo.ID != memoID ||
 			memoID == "" ||
 			entry.Name() != repositoryDigest(memoID)+".json" {
 			return nil, ErrPortableRestoreStateMismatch
@@ -117,7 +118,7 @@ func portableRestoreStatesEqual(expected, actual []Memo) bool {
 	actualByID := make(map[string]Memo, len(actual))
 	for _, value := range actual {
 		memoID := normalizeRepositoryIdentity(value.ID)
-		if memoID == "" {
+		if memoID == "" || value.ID != memoID {
 			return false
 		}
 		if _, exists := actualByID[memoID]; exists {
@@ -137,8 +138,8 @@ func portableRestoreStatesEqual(expected, actual []Memo) bool {
 }
 
 func portableRestoreMemoEqual(expected, actual Memo) bool {
-	if normalizeRepositoryIdentity(expected.ID) != normalizeRepositoryIdentity(actual.ID) ||
-		normalizeRepositoryIdentity(expected.OwnerID) != normalizeRepositoryIdentity(actual.OwnerID) ||
+	if expected.ID != actual.ID ||
+		expected.OwnerID != actual.OwnerID ||
 		expected.Content != actual.Content ||
 		expected.Pinned != actual.Pinned ||
 		expected.Lifecycle != actual.Lifecycle ||
