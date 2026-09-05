@@ -41,11 +41,30 @@ func TestReconcilePortableSnapshotCleanTargetMatchesRestoredState(t *testing.T) 
 	if err != nil {
 		t.Fatalf("NewFileRepository() error = %v", err)
 	}
-	if err := RestorePortableSnapshotCleanTarget(repository, payload, " target-owner "); err != nil {
+	if err := RestorePortableSnapshotCleanTarget(repository, payload, "target-owner"); err != nil {
 		t.Fatalf("RestorePortableSnapshotCleanTarget() error = %v", err)
 	}
-	if err := ReconcilePortableSnapshotCleanTarget(repository, payload, " target-owner "); err != nil {
+	if err := ReconcilePortableSnapshotCleanTarget(repository, payload, "target-owner"); err != nil {
 		t.Fatalf("ReconcilePortableSnapshotCleanTarget() error = %v", err)
+	}
+}
+
+func TestReconcilePortableSnapshotCleanTargetRejectsNonCanonicalTargetOwner(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 9, 5, 10, 30, 0, 0, time.UTC)
+	payload, err := CreatePortableSnapshot(NewMemoryRepository(), "source-owner", now)
+	if err != nil {
+		t.Fatalf("CreatePortableSnapshot() error = %v", err)
+	}
+	repository, err := NewFileRepository(t.TempDir())
+	if err != nil {
+		t.Fatalf("NewFileRepository() error = %v", err)
+	}
+
+	err = ReconcilePortableSnapshotCleanTarget(repository, payload, " target-owner ")
+	if !errors.Is(err, ErrInvalidPortableSnapshot) {
+		t.Fatalf("ReconcilePortableSnapshotCleanTarget() error = %v, want invalid snapshot", err)
 	}
 }
 
