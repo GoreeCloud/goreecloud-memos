@@ -57,6 +57,19 @@ class NativeHomeEmulatorAcceptanceTest {
     }
 
     @Test
+    fun activityRecreationPreservesCurrentSessionDraft() {
+        val draftText = "Draft survives Activity recreation"
+
+        composeRule.onNodeWithText("Take a memo…").performClick()
+        composeRule.onNode(hasSetTextAction()).performTextInput(draftText)
+
+        composeRule.activityRule.scenario.recreate()
+        composeRule.waitForIdle()
+
+        composeRule.onNode(hasSetTextAction()).assertTextContains(draftText)
+    }
+
+    @Test
     fun textShareIntentEntersTheNativeComposer() {
         val sharedText = "Shared into native Memos"
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
