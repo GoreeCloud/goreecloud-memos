@@ -33,7 +33,7 @@ func TestPortableSnapshotRoundTripPreservesMemoMeaningWithoutSourceOwnerIdentity
 		t.Fatalf("Save() error = %v", err)
 	}
 
-	payload, err := CreatePortableSnapshot(repository, " owner-source ", createdAt.Add(24*time.Hour))
+	payload, err := CreatePortableSnapshot(repository, "owner-source", createdAt.Add(24*time.Hour))
 	if err != nil {
 		t.Fatalf("CreatePortableSnapshot() error = %v", err)
 	}
@@ -41,7 +41,7 @@ func TestPortableSnapshotRoundTripPreservesMemoMeaningWithoutSourceOwnerIdentity
 		t.Fatal("portable snapshot unexpectedly disclosed the source owner identifier")
 	}
 
-	decoded, err := DecodePortableSnapshot(payload, " owner-restored ")
+	decoded, err := DecodePortableSnapshot(payload, "owner-restored")
 	if err != nil {
 		t.Fatalf("DecodePortableSnapshot() error = %v", err)
 	}
@@ -73,6 +73,69 @@ func TestPortableSnapshotRoundTripPreservesMemoMeaningWithoutSourceOwnerIdentity
 	}
 	if !got.CreatedAt.Equal(value.CreatedAt) || !got.UpdatedAt.Equal(value.UpdatedAt) {
 		t.Fatalf("timestamps changed: got created=%v updated=%v, want created=%v updated=%v", got.CreatedAt, got.UpdatedAt, value.CreatedAt, value.UpdatedAt)
+	}
+}
+
+func TestPortableSnapshotExportAndDecodeRequireCanonicalOwnerIdentity(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 9, 1, 12, 30, 0, 0, time.UTC)
+	repository := NewMemoryRepository()
+	value, err := New("memo-1", "owner-1", "Portable memo", now)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	if err := repository.Save(value); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	_, err = CreatePortableSnapshot(repository, " owner-1 ", now.Add(time.Hour))
+	if !errors.Is(err, ErrInvalidOwner) {
+		t.Fatalf("CreatePortableSnapshot() error = %v, want %v", err, ErrInvalidOwner)
+	}
+
+	payload, err := CreatePortableSnapshot(repository, "owner-1", now.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("CreatePortableSnapshot() error = %v", err)
+	}
+	_, err = DecodePortableSnapshot(payload, " owner-restored ")
+	if !errors.Is(err, ErrInvalidOwner) {
+		t.Fatalf("DecodePortableSnapshot() error = %v, want %v", err, ErrInvalidOwner)
+	}
+}
+
+func TestPortableSnapshotRejectsNoncanonicalMemoIDWithValidChecksum(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 9, 1, 12, 45, 0, 0, time.UTC)
+	records := []portableMemo{
+		{
+			ID:        " memo-1 ",
+			Content:   "Portable memo",
+			Labels:    []string{},
+			Lifecycle: LifecycleActive,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+	}
+	checksum, err := portableMemoChecksum(records)
+	if err != nil {
+		t.Fatalf("portableMemoChecksum() error = %v", err)
+	}
+	payload, err := json.Marshal(portableSnapshotEnvelope{
+		Format:        portableSnapshotFormat,
+		SchemaVersion: portableSnapshotVersion,
+		ExportedAt:    now,
+		Memos:         records,
+		SHA256:        checksum,
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	_, err = DecodePortableSnapshot(payload, "owner-1")
+	if !errors.Is(err, ErrInvalidPortableSnapshot) {
+		t.Fatalf("DecodePortableSnapshot() error = %v, want %v", err, ErrInvalidPortableSnapshot)
 	}
 }
 
