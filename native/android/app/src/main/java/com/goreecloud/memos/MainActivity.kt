@@ -30,7 +30,16 @@ class MainActivity : ComponentActivity() {
         // Deliberately do not persist shared text into saved-instance state. If Android recreates
         // the process rather than only the Activity, Memos remains within its explicit session-only
         // Development boundary instead of extending sensitive capture lifetime through Bundle state.
-        incomingCapture = if (savedInstanceState == null) intent.toNativeCaptureRequest() else null
+        incomingCapture =
+            if (
+                ExternalCaptureReplayPolicy.shouldReadLaunchIntent(
+                    isActivityRecreation = savedInstanceState != null,
+                )
+            ) {
+                intent.toNativeCaptureRequest()
+            } else {
+                null
+            }
 
         enableEdgeToEdge()
         setContent {
