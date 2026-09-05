@@ -66,9 +66,9 @@ func ReconcilePortableSnapshotCleanTarget(
 }
 
 // readPortableRestoreOwnerStateLocked reads one exact owner-directory state while the caller holds
-// repository.mu for writing. Unexpected entries are treated as a mismatch rather than ignored so a
-// successful reconciliation proves that the durable owner directory contains exactly the expected
-// memo-record set.
+// repository.mu for writing. Unexpected entries and structurally invalid records are mismatches;
+// inability to read a structurally protected record is an ambiguous I/O outcome rather than proof
+// that the durable memo value differs.
 func readPortableRestoreOwnerStateLocked(
 	repository *FileRepository,
 	ownerDir string,
@@ -85,9 +85,13 @@ func readPortableRestoreOwnerStateLocked(
 			return nil, ErrPortableRestoreStateMismatch
 		}
 
-		bytes, err := readProtectedMemoRecord(filepath.Join(ownerDir, entry.Name()))
-		if err != nil {
+		path := filepath.Join(ownerDir, entry.Name())
+		if err := validateProtectedMemoRecord(path); err != nil {
 			return nil, ErrPortableRestoreStateMismatch
+		}
+		bytes, err := os.ReadFile(path)
+		if err != nil {
+			return nil, portableRestoreCommitAmbiguous("read protected memo during restore reconciliation", err)
 		}
 		var record fileMemoRecord
 		if err := json.Unmarshal(bytes, &record); err != nil {
