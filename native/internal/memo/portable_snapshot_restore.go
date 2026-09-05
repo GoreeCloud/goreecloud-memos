@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrPortableRestoreTargetExists = errors.New("portable memo restore target already exists")
-	ErrPortableRestoreDurabilityAmbiguous = errors.New("portable memo restore durability is ambiguous")
+	ErrPortableRestoreTargetExists    = errors.New("portable memo restore target already exists")
+	ErrPortableRestoreCommitAmbiguous = errors.New("portable memo restore commit outcome is ambiguous")
 )
 
 // RestorePortableSnapshotCleanTarget materializes a fully validated portable snapshot into an
@@ -20,7 +20,7 @@ var (
 // The complete snapshot is decoded before persistence. Records are then written into an owner-only
 // staging directory under the repository root, individually synchronized, and the staging directory
 // is synchronized before one directory rename makes the complete owner state authoritative. Existing
-// owner state is never merged or overwritten by this operation.
+// target state observed by this repository instance is never merged or overwritten by this operation.
 //
 // This is a single-node clean-target primitive. It does not authenticate the target owner, choose a
 // target owner on the caller's behalf, resolve conflicts, coordinate hostile/non-cooperating external
@@ -91,29 +91,34 @@ func RestorePortableSnapshotCleanTarget(
 	}
 	removeStaging = false
 
+	// From this point onward the owner directory is visible at its authoritative path. Any failure
+	// must report an ambiguous commit outcome so callers reconcile state instead of retrying as if
+	// nothing could have been materialized.
 	if err := repository.validateOwnerDirectory(ownerDir); err != nil {
-		return fmt.Errorf("validate committed portable memo restore: %w", err)
+		return portableRestoreCommitAmbiguous("validate committed portable memo restore", err)
 	}
 	for _, value := range values {
 		path, err := repository.recordPath(targetOwnerID, value.ID)
 		if err != nil {
-			return fmt.Errorf("resolve committed portable memo record: %w", err)
+			return portableRestoreCommitAmbiguous("resolve committed portable memo record", err)
 		}
 		bytes, err := readProtectedMemoRecord(path)
 		if err != nil {
-			return fmt.Errorf("verify committed portable memo record: %w", err)
+			return portableRestoreCommitAmbiguous("verify committed portable memo record", err)
 		}
 		if _, err := decodeFileMemoRecord(bytes, targetOwnerID, value.ID); err != nil {
-			return fmt.Errorf("verify committed portable memo record identity: %w", err)
+			return portableRestoreCommitAmbiguous("verify committed portable memo record identity", err)
 		}
 	}
 
 	if err := syncDirectory(repository.root); err != nil {
-		// The directory rename has already made the restored owner visible. Do not claim rollback:
-		// inability to sync the parent means crash durability is unknown, not that commit did not occur.
-		return fmt.Errorf("%w: sync repository root after restore commit: %v", ErrPortableRestoreDurabilityAmbiguous, err)
+		return portableRestoreCommitAmbiguous("sync repository root after restore commit; crash durability is unknown", err)
 	}
 	return nil
+}
+
+func portableRestoreCommitAmbiguous(operation string, err error) error {
+	return fmt.Errorf("%w: %s: %v", ErrPortableRestoreCommitAmbiguous, operation, err)
 }
 
 func requireAbsentRestoreTarget(ownerDir string) error {
