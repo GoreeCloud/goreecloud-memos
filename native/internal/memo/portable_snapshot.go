@@ -46,16 +46,20 @@ type portableMemo struct {
 // the payload so a portability artifact does not disclose an application identity
 // merely to preserve memo content and metadata.
 //
+// The requested owner identity must already be canonical. Export must not silently trim
+// a caller-supplied identity into authority for a different repository key.
+//
 // The returned checksum detects accidental or untrusted payload modification. It is
 // integrity evidence for the snapshot bytes, not a signature or proof of provenance.
 func CreatePortableSnapshot(repository Repository, ownerID string, exportedAt time.Time) ([]byte, error) {
 	if repository == nil {
 		return nil, fmt.Errorf("%w: repository is required", ErrInvalidPortableSnapshot)
 	}
-	ownerID = normalizeRepositoryIdentity(ownerID)
-	if ownerID == "" {
-		return nil, ErrInvalidOwner
+	canonicalOwnerID, err := requireCanonicalPortableOwnerIdentity(ownerID)
+	if err != nil {
+		return nil, err
 	}
+	ownerID = canonicalOwnerID
 	if exportedAt.IsZero() {
 		return nil, fmt.Errorf("%w: exported_at must not be zero", ErrInvalidPortableSnapshot)
 	}
@@ -67,8 +71,8 @@ func CreatePortableSnapshot(repository Repository, ownerID string, exportedAt ti
 
 	records := make([]portableMemo, 0, len(values))
 	for _, value := range values {
-		if normalizeRepositoryIdentity(value.OwnerID) != ownerID {
-			return nil, fmt.Errorf("%w: repository returned a memo outside the requested owner scope", ErrInvalidPortableSnapshot)
+		if value.OwnerID != ownerID || normalizeRepositoryIdentity(value.OwnerID) != value.OwnerID {
+			return nil, fmt.Errorf("%w: repository returned a memo outside the exact requested owner scope", ErrInvalidPortableSnapshot)
 		}
 		record, err := portableMemoFromDomain(value)
 		if err != nil {
@@ -92,14 +96,17 @@ func CreatePortableSnapshot(repository Repository, ownerID string, exportedAt ti
 }
 
 // DecodePortableSnapshot verifies and materializes a portable snapshot for an explicit
-// target owner. It does not write to a Repository. Callers must perform any restore or
-// migration as a separately authorized operation so conflicts and rollback can be
-// handled deliberately rather than through an implicit overwrite.
+// target owner. The target identity and every portable memo ID must already be canonical;
+// decoding never turns trim-dependent external identity text into repository authority.
+// It does not write to a Repository. Callers must perform any restore or migration as a
+// separately authorized operation so conflicts and rollback can be handled deliberately
+// rather than through an implicit overwrite.
 func DecodePortableSnapshot(payload []byte, targetOwnerID string) ([]Memo, error) {
-	targetOwnerID = normalizeRepositoryIdentity(targetOwnerID)
-	if targetOwnerID == "" {
-		return nil, ErrInvalidOwner
+	canonicalTargetOwnerID, err := requireCanonicalPortableOwnerIdentity(targetOwnerID)
+	if err != nil {
+		return nil, err
 	}
+	targetOwnerID = canonicalTargetOwnerID
 	if len(payload) == 0 {
 		return nil, fmt.Errorf("%w: payload is empty", ErrInvalidPortableSnapshot)
 	}
@@ -173,14 +180,18 @@ func portableMemoFromDomain(value Memo) (portableMemo, error) {
 }
 
 func (record portableMemo) toDomain(ownerID string) (Memo, error) {
-	ownerID = normalizeRepositoryIdentity(ownerID)
-	if ownerID == "" {
-		return Memo{}, ErrInvalidOwner
+	canonicalOwnerID, err := requireCanonicalPortableOwnerIdentity(ownerID)
+	if err != nil {
+		return Memo{}, err
 	}
+	ownerID = canonicalOwnerID
 
 	id := normalizeRepositoryIdentity(record.ID)
 	if id == "" {
 		return Memo{}, fmt.Errorf("%w: memo id must not be empty", ErrInvalidPortableSnapshot)
+	}
+	if record.ID != id {
+		return Memo{}, fmt.Errorf("%w: memo id %q is not canonical", ErrInvalidPortableSnapshot, record.ID)
 	}
 	content := strings.TrimSpace(record.Content)
 	if content == "" {
@@ -232,6 +243,17 @@ func (record portableMemo) toDomain(ownerID string) (Memo, error) {
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
+}
+
+func requireCanonicalPortableOwnerIdentity(ownerID string) (string, error) {
+	canonical := normalizeRepositoryIdentity(ownerID)
+	if canonical == "" {
+		return "", ErrInvalidOwner
+	}
+	if ownerID != canonical {
+		return "", fmt.Errorf("%w: owner id must already be canonical", ErrInvalidOwner)
+	}
+	return ownerID, nil
 }
 
 func validPortableLifecycle(value Lifecycle) bool {
