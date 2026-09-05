@@ -14,6 +14,9 @@ THEME = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeTheme.kt").read_text(
 ATMOSPHERE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt").read_text(encoding="utf-8")
 HOME = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeScreen.kt").read_text(encoding="utf-8")
 ACTIVITY = (SOURCE_ROOT / "com/goreecloud/memos/MainActivity.kt").read_text(encoding="utf-8")
+EMULATOR_TEST = (
+    APP / "src/androidTest/java/com/goreecloud/memos/NativeHomeEmulatorAcceptanceTest.kt"
+).read_text(encoding="utf-8")
 
 
 def require(condition: bool, message: str) -> None:
@@ -75,6 +78,23 @@ def main() -> None:
     require("android.app.shortcuts" in MANIFEST, "native launcher shortcut metadata must remain declared")
     require("com.goreecloud.memos.action.NEW_MEMO" in SHORTCUTS, "native New memo shortcut action must remain declared")
     require("Intent.ACTION_SEND" in ACTIVITY and "Intent.EXTRA_TEXT" in ACTIVITY, "native Activity must explicitly consume text share intents")
+
+    for marker in (
+        'androidTestImplementation("androidx.test.ext:junit:',
+        'androidTestImplementation("androidx.test.espresso:espresso-core:',
+        'androidTestImplementation("androidx.compose.ui:ui-test-junit4:',
+        'debugImplementation("androidx.compose.ui:ui-test-manifest:',
+    ):
+        require(marker in BUILD, f"native Android emulator acceptance dependency missing: {marker}")
+    for marker in (
+        "launchShowsNativeDevelopmentBoundaryAndQuickCapture",
+        "quickCaptureSavesOneSessionMemo",
+        "systemBackCollapsesComposerWithoutDiscardingDraft",
+        "textShareIntentEntersTheNativeComposer",
+        '"Native Development preview · session-only local state"',
+        "Intent.ACTION_SEND",
+    ):
+        require(marker in EMULATOR_TEST, f"native Android emulator acceptance contract missing: {marker}")
 
 
 if __name__ == "__main__":

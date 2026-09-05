@@ -21,7 +21,26 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        incomingCapture = intent.toNativeCaptureRequest()
+
+        // Treat the launch Intent as a one-shot external capture only for a fresh Activity session.
+        // A configuration/lifecycle recreation receives the same launch Intent again while the
+        // Activity-scoped HomeViewModel already retains the current session state. Re-parsing that
+        // Intent would replay a share or New memo action after it had already been consumed.
+        //
+        // Deliberately do not persist shared text into saved-instance state. If Android recreates
+        // the process rather than only the Activity, Memos remains within its explicit session-only
+        // Development boundary instead of extending sensitive capture lifetime through Bundle state.
+        incomingCapture =
+            if (
+                ExternalCaptureReplayPolicy.shouldReadLaunchIntent(
+                    isActivityRecreation = savedInstanceState != null,
+                )
+            ) {
+                intent.toNativeCaptureRequest()
+            } else {
+                null
+            }
+
         enableEdgeToEdge()
         setContent {
             GlazeTheme {
@@ -39,7 +58,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
+        // Consume the incoming share/shortcut payload into the minimized native capture model.
+        // Do not replace Activity.intent with the new payload: Memos does not need to retain the
+        // shared text after parsing it, and keeping it there unnecessarily extends sensitive-text
+        // lifetime across later lifecycle operations.
         incomingCapture = intent.toNativeCaptureRequest()
     }
 

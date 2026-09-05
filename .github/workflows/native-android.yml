@@ -103,3 +103,209 @@ jobs:
           name: goreecloud-memos-native-android-dev
           if-no-files-found: error
           path: native/android/artifact-native-android/*
+
+  emulator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: native/android
+    steps:
+      - name: Check out exact candidate revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify exact source and Development identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          test "$SOURCE_SHA" = "$EXPECTED_SOURCE_SHA"
+
+          APPLICATION_ID="$(sed -n 's/.*applicationId = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)"
+          VERSION_NAME="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)"
+          test "$APPLICATION_ID" = "com.goreecloud.memos.native.dev"
+          test "$VERSION_NAME" = "0.1.0-dev"
+
+          echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+          echo "APPLICATION_ID=$APPLICATION_ID" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Validate native Android boundary
+        run: python3 scripts/check_native_android.py
+      - name: Install Android handheld emulator image
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_HOME:-}"
+          test -d "$ANDROID_HOME/cmdline-tools"
+
+          CMDLINE_TOOLS_DIR="$(find "$ANDROID_HOME/cmdline-tools" -mindepth 1 -maxdepth 1 -type d -print | sort -V | tail -n 1)"
+          test -n "$CMDLINE_TOOLS_DIR"
+          SDKMANAGER="$CMDLINE_TOOLS_DIR/bin/sdkmanager"
+          AVDMANAGER="$CMDLINE_TOOLS_DIR/bin/avdmanager"
+          test -x "$SDKMANAGER"
+          test -x "$AVDMANAGER"
+
+          "$SDKMANAGER" --install "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"
+
+          AVD_HOME="$RUNNER_TEMP/android-avd"
+          mkdir -p "$AVD_HOME"
+          export ANDROID_AVD_HOME="$AVD_HOME"
+          echo "ANDROID_AVD_HOME=$AVD_HOME" >> "$GITHUB_ENV"
+
+          printf 'no\n' | "$AVDMANAGER" create avd \
+            --force \
+            --name goreecloud-memos-ci \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --device "pixel_6"
+
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -x "$ANDROID_HOME/emulator/emulator"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx "goreecloud-memos-ci"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+      - name: Boot Android handheld emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_AVD_HOME:-}"
+          test -f "$ANDROID_AVD_HOME/goreecloud-memos-ci.ini"
+          emulator -list-avds | grep -Fx "goreecloud-memos-ci"
+
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+          fi
+
+          nohup emulator \
+            -avd goreecloud-memos-ci \
+            -no-window \
+            -no-audio \
+            -no-boot-anim \
+            -no-snapshot \
+            -wipe-data \
+            -gpu swiftshader_indirect \
+            > "$RUNNER_TEMP/goreecloud-memos-emulator.log" 2>&1 &
+          EMULATOR_PID=$!
+          echo "EMULATOR_PID=$EMULATOR_PID" >> "$GITHUB_ENV"
+
+          DEVICE_SERIAL=""
+          for attempt in $(seq 1 90); do
+            if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+              exit 1
+            fi
+            DEVICE_SERIAL="$(adb devices | awk '$1 ~ /^emulator-/ {print $1; exit}')"
+            if [ -n "$DEVICE_SERIAL" ]; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$DEVICE_SERIAL" ]; then
+            cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+            exit 1
+          fi
+          echo "DEVICE_SERIAL=$DEVICE_SERIAL" >> "$GITHUB_ENV"
+
+          BOOT_COMPLETED=""
+          for attempt in $(seq 1 120); do
+            if ! kill -0 "$EMULATOR_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+              exit 1
+            fi
+            BOOT_COMPLETED="$(adb -s "$DEVICE_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            if [ "$BOOT_COMPLETED" = "1" ]; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$BOOT_COMPLETED" != "1" ]; then
+            cat "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+            exit 1
+          fi
+
+          adb -s "$DEVICE_SERIAL" shell settings put global window_animation_scale 0
+          adb -s "$DEVICE_SERIAL" shell settings put global transition_animation_scale 0
+          adb -s "$DEVICE_SERIAL" shell settings put global animator_duration_scale 0
+          adb -s "$DEVICE_SERIAL" shell wm size
+          adb -s "$DEVICE_SERIAL" shell wm density
+          adb -s "$DEVICE_SERIAL" shell getprop ro.build.version.sdk
+      - name: Run native Android emulator acceptance
+        run: gradle --no-daemon :app:connectedDebugAndroidTest --stacktrace
+      - name: Stage emulator acceptance evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARTIFACT_ROOT="artifact-native-android-emulator"
+          rm -rf "$ARTIFACT_ROOT"
+          mkdir -p "$ARTIFACT_ROOT"
+
+          test -d app/build/outputs/androidTest-results
+          cp -R app/build/outputs/androidTest-results "$ARTIFACT_ROOT/"
+          if [ -d app/build/reports/androidTests ]; then
+            cp -R app/build/reports/androidTests "$ARTIFACT_ROOT/"
+          fi
+          cp "$RUNNER_TEMP/goreecloud-memos-emulator.log" "$ARTIFACT_ROOT/emulator.log"
+
+          {
+            echo "repository=GoreeCloud/goreecloud-memos"
+            echo "source_sha=$SOURCE_SHA"
+            echo "version_name=$VERSION_NAME"
+            echo "application_id=$APPLICATION_ID"
+            echo "workflow=$GITHUB_WORKFLOW"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "artifact_role=android-native-development-emulator-acceptance"
+            echo "system_image=system-images;android-35;google_apis;x86_64"
+            echo "data_authority=session-only-in-memory"
+            echo "production_network_authority=none"
+            printf "emulator_sdk="
+            adb -s "$DEVICE_SERIAL" shell getprop ro.build.version.sdk | tr -d '\r'
+            printf "emulator_size="
+            adb -s "$DEVICE_SERIAL" shell wm size | tr -d '\r'
+            printf "emulator_density="
+            adb -s "$DEVICE_SERIAL" shell wm density | tr -d '\r'
+          } > "$ARTIFACT_ROOT/EMULATOR-PROVENANCE.txt"
+
+          (
+            cd "$ARTIFACT_ROOT"
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+            test -s SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+      - name: Upload native Android emulator evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: goreecloud-memos-native-android-emulator-evidence
+          if-no-files-found: error
+          path: native/android/artifact-native-android-emulator/*
+      - name: Print emulator diagnostics on failure
+        if: failure()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/goreecloud-memos-emulator.log" ]; then
+            tail -n 400 "$RUNNER_TEMP/goreecloud-memos-emulator.log"
+          fi
+      - name: Stop Android handheld emulator
+        if: always()
+        shell: bash
+        run: |
+          if command -v adb >/dev/null 2>&1; then
+            if [ -n "${DEVICE_SERIAL:-}" ]; then
+              adb -s "$DEVICE_SERIAL" emu kill || true
+            else
+              adb emu kill || true
+            fi
+          fi
