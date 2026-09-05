@@ -90,30 +90,33 @@ class NativeHomeEmulatorAcceptanceTest {
     @Test
     fun activityRecreationDoesNotReplayConsumedLaunchShare() {
         val sharedText = "Do not replay this consumed share"
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+
+        // First create the already-consumed session result using normal UI behavior. The separate
+        // textShareIntentEntersTheNativeComposer test covers onNewIntent delivery itself.
+        composeRule.onNodeWithText("Take a memo…").performClick()
+        composeRule.onNode(hasSetTextAction()).performTextInput(sharedText)
+        composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
+        composeRule.onNodeWithText(sharedText).assertIsDisplayed()
+
+        val launchShareIntent = Intent(Intent.ACTION_SEND).apply {
             setClass(composeRule.activity, MainActivity::class.java)
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, sharedText)
         }
 
-        // Model an Activity that was originally launched from this external share. Deliver the
-        // capture into the current Activity, then leave that same launch Intent attached so a
-        // framework recreation would see it again through Activity.intent.
+        // Model the stale external launch Intent that Android can retain on an Activity. Do not
+        // redispatch it through onNewIntent here: doing so mutates lifecycle state during the same
+        // ActivityScenario recreation that this regression test is intended to observe.
         composeRule.runOnUiThread {
-            composeRule.activity.setIntent(shareIntent)
-            InstrumentationRegistry.getInstrumentation()
-                .callActivityOnNewIntent(composeRule.activity, shareIntent)
+            composeRule.activity.setIntent(launchShareIntent)
         }
         composeRule.waitForIdle()
-        composeRule.onNode(hasSetTextAction()).assertTextContains(sharedText)
-        composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
-        composeRule.onNodeWithText(sharedText).assertIsDisplayed()
 
         composeRule.activityRule.scenario.recreate()
         composeRule.waitForIdle()
 
-        // The existing session memo remains, but the consumed launch share must not be interpreted
-        // as a new capture merely because Android recreated the Activity.
+        // The existing session memo remains, but MainActivity.onCreate(savedInstanceState != null)
+        // must not interpret the retained ACTION_SEND as a fresh capture and reopen the composer.
         composeRule.onNodeWithText(sharedText).assertIsDisplayed()
         composeRule.onNodeWithText("Take a memo…").assertIsDisplayed()
     }
