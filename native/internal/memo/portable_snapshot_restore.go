@@ -34,7 +34,11 @@ func RestorePortableSnapshotCleanTarget(
 		return fmt.Errorf("%w: durable file repository is required", ErrInvalidPortableSnapshot)
 	}
 
-	targetOwnerID = normalizeRepositoryIdentity(targetOwnerID)
+	normalizedTargetOwnerID := normalizeRepositoryIdentity(targetOwnerID)
+	if normalizedTargetOwnerID == "" || targetOwnerID != normalizedTargetOwnerID {
+		return fmt.Errorf("%w: target owner identity must be canonical", ErrInvalidPortableSnapshot)
+	}
+	targetOwnerID = normalizedTargetOwnerID
 	values, err := DecodePortableSnapshot(payload, targetOwnerID)
 	if err != nil {
 		return err
