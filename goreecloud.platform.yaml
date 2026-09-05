@@ -30,30 +30,35 @@ platform_systems:
     evidence:
       - native/internal/memo/portable_snapshot.go
       - native/internal/memo/portable_snapshot_inspection.go
+      - native/internal/memo/portable_snapshot_restore.go
       - native/android/README.md
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
       - docs/development/native-android-glaze-v1.1.md
       - docs/development/native-android-emulator-acceptance.md
-    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, and a network-free Android capture foundation reduce exposure. The V1.1 atmosphere mapping adds no memo-content sampling, remote derivation, sample-history persistence, telemetry, or semantic inference. The emulator acceptance suite uses only session-memory test content and grants no production data authority. Accepted Privacy Shield integration and production privacy validation are not established.
+    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, and a clean-target writer that requires an explicit caller-supplied target owner reduce accidental scope expansion. The writer does not authenticate or authorize that owner. The V1.1 atmosphere mapping adds no memo-content sampling, remote derivation, sample-history persistence, telemetry, or semantic inference. The emulator acceptance suite uses only session-memory test content and grants no production data authority. Accepted Privacy Shield integration and production privacy validation are not established.
   wardveil_security:
     result: applicable-blocked
     version: null
     evidence:
       - native/internal/memo/file_repository.go
+      - native/internal/memo/portable_snapshot_restore.go
+      - native/internal/memo/portable_snapshot_restore_test.go
       - native/android/scripts/check_native_android.py
       - .github/workflows/native-android.yml
-    notes: Development source includes fail-closed repository safeguards, static Android network/WebView/GLAZE source-boundary checks, and an exact-head emulator test workflow, but accepted Wardveil Security integration is not established.
+    notes: Development source includes fail-closed repository safeguards, strict snapshot validation, owner-only clean-target staging/materialization, static Android network/WebView/GLAZE source-boundary checks, and an exact-head emulator test workflow, but accepted Wardveil Security integration, recovery provenance, and production recovery authorization are not established.
   everkeep:
     result: applicable-blocked
     version: null
     evidence:
       - native/internal/memo/portable_snapshot.go
       - native/internal/memo/portable_snapshot_inspection.go
+      - native/internal/memo/portable_snapshot_restore.go
+      - native/internal/memo/portable_snapshot_restore_test.go
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
-    notes: A versioned portable snapshot codec and read-only aggregate preflight exist, but authorized clean-target restore, recovery lineage, and accepted Everkeep integration are not established.
+    notes: A versioned portable snapshot codec, read-only aggregate preflight, and bounded durable FileRepository clean-target materialization primitive exist in Development source. The writer validates before persistence, refuses observed existing target-owner state, stages protected records, commits the owner directory as one rename, and reports post-rename verification or durability failures as commit-ambiguous. It does not authenticate or authorize the caller-supplied target owner, provide recovery lineage, integrate with Everkeep runtime services, or establish accepted production backup/restore authority.
   glaze_ui:
     result: applicable-migration-required
     version: "1.1.0"
@@ -86,7 +91,8 @@ platform_systems:
     version: null
     evidence:
       - native/internal/memo/file_repository.go
-    notes: Native memo operations are owner-scoped, but accepted GoreeCloud Identity authentication, session, and owner binding are not established.
+      - native/internal/memo/portable_snapshot_restore.go
+    notes: Native memo operations are owner-scoped and the clean-target restore primitive requires an explicit target owner, but accepted GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding are not established.
 
 health:
   health_endpoint: null
@@ -101,19 +107,20 @@ continuity:
   restore:
     required: true
     requirements:
-      - Implement an authorized clean-target native restore path with explicit GoreeCloud Identity owner binding, transactional persistence, conflict policy, failure handling, and auditability.
-      - Keep snapshot decoding and inspection separate from repository overwrite until restore authority is explicitly implemented and accepted.
+      - Bind the bounded clean-target FileRepository restore primitive to an authenticated and authorized GoreeCloud Identity owner before any user-facing or production recovery use.
+      - Preserve validate-before-write, protected staging, observed-target no-overwrite, explicit commit-ambiguous failure handling, recovery lineage, auditability, and accepted Everkeep/Wardveil/Privacy Shield behavior through production integration.
+      - Define separately reviewed merge/conflict and migration semantics before any restore path may modify an owner that already has durable native memo state.
   export:
     required: true
     requirements:
       - Preserve goreecloud-memos-portable-snapshot/1 semantics for supported memo identity, content, labels, reminder, lifecycle, pinning, and timestamps.
-      - Omit source-owner identity and require explicit target-owner materialization without treating the format as backup or restore.
+      - Omit source-owner identity, require explicit target-owner materialization, and do not treat the portable artifact itself as authenticated backup provenance or restore authorization.
   portability:
     required: true
     requirements:
       - Fail closed on unsupported format or schema versions, checksum mismatch, duplicate identifiers, invalid lifecycle or timestamps, malformed records, unknown fields, and trailing data.
       - Keep the aggregate snapshot-inspection projection content-minimized and read-only.
-      - Validate user-facing export and import plus clean-target reconstruction before product-wide portability is claimed.
+      - Validate user-facing export/import, authenticated target-owner binding, clean-target reconstruction, failure reconciliation, and representative recovery behavior before product-wide portability or recovery readiness is claimed.
 
 external_dependencies:
   - name: Android platform
@@ -141,6 +148,9 @@ conformance:
   evidence:
     - USER-MANUAL.md
     - native/README.md
+    - native/internal/memo/portable_snapshot.go
+    - native/internal/memo/portable_snapshot_restore.go
+    - native/internal/memo/portable_snapshot_restore_test.go
     - native/android/README.md
     - docs/development/native-portable-snapshot.md
     - docs/development/native-portable-snapshot-inspection.md
@@ -150,10 +160,10 @@ conformance:
   blockers:
     - GLAZE UI V1.1 / 1.1.0 source mapping and a bounded Android emulator acceptance suite exist, but complete application-specific rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative physical-device, Human Visual Excellence, release, and production acceptance remain outstanding.
     - The Android foundation remains session-only and has no authorized production memo repository, API, synchronization, or migration binding.
-    - GoreeCloud Identity authentication, session, and owner-binding integration are not established.
-    - Wardveil Security integration and acceptance are not established.
+    - GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding integration are not established.
+    - Wardveil Security integration, recovery provenance, and acceptance are not established.
     - Privacy Shield integration and acceptance are not established.
-    - Everkeep integration plus accepted native backup, restore, and clean-target recovery are not established.
+    - A bounded native clean-target restore primitive exists in Development source, but Everkeep runtime integration plus accepted backup, authenticated restore, recovery lineage, failure-reconciliation, recovery-drill, and production recovery evidence are not established.
     - GoreeCloud Mesh registration, Browser capture endpoint and adapter readiness, capability publication, and runtime acceptance are not established.
     - Manager platform visibility and administrative integration acceptance are not established.
     - Controlled migration from the retained accepted web/server runtime into the native rebuild is not implemented or approved.
