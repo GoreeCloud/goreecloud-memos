@@ -26,7 +26,7 @@ func TestPortableSnapshotRejectsNormalizationDependentChecksumEvidence(t *testin
 	}
 
 	for name, suppliedChecksum := range map[string]string{
-		"uppercase":           strings.ToUpper(checksum),
+		"uppercase":              strings.ToUpper(checksum),
 		"surrounding whitespace": " " + checksum + " ",
 	} {
 		t.Run(name, func(t *testing.T) {
