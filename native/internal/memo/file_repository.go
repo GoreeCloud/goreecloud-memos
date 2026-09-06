@@ -236,7 +236,10 @@ func decodeFileMemoRecord(bytes []byte, ownerID, memoID string) (Memo, error) {
 	if record.Version != fileMemoRecordVersion {
 		return Memo{}, fmt.Errorf("unsupported memo record version %d", record.Version)
 	}
-	if normalizeRepositoryIdentity(record.Memo.OwnerID) != ownerID || normalizeRepositoryIdentity(record.Memo.ID) != memoID {
+	if record.Memo.OwnerID != ownerID ||
+		record.Memo.ID != memoID ||
+		normalizeRepositoryIdentity(record.Memo.OwnerID) != record.Memo.OwnerID ||
+		normalizeRepositoryIdentity(record.Memo.ID) != record.Memo.ID {
 		return Memo{}, errors.New("memo record identity mismatch")
 	}
 	return cloneMemo(record.Memo), nil
@@ -274,11 +277,15 @@ func (repository *FileRepository) List(ownerID string) ([]Memo, error) {
 		if err := json.Unmarshal(bytes, &record); err != nil {
 			return nil, fmt.Errorf("decode memo list record: %w", err)
 		}
-		memoID := normalizeRepositoryIdentity(record.Memo.ID)
-		if record.Version != fileMemoRecordVersion || normalizeRepositoryIdentity(record.Memo.OwnerID) != ownerID {
+		memoID := record.Memo.ID
+		if record.Version != fileMemoRecordVersion ||
+			record.Memo.OwnerID != ownerID ||
+			normalizeRepositoryIdentity(record.Memo.OwnerID) != record.Memo.OwnerID {
 			return nil, errors.New("memo list record failed owner/version validation")
 		}
-		if memoID == "" || entry.Name() != repositoryDigest(memoID)+".json" {
+		if memoID == "" ||
+			normalizeRepositoryIdentity(memoID) != memoID ||
+			entry.Name() != repositoryDigest(memoID)+".json" {
 			return nil, errors.New("memo list record failed path identity validation")
 		}
 		values = append(values, cloneMemo(record.Memo))
