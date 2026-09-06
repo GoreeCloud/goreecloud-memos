@@ -100,6 +100,9 @@ func CreatePortableSnapshot(repository Repository, ownerID string, exportedAt ti
 // decoding never turns trim-dependent external identity text into repository authority.
 // Checksum evidence must likewise use the exact lowercase hex representation emitted by
 // CreatePortableSnapshot rather than a case- or whitespace-normalized equivalent.
+// Portable memo content and labels must already use the same canonical representation the
+// native domain emits; decoding never rewrites checksum-verified record text while
+// materializing it.
 // It does not write to a Repository. Callers must perform any restore or migration as a
 // separately authorized operation so conflicts and rollback can be handled deliberately
 // rather than through an implicit overwrite.
@@ -199,6 +202,9 @@ func (record portableMemo) toDomain(ownerID string) (Memo, error) {
 	if content == "" {
 		return Memo{}, fmt.Errorf("%w: memo %q has empty content", ErrInvalidPortableSnapshot, id)
 	}
+	if record.Content != content {
+		return Memo{}, fmt.Errorf("%w: memo %q content is not canonical", ErrInvalidPortableSnapshot, id)
+	}
 	if record.CreatedAt.IsZero() || record.UpdatedAt.IsZero() {
 		return Memo{}, fmt.Errorf("%w: memo %q has a zero timestamp", ErrInvalidPortableSnapshot, id)
 	}
@@ -216,6 +222,9 @@ func (record portableMemo) toDomain(ownerID string) (Memo, error) {
 		normalized := normalizeLabel(label)
 		if normalized == "" {
 			return Memo{}, fmt.Errorf("%w: memo %q has an empty label", ErrInvalidPortableSnapshot, id)
+		}
+		if label != normalized {
+			return Memo{}, fmt.Errorf("%w: memo %q label %q is not canonical", ErrInvalidPortableSnapshot, id, label)
 		}
 		for _, existing := range labels {
 			if sameLabel(existing, normalized) {
