@@ -34,21 +34,22 @@ type Memo struct {
 }
 
 func New(id, ownerID, content string, now time.Time) (Memo, error) {
-	id = strings.TrimSpace(id)
-	ownerID = strings.TrimSpace(ownerID)
+	memoID, err := requireCanonicalRepositoryMemoID(id)
+	if err != nil {
+		return Memo{}, err
+	}
+	canonicalOwnerID, err := requireCanonicalRepositoryOwnerID(ownerID)
+	if err != nil {
+		return Memo{}, err
+	}
+
 	content = strings.TrimSpace(content)
-	if id == "" {
-		return Memo{}, ErrInvalidID
-	}
-	if ownerID == "" {
-		return Memo{}, ErrInvalidOwner
-	}
 	if content == "" {
 		return Memo{}, ErrEmptyContent
 	}
 	return Memo{
-		ID:        id,
-		OwnerID:   ownerID,
+		ID:        memoID,
+		OwnerID:   canonicalOwnerID,
 		Content:   content,
 		Labels:    []string{},
 		Lifecycle: LifecycleActive,
