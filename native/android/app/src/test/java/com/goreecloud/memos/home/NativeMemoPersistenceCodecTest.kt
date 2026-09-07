@@ -20,12 +20,13 @@ class NativeMemoPersistenceCodecTest {
     }
 
     @Test
-    fun decodeRejectsUnknownFormatAndMalformedRecords() {
+    fun decodeRejectsUnknownFormatMalformedRecordsAndNoncanonicalBase64() {
         listOf(
             "GCMEMOS\t2\n",
             "GCMEMOS\t1\n\nZm9v\t0\tYmFy\n",
             "GCMEMOS\t1\nZm9v\t2\tYmFy\n",
             "GCMEMOS\t1\n%%%\t0\tYmFy\n",
+            "GCMEMOS\t1\nYQ\t0\tYg==\n",
         ).forEach { value ->
             assertThrows(IllegalArgumentException::class.java) {
                 NativeMemoPersistenceCodec.decode(value.toByteArray(StandardCharsets.US_ASCII))
