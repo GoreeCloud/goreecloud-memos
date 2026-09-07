@@ -2,6 +2,7 @@ package memo
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -10,7 +11,8 @@ import (
 var ErrMemoNotFound = errors.New("memo not found")
 
 // Repository is the persistence boundary for the native GoreeCloud Memos domain.
-// Implementations must scope every operation to an explicit owner identifier.
+// Implementations must scope every operation to an explicit owner identifier and reject
+// noncanonical owner/memo identities rather than silently rewriting caller-selected scope.
 type Repository interface {
 	Save(memo Memo) error
 	Get(ownerID, memoID string) (Memo, error)
@@ -20,7 +22,8 @@ type Repository interface {
 
 // MemoryRepository is a concurrency-safe development/test repository. It deliberately
 // keeps ownership in the storage key so callers cannot address another owner's memo by
-// ID alone. A durable repository can replace it without changing domain behavior.
+// ID alone. It enforces the same caller-identity semantics as durable repositories so a
+// durable implementation can replace it without changing repository-scope behavior.
 type MemoryRepository struct {
 	mu      sync.RWMutex
 	byOwner map[string]map[string]Memo
@@ -34,6 +37,28 @@ func normalizeRepositoryIdentity(value string) string {
 	return strings.TrimSpace(value)
 }
 
+func requireCanonicalRepositoryOwnerID(ownerID string) (string, error) {
+	canonical := normalizeRepositoryIdentity(ownerID)
+	if canonical == "" {
+		return "", ErrInvalidOwner
+	}
+	if ownerID != canonical {
+		return "", fmt.Errorf("%w: owner id must already be canonical", ErrInvalidOwner)
+	}
+	return ownerID, nil
+}
+
+func requireCanonicalRepositoryMemoID(memoID string) (string, error) {
+	canonical := normalizeRepositoryIdentity(memoID)
+	if canonical == "" {
+		return "", ErrInvalidID
+	}
+	if memoID != canonical {
+		return "", fmt.Errorf("%w: memo id must already be canonical", ErrInvalidID)
+	}
+	return memoID, nil
+}
+
 func cloneMemo(value Memo) Memo {
 	copyValue := value
 	copyValue.Labels = append([]string(nil), value.Labels...)
@@ -45,13 +70,13 @@ func cloneMemo(value Memo) Memo {
 }
 
 func (repository *MemoryRepository) Save(value Memo) error {
-	ownerID := normalizeRepositoryIdentity(value.OwnerID)
-	memoID := normalizeRepositoryIdentity(value.ID)
-	if ownerID == "" {
-		return ErrInvalidOwner
+	ownerID, err := requireCanonicalRepositoryOwnerID(value.OwnerID)
+	if err != nil {
+		return err
 	}
-	if memoID == "" {
-		return ErrInvalidID
+	memoID, err := requireCanonicalRepositoryMemoID(value.ID)
+	if err != nil {
+		return err
 	}
 
 	repository.mu.Lock()
@@ -67,13 +92,13 @@ func (repository *MemoryRepository) Save(value Memo) error {
 }
 
 func (repository *MemoryRepository) Get(ownerID, memoID string) (Memo, error) {
-	ownerID = normalizeRepositoryIdentity(ownerID)
-	memoID = normalizeRepositoryIdentity(memoID)
-	if ownerID == "" {
-		return Memo{}, ErrInvalidOwner
+	ownerID, err := requireCanonicalRepositoryOwnerID(ownerID)
+	if err != nil {
+		return Memo{}, err
 	}
-	if memoID == "" {
-		return Memo{}, ErrInvalidID
+	memoID, err = requireCanonicalRepositoryMemoID(memoID)
+	if err != nil {
+		return Memo{}, err
 	}
 
 	repository.mu.RLock()
@@ -88,9 +113,9 @@ func (repository *MemoryRepository) Get(ownerID, memoID string) (Memo, error) {
 }
 
 func (repository *MemoryRepository) List(ownerID string) ([]Memo, error) {
-	ownerID = normalizeRepositoryIdentity(ownerID)
-	if ownerID == "" {
-		return nil, ErrInvalidOwner
+	ownerID, err := requireCanonicalRepositoryOwnerID(ownerID)
+	if err != nil {
+		return nil, err
 	}
 
 	repository.mu.RLock()
@@ -111,13 +136,13 @@ func (repository *MemoryRepository) List(ownerID string) ([]Memo, error) {
 }
 
 func (repository *MemoryRepository) Delete(ownerID, memoID string) error {
-	ownerID = normalizeRepositoryIdentity(ownerID)
-	memoID = normalizeRepositoryIdentity(memoID)
-	if ownerID == "" {
-		return ErrInvalidOwner
+	ownerID, err := requireCanonicalRepositoryOwnerID(ownerID)
+	if err != nil {
+		return err
 	}
-	if memoID == "" {
-		return ErrInvalidID
+	memoID, err = requireCanonicalRepositoryMemoID(memoID)
+	if err != nil {
+		return err
 	}
 
 	repository.mu.Lock()
