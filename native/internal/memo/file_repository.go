@@ -61,30 +61,8 @@ func repositoryDigest(value string) string {
 	return hex.EncodeToString(digest[:])
 }
 
-func requireCanonicalFileRepositoryOwnerID(ownerID string) (string, error) {
-	canonical := normalizeRepositoryIdentity(ownerID)
-	if canonical == "" {
-		return "", ErrInvalidOwner
-	}
-	if ownerID != canonical {
-		return "", fmt.Errorf("%w: owner id must already be canonical", ErrInvalidOwner)
-	}
-	return ownerID, nil
-}
-
-func requireCanonicalFileRepositoryMemoID(memoID string) (string, error) {
-	canonical := normalizeRepositoryIdentity(memoID)
-	if canonical == "" {
-		return "", ErrInvalidID
-	}
-	if memoID != canonical {
-		return "", fmt.Errorf("%w: memo id must already be canonical", ErrInvalidID)
-	}
-	return memoID, nil
-}
-
 func (repository *FileRepository) ownerDirectory(ownerID string) (string, error) {
-	ownerID, err := requireCanonicalFileRepositoryOwnerID(ownerID)
+	ownerID, err := requireCanonicalRepositoryOwnerID(ownerID)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +74,7 @@ func (repository *FileRepository) recordPath(ownerID, memoID string) (string, er
 	if err != nil {
 		return "", err
 	}
-	memoID, err = requireCanonicalFileRepositoryMemoID(memoID)
+	memoID, err = requireCanonicalRepositoryMemoID(memoID)
 	if err != nil {
 		return "", err
 	}
@@ -168,11 +146,11 @@ func readProtectedMemoRecord(path string) ([]byte, error) {
 }
 
 func (repository *FileRepository) Save(value Memo) error {
-	ownerID, err := requireCanonicalFileRepositoryOwnerID(value.OwnerID)
+	ownerID, err := requireCanonicalRepositoryOwnerID(value.OwnerID)
 	if err != nil {
 		return err
 	}
-	memoID, err := requireCanonicalFileRepositoryMemoID(value.ID)
+	memoID, err := requireCanonicalRepositoryMemoID(value.ID)
 	if err != nil {
 		return err
 	}
