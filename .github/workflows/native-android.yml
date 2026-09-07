@@ -11,7 +11,7 @@ on:
       - ".github/workflows/native-android.yml"
   push:
     branches:
-      - "agent/native-android-home-capture"
+      - "main"
     paths:
       - "native/android/**"
       - "native/platform/integrations.json"
