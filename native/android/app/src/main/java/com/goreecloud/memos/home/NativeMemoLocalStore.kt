@@ -74,7 +74,7 @@ class NativeMemoLocalStore(
 /**
  * Pure codec kept independent from Android storage APIs so corruption and size handling are covered
  * by ordinary JVM tests. The wire format is intentionally simple and private to this Development
- * package: one ASCII header plus Base64-encoded id/body records.
+ * package: one ASCII header plus canonical Base64-encoded id/body records.
  */
 object NativeMemoPersistenceCodec {
     const val MAX_MEMOS = 5_000
@@ -90,17 +90,20 @@ object NativeMemoPersistenceCodec {
         validateMemoSet(memos)
         val builder = StringBuilder(HEADER).append('\n')
         for (memo in memos) {
+            val encodedId = encoder.encodeToString(memo.id.toByteArray(StandardCharsets.UTF_8))
+            val encodedBody = encoder.encodeToString(memo.body.toByteArray(StandardCharsets.UTF_8))
             builder
-                .append(encoder.encodeToString(memo.id.toByteArray(StandardCharsets.UTF_8)))
+                .append(encodedId)
                 .append('\t')
                 .append(if (memo.pinned) '1' else '0')
                 .append('\t')
-                .append(encoder.encodeToString(memo.body.toByteArray(StandardCharsets.UTF_8)))
+                .append(encodedBody)
                 .append('\n')
+            require(builder.length <= MAX_FILE_BYTES) {
+                "saved memo store exceeds the supported size bound"
+            }
         }
-        val bytes = builder.toString().toByteArray(StandardCharsets.US_ASCII)
-        require(bytes.size <= MAX_FILE_BYTES) { "saved memo store exceeds the supported size bound" }
-        return bytes
+        return builder.toString().toByteArray(StandardCharsets.US_ASCII)
     }
 
     fun decode(bytes: ByteArray): List<NativeMemoCard> {
@@ -150,10 +153,13 @@ object NativeMemoPersistenceCodec {
         } catch (exception: IllegalArgumentException) {
             throw IllegalArgumentException("saved memo record contains invalid Base64", exception)
         }
+        require(encoder.encodeToString(decoded) == value) {
+            "saved memo record contains noncanonical Base64"
+        }
         require(decoded.size <= maxBytes) { "saved memo field exceeds the supported size bound" }
-        val decoder = StandardCharsets.UTF_8.newDecoder()
+        val utf8Decoder = StandardCharsets.UTF_8.newDecoder()
             .onMalformedInput(CodingErrorAction.REPORT)
             .onUnmappableCharacter(CodingErrorAction.REPORT)
-        return decoder.decode(ByteBuffer.wrap(decoded)).toString()
+        return utf8Decoder.decode(ByteBuffer.wrap(decoded)).toString()
     }
 }
