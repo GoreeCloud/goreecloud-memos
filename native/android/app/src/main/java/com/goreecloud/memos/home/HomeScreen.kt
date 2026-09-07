@@ -121,6 +121,11 @@ fun MemosHomeScreen(
             item(span = StaggeredGridItemSpan.FullLine) {
                 NativeDevelopmentNotice()
             }
+            if (state.storageIssue != null) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    NativeStorageIssueNotice(state.storageIssue)
+                }
+            }
             item(span = StaggeredGridItemSpan.FullLine) {
                 QuickCapture(
                     expanded = state.composerExpanded,
@@ -163,9 +168,24 @@ private fun NativeDevelopmentNotice() {
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Text(
-            text = "Native Development preview · session-only local state",
+            text = "Native Development preview · saved cards stay on-device · drafts/shares stay session-only",
             modifier = Modifier.padding(horizontal = GlazeMetrics.space4, vertical = GlazeMetrics.space3),
             style = MaterialTheme.typography.labelLarge,
+        )
+    }
+}
+
+@Composable
+private fun NativeStorageIssueNotice(message: String) {
+    Surface(
+        shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(horizontal = GlazeMetrics.space4, vertical = GlazeMetrics.space3),
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -304,7 +324,7 @@ private fun EmptyHomeState() {
         ) {
             Text("Ready for a quick capture", style = MaterialTheme.typography.titleMedium)
             Text(
-                "This native Development build starts empty and does not load the web service or production memo library.",
+                "This native Development build does not load the web service or production memo library. Explicitly saved cards stay local to this app install.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
