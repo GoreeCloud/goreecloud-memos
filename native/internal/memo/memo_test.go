@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestNewMemoRequiresIdentityAndContent(t *testing.T) {
+func TestNewMemoRequiresCanonicalIdentityAndContent(t *testing.T) {
 	now := time.Unix(0, 0)
 	cases := []struct {
 		name    string
@@ -15,8 +15,10 @@ func TestNewMemoRequiresIdentityAndContent(t *testing.T) {
 		content string
 		want    error
 	}{
-		{name: "id", id: " ", ownerID: "owner-1", content: "memo", want: ErrInvalidID},
-		{name: "owner", id: "memo-1", ownerID: " ", content: "memo", want: ErrInvalidOwner},
+		{name: "empty id", id: " ", ownerID: "owner-1", content: "memo", want: ErrInvalidID},
+		{name: "trim alias id", id: " memo-1 ", ownerID: "owner-1", content: "memo", want: ErrInvalidID},
+		{name: "empty owner", id: "memo-1", ownerID: " ", content: "memo", want: ErrInvalidOwner},
+		{name: "trim alias owner", id: "memo-1", ownerID: " owner-1 ", content: "memo", want: ErrInvalidOwner},
 		{name: "content", id: "memo-1", ownerID: "owner-1", content: "   ", want: ErrEmptyContent},
 	}
 	for _, tc := range cases {
@@ -26,6 +28,20 @@ func TestNewMemoRequiresIdentityAndContent(t *testing.T) {
 				t.Fatalf("expected %v, got %v", tc.want, err)
 			}
 		})
+	}
+}
+
+func TestNewMemoPreservesCanonicalIdentityAndNormalizesContentOnly(t *testing.T) {
+	now := time.Date(2026, 9, 7, 15, 0, 0, 0, time.UTC)
+	m, err := New("memo alpha", "owner alpha", "  Capture this  ", now)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+	if m.ID != "memo alpha" || m.OwnerID != "owner alpha" {
+		t.Fatalf("constructor rewrote canonical opaque identity: %#v", m)
+	}
+	if m.Content != "Capture this" {
+		t.Fatalf("expected normalized content, got %q", m.Content)
 	}
 }
 
