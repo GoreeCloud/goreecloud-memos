@@ -14,10 +14,16 @@ fn is_local_app_navigation(url: &Url) -> bool {
     )
 }
 
+fn is_canonical_memos_origin(url: &Url) -> bool {
+    url.scheme() == "https"
+        && url.host_str() == Some(APP_HOST)
+        && url.port().is_none()
+        && url.username().is_empty()
+        && url.password().is_none()
+}
+
 fn is_allowed_navigation(url: &Url) -> bool {
-    is_local_app_navigation(url)
-        || (url.scheme() == "https" && url.host_str() == Some(APP_HOST))
-        || url.as_str() == "about:blank"
+    is_local_app_navigation(url) || is_canonical_memos_origin(url) || url.as_str() == "about:blank"
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -55,7 +61,7 @@ mod tests {
             &Url::parse("https://memos.goreecloud.com/").unwrap()
         ));
         assert!(is_allowed_navigation(
-            &Url::parse("https://memos.goreecloud.com/m/123").unwrap()
+            &Url::parse("https://memos.goreecloud.com/m/123?view=compact#memo").unwrap()
         ));
         assert!(is_allowed_navigation(&Url::parse("tauri://localhost/").unwrap()));
         assert!(is_allowed_navigation(
@@ -74,6 +80,15 @@ mod tests {
         ));
         assert!(!is_allowed_navigation(
             &Url::parse("https://tauri.localhost.evil.example/").unwrap()
+        ));
+        assert!(!is_allowed_navigation(
+            &Url::parse("https://user@memos.goreecloud.com/").unwrap()
+        ));
+        assert!(!is_allowed_navigation(
+            &Url::parse("https://user:secret@memos.goreecloud.com/").unwrap()
+        ));
+        assert!(!is_allowed_navigation(
+            &Url::parse("https://memos.goreecloud.com:444/").unwrap()
         ));
     }
 }
