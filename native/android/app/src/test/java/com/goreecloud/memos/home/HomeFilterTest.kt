@@ -33,6 +33,14 @@ class HomeFilterTest {
     }
 
     @Test
+    fun repeatedTermsDoNotChangeMatchSemantics() {
+        assertEquals(
+            listOf(memos[1]),
+            filterMemosForHome(memos, "coffee coffee beans coffee"),
+        )
+    }
+
+    @Test
     fun requiresEveryQueryTermButNotTermOrder() {
         assertEquals(
             listOf(memos[2]),
