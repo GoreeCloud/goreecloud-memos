@@ -101,7 +101,13 @@ fun MemosHomeScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Memos", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        "Memos",
+                        modifier = Modifier.testTag("memos-title"),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
