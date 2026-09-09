@@ -203,7 +203,10 @@ internal fun filterMemosForHome(
     val normalizedQuery = normalizeMemoSearchText(query).trim()
     if (normalizedQuery.isEmpty()) return memos
 
-    val terms = normalizedQuery.split(MEMO_SEARCH_WHITESPACE).filter(String::isNotEmpty)
+    val terms = normalizedQuery
+        .split(MEMO_SEARCH_WHITESPACE)
+        .filter(String::isNotEmpty)
+        .distinct()
     if (terms.isEmpty()) return memos
 
     return memos.filter { memo ->
