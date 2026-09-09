@@ -33,6 +33,18 @@ class HomeFilterTest {
     }
 
     @Test
+    fun unicodeSeparatorWhitespaceKeepsMultiTermSemantics() {
+        assertEquals(
+            listOf(memos[1]),
+            filterMemosForHome(memos, "café\u00A0beans"),
+        )
+        assertEquals(
+            listOf(memos[2]),
+            filterMemosForHome(memos, "review\u2003fix"),
+        )
+    }
+
+    @Test
     fun repeatedTermsDoNotChangeMatchSemantics() {
         assertEquals(
             listOf(memos[1]),
