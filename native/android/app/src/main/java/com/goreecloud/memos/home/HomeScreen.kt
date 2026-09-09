@@ -42,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goreecloud.memos.ui.theme.GlazeMetrics
+import java.text.Normalizer
+import java.util.Locale
 
 @Composable
 fun MemosHomeRoute(
@@ -198,10 +200,28 @@ internal fun filterMemosForHome(
     memos: List<NativeMemoCard>,
     query: String,
 ): List<NativeMemoCard> {
-    val needle = query.trim()
-    if (needle.isEmpty()) return memos
-    return memos.filter { memo -> memo.body.contains(needle, ignoreCase = true) }
+    val normalizedQuery = normalizeMemoSearchText(query).trim()
+    if (normalizedQuery.isEmpty()) return memos
+
+    val terms = normalizedQuery
+        .split(MEMO_SEARCH_WHITESPACE)
+        .filter(String::isNotEmpty)
+        .distinct()
+    if (terms.isEmpty()) return memos
+
+    return memos.filter { memo ->
+        val normalizedBody = normalizeMemoSearchText(memo.body)
+        terms.all(normalizedBody::contains)
+    }
 }
+
+private fun normalizeMemoSearchText(value: String): String =
+    Normalizer.normalize(value, Normalizer.Form.NFC).lowercase(Locale.ROOT)
+
+// Java/Kotlin's default `\s` class does not cover every Unicode separator without an explicit
+// Unicode-character-class mode. Include Unicode separator characters so pasted queries containing
+// NBSP/figure-space/em-space boundaries retain the same local multi-term semantics as ASCII spaces.
+private val MEMO_SEARCH_WHITESPACE = Regex("[\\s\\p{Z}]+")
 
 @Composable
 private fun NativeDevelopmentNotice() {
