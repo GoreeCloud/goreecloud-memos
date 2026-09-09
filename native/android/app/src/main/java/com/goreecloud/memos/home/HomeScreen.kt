@@ -218,7 +218,10 @@ internal fun filterMemosForHome(
 private fun normalizeMemoSearchText(value: String): String =
     Normalizer.normalize(value, Normalizer.Form.NFC).lowercase(Locale.ROOT)
 
-private val MEMO_SEARCH_WHITESPACE = Regex("\\s+")
+// Java/Kotlin's default `\s` class does not cover every Unicode separator without an explicit
+// Unicode-character-class mode. Include Unicode separator characters so pasted queries containing
+// NBSP/figure-space/em-space boundaries retain the same local multi-term semantics as ASCII spaces.
+private val MEMO_SEARCH_WHITESPACE = Regex("[\\s\\p{Z}]+")
 
 @Composable
 private fun NativeDevelopmentNotice() {
