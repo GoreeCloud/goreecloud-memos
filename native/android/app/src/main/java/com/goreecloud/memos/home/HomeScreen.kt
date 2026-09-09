@@ -37,6 +37,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -150,7 +151,9 @@ fun MemosHomeScreen(
                     OutlinedTextField(
                         value = memoQuery,
                         onValueChange = { memoQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("saved-memo-filter"),
                         singleLine = true,
                         placeholder = { Text("Find saved memos") },
                         supportingText = { Text("Filters saved cards on this device only") },
@@ -286,6 +289,7 @@ private fun QuickCapture(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 132.dp)
+                    .testTag("memo-composer")
                     .focusRequester(focusRequester),
                 placeholder = { Text("Capture a thought, list, reminder, or snippet") },
                 shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
