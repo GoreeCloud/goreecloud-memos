@@ -42,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goreecloud.memos.ui.theme.GlazeMetrics
+import java.text.Normalizer
+import java.util.Locale
 
 @Composable
 fun MemosHomeRoute(
@@ -198,10 +200,22 @@ internal fun filterMemosForHome(
     memos: List<NativeMemoCard>,
     query: String,
 ): List<NativeMemoCard> {
-    val needle = query.trim()
-    if (needle.isEmpty()) return memos
-    return memos.filter { memo -> memo.body.contains(needle, ignoreCase = true) }
+    val normalizedQuery = normalizeMemoSearchText(query).trim()
+    if (normalizedQuery.isEmpty()) return memos
+
+    val terms = normalizedQuery.split(MEMO_SEARCH_WHITESPACE).filter(String::isNotEmpty)
+    if (terms.isEmpty()) return memos
+
+    return memos.filter { memo ->
+        val normalizedBody = normalizeMemoSearchText(memo.body)
+        terms.all(normalizedBody::contains)
+    }
 }
+
+private fun normalizeMemoSearchText(value: String): String =
+    Normalizer.normalize(value, Normalizer.Form.NFC).lowercase(Locale.ROOT)
+
+private val MEMO_SEARCH_WHITESPACE = Regex("\\s+")
 
 @Composable
 private fun NativeDevelopmentNotice() {
