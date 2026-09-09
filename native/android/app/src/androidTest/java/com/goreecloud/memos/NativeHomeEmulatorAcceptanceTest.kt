@@ -22,7 +22,7 @@ class NativeHomeEmulatorAcceptanceTest {
 
     @Test
     fun launchShowsNativeDevelopmentBoundaryAndQuickCapture() {
-        composeRule.onNodeWithText("Memos").assertIsDisplayed()
+        composeRule.onNodeWithTag("memos-title").assertIsDisplayed()
         composeRule
             .onNodeWithText("Native Development preview · saved cards stay on-device · drafts/shares stay session-only")
             .assertIsDisplayed()
