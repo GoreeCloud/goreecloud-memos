@@ -4,9 +4,8 @@ import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -23,7 +22,7 @@ class NativeHomeEmulatorAcceptanceTest {
 
     @Test
     fun launchShowsNativeDevelopmentBoundaryAndQuickCapture() {
-        composeRule.onNodeWithText("Memos").assertIsDisplayed()
+        composeRule.onNodeWithTag("memos-title").assertIsDisplayed()
         composeRule
             .onNodeWithText("Native Development preview · saved cards stay on-device · drafts/shares stay session-only")
             .assertIsDisplayed()
@@ -35,7 +34,7 @@ class NativeHomeEmulatorAcceptanceTest {
         val memoText = "Emulator acceptance memo"
 
         composeRule.onNodeWithText("Take a memo…").performClick()
-        composeRule.onNode(hasSetTextAction()).performTextInput(memoText)
+        composeRule.onNodeWithTag("memo-composer").performTextInput(memoText)
         composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
 
         composeRule.onNodeWithText(memoText).assertIsDisplayed()
@@ -46,7 +45,7 @@ class NativeHomeEmulatorAcceptanceTest {
         val draftText = "Draft survives Back"
 
         composeRule.onNodeWithText("Take a memo…").performClick()
-        composeRule.onNode(hasSetTextAction()).performTextInput(draftText)
+        composeRule.onNodeWithTag("memo-composer").performTextInput(draftText)
 
         composeRule.runOnUiThread {
             composeRule.activity.onBackPressedDispatcher.onBackPressed()
@@ -54,7 +53,7 @@ class NativeHomeEmulatorAcceptanceTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Draft waiting · Tap to continue").assertIsDisplayed().performClick()
-        composeRule.onNode(hasSetTextAction()).assertTextContains(draftText)
+        composeRule.onNodeWithTag("memo-composer").assertTextContains(draftText)
     }
 
     @Test
@@ -62,12 +61,12 @@ class NativeHomeEmulatorAcceptanceTest {
         val draftText = "Draft survives Activity recreation"
 
         composeRule.onNodeWithText("Take a memo…").performClick()
-        composeRule.onNode(hasSetTextAction()).performTextInput(draftText)
+        composeRule.onNodeWithTag("memo-composer").performTextInput(draftText)
 
         composeRule.activityRule.scenario.recreate()
         composeRule.waitForIdle()
 
-        composeRule.onNode(hasSetTextAction()).assertTextContains(draftText)
+        composeRule.onNodeWithTag("memo-composer").assertTextContains(draftText)
     }
 
     @Test
@@ -85,6 +84,6 @@ class NativeHomeEmulatorAcceptanceTest {
         }
         composeRule.waitForIdle()
 
-        composeRule.onNode(hasSetTextAction()).assertTextContains(sharedText)
+        composeRule.onNodeWithTag("memo-composer").assertTextContains(sharedText)
     }
 }
