@@ -28,6 +28,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -89,6 +93,9 @@ fun MemosHomeScreen(
     onSaveDraft: () -> Unit,
     onTogglePinned: (String) -> Unit,
 ) {
+    var memoQuery by rememberSaveable { mutableStateOf("") }
+    val visibleMemos = filterMemosForHome(state.memos, memoQuery)
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -101,8 +108,8 @@ fun MemosHomeScreen(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        val pinned = state.memos.filter { it.pinned }
-        val ordinary = state.memos.filterNot { it.pinned }
+        val pinned = visibleMemos.filter { it.pinned }
+        val ordinary = visibleMemos.filterNot { it.pinned }
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Adaptive(minSize = 168.dp),
@@ -138,9 +145,27 @@ fun MemosHomeScreen(
                 )
             }
 
+            if (state.memos.isNotEmpty()) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    OutlinedTextField(
+                        value = memoQuery,
+                        onValueChange = { memoQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("Find saved memos") },
+                        supportingText = { Text("Filters saved cards on this device only") },
+                        shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
+                    )
+                }
+            }
+
             if (state.memos.isEmpty()) {
                 item(span = StaggeredGridItemSpan.FullLine) {
                     EmptyHomeState()
+                }
+            } else if (visibleMemos.isEmpty()) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    NoMemoMatches()
                 }
             } else {
                 if (pinned.isNotEmpty()) {
@@ -158,6 +183,15 @@ fun MemosHomeScreen(
             }
         }
     }
+}
+
+internal fun filterMemosForHome(
+    memos: List<NativeMemoCard>,
+    query: String,
+): List<NativeMemoCard> {
+    val needle = query.trim()
+    if (needle.isEmpty()) return memos
+    return memos.filter { memo -> memo.body.contains(needle, ignoreCase = true) }
 }
 
 @Composable
@@ -325,6 +359,28 @@ private fun EmptyHomeState() {
             Text("Ready for a quick capture", style = MaterialTheme.typography.titleMedium)
             Text(
                 "This native Development build does not load the web service or production memo library. Explicitly saved cards stay local to this app install.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoMemoMatches() {
+    Surface(
+        shape = RoundedCornerShape(GlazeMetrics.radiusStandard),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(GlazeMetrics.space5),
+            verticalArrangement = Arrangement.spacedBy(GlazeMetrics.space2),
+        ) {
+            Text("No matching saved memos", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Try a different word or clear the local filter.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
