@@ -11,6 +11,7 @@ data class HomeUiState(
     val draft: String = "",
     val pendingCaptures: List<String> = emptyList(),
     val memos: List<NativeMemoCard> = emptyList(),
+    val storageIssue: String? = null,
 )
 
 object HomeReducer {

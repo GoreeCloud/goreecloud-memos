@@ -13,6 +13,8 @@ METRICS = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeMetrics.kt").read_t
 THEME = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeTheme.kt").read_text(encoding="utf-8")
 ATMOSPHERE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt").read_text(encoding="utf-8")
 HOME = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeScreen.kt").read_text(encoding="utf-8")
+VIEWMODEL = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeViewModel.kt").read_text(encoding="utf-8")
+LOCAL_STORE = (SOURCE_ROOT / "com/goreecloud/memos/home/NativeMemoLocalStore.kt").read_text(encoding="utf-8")
 ACTIVITY = (SOURCE_ROOT / "com/goreecloud/memos/MainActivity.kt").read_text(encoding="utf-8")
 EMULATOR_TEST = (
     APP / "src/androidTest/java/com/goreecloud/memos/NativeHomeEmulatorAcceptanceTest.kt"
@@ -80,6 +82,29 @@ def main() -> None:
     require("Intent.ACTION_SEND" in ACTIVITY and "Intent.EXTRA_TEXT" in ACTIVITY, "native Activity must explicitly consume text share intents")
 
     for marker in (
+        "NativeMemoLocalStore(",
+        'File(application.filesDir, "goreecloud-memos-native-saved-v1.store")',
+        "storageRecoveryRequired",
+        "local-${UUID.randomUUID()}",
+    ):
+        require(marker in VIEWMODEL, f"native saved-card ViewModel boundary missing: {marker}")
+    for marker in (
+        "AtomicFile(file)",
+        'HEADER = "GCMEMOS\\t1"',
+        "const val MAX_MEMOS = 5_000",
+        "const val MAX_BODY_BYTES = 1_048_576",
+        "const val MAX_FILE_BYTES = 16 * 1024 * 1024",
+        "output.fd.sync()",
+        "RecoveryRequired",
+    ):
+        require(marker in LOCAL_STORE, f"native saved-card local-store boundary missing: {marker}")
+    require(
+        "saved cards stay on-device · drafts/shares stay session-only" in HOME,
+        "native Home must truthfully distinguish saved-card and transient capture lifetimes",
+    )
+    require("NativeStorageIssueNotice" in HOME, "native Home must visibly surface local-storage recovery/write failures")
+
+    for marker in (
         'androidTestImplementation("androidx.test.ext:junit:',
         'androidTestImplementation("androidx.test.espresso:espresso-core:',
         'androidTestImplementation("androidx.compose.ui:ui-test-junit4:',
@@ -88,10 +113,10 @@ def main() -> None:
         require(marker in BUILD, f"native Android emulator acceptance dependency missing: {marker}")
     for marker in (
         "launchShowsNativeDevelopmentBoundaryAndQuickCapture",
-        "quickCaptureSavesOneSessionMemo",
+        "quickCaptureSavesOneLocalMemo",
         "systemBackCollapsesComposerWithoutDiscardingDraft",
         "textShareIntentEntersTheNativeComposer",
-        '"Native Development preview · session-only local state"',
+        '"Native Development preview · saved cards stay on-device · drafts/shares stay session-only"',
         "Intent.ACTION_SEND",
     ):
         require(marker in EMULATOR_TEST, f"native Android emulator acceptance contract missing: {marker}")

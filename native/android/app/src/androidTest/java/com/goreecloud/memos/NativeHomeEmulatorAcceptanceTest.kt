@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -24,13 +25,13 @@ class NativeHomeEmulatorAcceptanceTest {
     fun launchShowsNativeDevelopmentBoundaryAndQuickCapture() {
         composeRule.onNodeWithText("Memos").assertIsDisplayed()
         composeRule
-            .onNodeWithText("Native Development preview · session-only local state")
+            .onNodeWithText("Native Development preview · saved cards stay on-device · drafts/shares stay session-only")
             .assertIsDisplayed()
         composeRule.onNodeWithText("Take a memo…").assertIsDisplayed()
     }
 
     @Test
-    fun quickCaptureSavesOneSessionMemo() {
+    fun quickCaptureSavesOneLocalMemo() {
         val memoText = "Emulator acceptance memo"
 
         composeRule.onNodeWithText("Take a memo…").performClick()
@@ -57,7 +58,7 @@ class NativeHomeEmulatorAcceptanceTest {
     }
 
     @Test
-    fun activityRecreationPreservesCurrentSessionDraft() {
+    fun activityRecreationPreservesCurrentProcessDraft() {
         val draftText = "Draft survives Activity recreation"
 
         composeRule.onNodeWithText("Take a memo…").performClick()
