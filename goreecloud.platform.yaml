@@ -80,7 +80,7 @@ platform_systems:
       - docs/development/native-android-home-capture.md
       - docs/development/native-android-glaze-v1.1.md
       - docs/development/native-android-emulator-acceptance.md
-    notes: Repository-local Development source targets current Stable GLAZE UI V1.1 / 1.1.0 and now defines a Memos-owned Android handheld emulator acceptance suite for the native Development boundary, quick capture, Back/draft preservation, and text-share capture. It preserves inherited Light/Dark runtime behavior, records explicit Deep Dark source capability and V1.1 optical geometry, and keeps atmosphere unrendered/non-semantic. Complete rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative-device, Human Visual Excellence, release, and production acceptance remain required.
+    notes: The current native Development source still maps GLAZE UI V1.1 / 1.1.0. Current Stable GLAZE UI V1.3 / 1.3.0 is now the required application baseline, so the truthful source result remains applicable-migration-required until a V1.3 source migration is implemented. Existing emulator evidence covers only the older mapped source plus bounded native Home/Capture behavior and cannot be carried forward as V1.3 application acceptance. Fresh rendered, accessibility, runtime appearance policy, adaptive/form-factor, representative-device, Human Visual Excellence, rollback, release, and production acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -138,10 +138,10 @@ external_dependencies:
 
 compatibility:
   platform_contract: "0.2"
-  glaze_ui_required: "1.1.0"
+  glaze_ui_required: "1.3.0"
   requires:
     - goreecloud-platform-contract==0.2
-    - glaze-ui==1.1.0
+    - glaze-ui==1.3.0
     - android-api>=29
   provides:
     - goreecloud-memos-portable-snapshot/1
@@ -155,6 +155,7 @@ conformance:
   validated_at: null
   evidence:
     - USER-MANUAL.md
+    - FEATURE-ROADMAP.md
     - native/README.md
     - native/internal/memo/portable_snapshot.go
     - native/internal/memo/portable_snapshot_restore.go
@@ -168,8 +169,8 @@ conformance:
     - docs/development/native-android-glaze-v1.1.md
     - docs/development/native-android-emulator-acceptance.md
   blockers:
-    - GLAZE UI V1.1 / 1.1.0 source mapping and a bounded Android emulator acceptance suite exist, but complete application-specific rendered, accessibility, runtime Deep Dark policy, adaptive/form-factor, representative physical-device, Human Visual Excellence, release, and production acceptance remain outstanding.
-    - The Android foundation remains session-only and has no authorized production memo repository, API, synchronization, or migration binding.
+    - Current native source maps GLAZE UI V1.1 / 1.1.0, while current Stable GLAZE UI V1.3 / 1.3.0 is required; V1.3 source migration and fresh complete application-specific rendered, accessibility, runtime appearance, adaptive/form-factor, representative physical-device, Human Visual Excellence, rollback, release, and production acceptance remain outstanding.
+    - The Android foundation remains Development-only and has no authorized production memo repository, API, synchronization, or migration binding.
     - GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding integration are not established.
     - Wardveil Security integration, recovery provenance, and acceptance are not established.
     - Privacy Shield integration and acceptance are not established.
