@@ -34,11 +34,12 @@ platform_systems:
       - native/internal/memo/portable_snapshot_reconcile.go
       - native/android/README.md
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt
+      - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAdaptivePolicy.kt
       - docs/development/native-portable-snapshot.md
       - docs/development/native-portable-snapshot-inspection.md
-      - docs/development/native-android-glaze-v1.1.md
+      - docs/development/native-android-glaze-v1.3.md
       - docs/development/native-android-emulator-acceptance.md
-    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, a clean-target writer that requires an explicit caller-supplied target owner, and content-minimized exact-state reconciliation reduce accidental scope expansion. These helpers do not authenticate or authorize that owner. The V1.1 atmosphere mapping adds no memo-content sampling, remote derivation, sample-history persistence, telemetry, or semantic inference. The emulator acceptance suite uses only session-memory test content and grants no production data authority. Accepted Privacy Shield integration and production privacy validation are not established.
+    notes: Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, a clean-target writer that requires an explicit caller-supplied target owner, and content-minimized exact-state reconciliation reduce accidental scope expansion. These helpers do not authenticate or authorize that owner. The V1.3 native source policy keeps user/context accent adapters, environmental sampling, remote dynamic color, persistent color memory, telemetry-equivalent adaptive sampling, and semantic inference fail-closed; the retained atmosphere mapping remains unrendered and content-independent. Existing emulator acceptance uses only Development-local/session test content and grants no production data authority. Accepted Privacy Shield integration and production privacy validation are not established.
   wardveil_security:
     result: applicable-blocked
     version: null
@@ -66,21 +67,23 @@ platform_systems:
     notes: A versioned portable snapshot codec, read-only aggregate preflight, bounded durable FileRepository clean-target materialization primitive, and bounded read-only exact-state reconciliation helper exist in Development source. The writer validates before persistence, refuses observed existing target-owner state, stages protected records, commits the owner directory as one rename, and reports post-rename verification or durability failures as commit-ambiguous. Reconciliation strictly validates the supplied snapshot, requires the target directory to exist, compares exact protected owner state without disclosing memo content in results, and re-synchronizes owner/root directories before success. These helpers do not authenticate or authorize the caller-supplied target owner, prove which restore created state, establish recovery lineage or trusted artifact provenance, integrate with Everkeep runtime services, or establish accepted production backup/restore authority.
   glaze_ui:
     result: applicable-migration-required
-    version: "1.1.0"
+    version: "1.3.0"
     evidence:
       - native/android/app/src/main/java/com/goreecloud/memos/MainActivity.kt
       - native/android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeMetrics.kt
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeTheme.kt
       - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt
-      - native/android/app/src/test/java/com/goreecloud/memos/ui/theme/GlazeV11SourceContractTest.kt
+      - native/android/app/src/main/java/com/goreecloud/memos/ui/theme/GlazeAdaptivePolicy.kt
+      - native/android/app/src/test/java/com/goreecloud/memos/ui/theme/GlazeV13SourceContractTest.kt
       - native/android/app/src/androidTest/java/com/goreecloud/memos/NativeHomeEmulatorAcceptanceTest.kt
       - native/android/scripts/check_native_android.py
       - .github/workflows/native-android.yml
       - docs/development/native-android-home-capture.md
-      - docs/development/native-android-glaze-v1.1.md
+      - docs/development/native-android-glaze-v1.3.md
       - docs/development/native-android-emulator-acceptance.md
-    notes: The current native Development source still maps GLAZE UI V1.1 / 1.1.0. Current Stable GLAZE UI V1.3 / 1.3.0 is now the required application baseline, so the truthful source result remains applicable-migration-required until a V1.3 source migration is implemented. Existing emulator evidence covers only the older mapped source plus bounded native Home/Capture behavior and cannot be carried forward as V1.3 application acceptance. Fresh rendered, accessibility, runtime appearance policy, adaptive/form-factor, representative-device, Human Visual Excellence, rollback, release, and production acceptance remain required.
+    notes: >-
+      Native Development source now maps the current Stable GLAZE UI V1.3 / 1.3.0 target at exact integrated implementation revision fc7cc91d2eace8da2371371c2855c24cbcb326a1 with Stable lifecycle authority anchored at d68e408a9abd946a7fd1b30816a0e3876d8bf8bb. V1.3 inherits the structural rendering baseline, so existing spacing/radius/interaction floors remain explicit while adaptive color, protected semantic roles, reachability review, and accessibility precedence are represented in a separate fail-closed policy. Home/Capture does not yet activate user/context adaptive color or atmosphere. The result remains applicable-migration-required because source migration alone is not application acceptance: fresh rendered, interaction, accessibility, runtime appearance/Personalization, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production evidence remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -166,10 +169,10 @@ conformance:
     - docs/development/native-portable-snapshot.md
     - docs/development/native-portable-snapshot-inspection.md
     - docs/development/native-android-home-capture.md
-    - docs/development/native-android-glaze-v1.1.md
+    - docs/development/native-android-glaze-v1.3.md
     - docs/development/native-android-emulator-acceptance.md
   blockers:
-    - Current native source maps GLAZE UI V1.1 / 1.1.0, while current Stable GLAZE UI V1.3 / 1.3.0 is required; V1.3 source migration and fresh complete application-specific rendered, accessibility, runtime appearance, adaptive/form-factor, representative physical-device, Human Visual Excellence, rollback, release, and production acceptance remain outstanding.
+    - Native source now maps GLAZE UI V1.3 / 1.3.0, but source migration is not application acceptance; fresh exact-revision rendered, interaction, accessibility, runtime appearance/Personalization, adaptive/form-factor, representative physical-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain outstanding.
     - The Android foundation remains Development-only and has no authorized production memo repository, API, synchronization, or migration binding.
     - GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding integration are not established.
     - Wardveil Security integration, recovery provenance, and acceptance are not established.

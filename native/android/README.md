@@ -6,7 +6,7 @@ This directory is the first committed Android-native application foundation for 
 
 The long-term Android product is native Android software, not a WebView, Tauri presentation shell, PWA wrapper, or embedded copy of `https://memos.goreecloud.com`. The retained Tauri client remains transition, compatibility, and rollback material while this native line is developed and accepted separately.
 
-The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge system presentation, native staggered cards, and Android resources. GLAZE UI V1.1 is mapped into these Android-native patterns rather than reproducing the web layout.
+The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge system presentation, native staggered cards, and Android resources. GLAZE UI V1.3 is mapped into these Android-native patterns rather than reproducing the web layout.
 
 ## Current Home/Capture surface
 
@@ -20,12 +20,13 @@ The surface provides:
 - native staggered memo cards with content-driven heights and a 168 dp adaptive minimum card width;
 - local pin/unpin prioritization whose saved-card state is persisted atomically;
 - a visible storage/recovery warning when the bounded local saved-card store cannot be read or safely written;
-- GLAZE UI V1.1 Light/Dark foundation colors, inherited 4/8/12/16/20/24/32/48/64 dp structural spacing, 12/20/28 dp structural radius tiers, separate 8/16/24/32 dp optical geometry plus capsule, 48 dp normal targets, and a 56 dp Touch Assistance target token; and
-- an explicit V1.1 Deep Dark source palette plus a bounded non-semantic Deep Teal + Soft Amber atmosphere source contract that are not automatically selected or rendered by the current Home/Capture surface.
+- GLAZE UI V1.3 source authority with inherited 4/8/12/16/20/24/32/48/64 dp structural spacing, 12/20/28 dp structural radius tiers, separate 8/16/24/32 dp optical geometry plus capsule, 48 dp normal targets, and a 56 dp Touch Assistance target token;
+- deterministic Light/Dark fallback colors plus explicit Deep Dark source capability; and
+- a fail-closed V1.3 Adaptive Resonance policy covering color-authority precedence, protected semantic roles, compact reachability review bands, accessibility precedence, and disabled/unaccepted contextual adapters.
 
 ## Saved-card local persistence
 
-Explicitly saved native memo cards now survive Activity replacement and application-process restart through one app-private, versioned `AtomicFile` store. The store is a Development-only local authority and is not the production GoreeCloud Memos library.
+Explicitly saved native memo cards survive Activity replacement and application-process restart through one app-private, versioned `AtomicFile` store. The store is a Development-only local authority and is not the production GoreeCloud Memos library.
 
 The persistence boundary is intentionally narrow:
 
@@ -51,22 +52,34 @@ These entry points are text-only. They do not accept file streams, request stora
 
 This line has **no** production memo authority. It does not load or mutate the accepted GoreeCloud Memos web/server v0.1.3 runtime. It has no network permission, WebView, embedded production URL, native server API, GoreeCloud Identity session, synchronization engine, attachment transfer, reminder scheduling, production durable queue, backup/restore path, or migration authority.
 
-Explicitly saved cards are now durable only inside the Development application's private local store. Drafts and queued text shares remain process-memory only. The visible Development notice distinguishes these lifetimes so local persistence is not mistaken for production synchronization or server-backed durability.
+Explicitly saved cards are durable only inside the Development application's private local store. Drafts and queued text shares remain process-memory only. The visible Development notice distinguishes these lifetimes so local persistence is not mistaken for production synchronization or server-backed durability.
 
 The Development application ID is `com.goreecloud.memos.native.dev`, while Kotlin source remains under the canonical `com.goreecloud.memos` namespace. This lets the native Development package coexist with the transitional `com.goreecloud.memos` Tauri package during physical-device comparison. A production native package identity is not established by this foundation.
 
+## GLAZE UI V1.3 source boundary
+
+Native source now targets GLAZE UI V1.3 (`1.3.0`) at exact integrated implementation revision `fc7cc91d2eace8da2371371c2855c24cbcb326a1`, with Stable lifecycle authority explicitly anchored at `d68e408a9abd946a7fd1b30816a0e3876d8bf8bb`.
+
+V1.3 inherits the V1.2 structural rendering baseline, so Memos preserves the established geometry instead of inventing replacement spacing/radii merely to change versions. `GlazeAdaptivePolicy` separately records V1.3 Adaptive Resonance behavior relevant to the native line: the default non-semantic Glaze accent, accessibility/semantic-first color precedence, protected product-truth roles, compact reachability review bands, and the rule that adaptive expression cannot carry authoritative semantic state.
+
+Android system appearance currently selects only the deterministic mapped Light or Dark fallback scheme. Deep Dark remains an explicit source capability. Native user-accent/context-color/Personalization adapters are not accepted, so user/context accent application, environmental sampling, remote dynamic color, persistent color memory, and semantic inference remain disabled. `GlazeAtmosphere` remains unrendered and content-independent.
+
+The current `HomeScreen` deliberately consumes neither `GlazeAdaptivePolicy` nor `GlazeAtmosphere`. Source support for V1.3 adaptive behavior is not runtime authority to inspect memo content, drafts, queued shares, editor metadata, location, time, weather, account state, privacy/security/recovery state, synchronization state, or other user/environmental content.
+
 ## GLAZE UI acceptance boundary
 
-Source maps the currently consumed foundation subset to GLAZE UI V1.1 (`1.1.0`) at exact Stable source revision `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`. Android system appearance currently selects only the mapped Light or Dark scheme. The explicit Deep Dark palette is source capability only until a separately reviewed runtime appearance policy selects it.
+This is a V1.3 **source migration**, not application conformance. Earlier V1.1 emulator/rendering evidence is historical and is not reused as V1.3 acceptance.
 
-`GlazeAtmosphere` similarly defines bounded non-semantic Deep Teal + Soft Amber source values but is not consumed by `HomeScreen`. It cannot inspect memo text, draft text, queued shares, editor metadata, location, time, weather, identity state, privacy/security state, or other user/environmental content, and it does not enable Environmental Color Memory, remote derivation, sample persistence, or semantic inference.
+Fresh exact-revision acceptance remains required for rendered/native visual behavior; touch/focus/selection/consequential-action interaction; accessibility/resilience including TalkBack, Switch Access, large text/reflow, RTL/localization, Reduced Motion, transparency/contrast equivalents; adaptive phone/tablet/foldable/multi-pane composition; any native Personalization/runtime appearance adapters; product workflows; representative performance/degradation; physical-device capture/share/shortcut/retrieval behavior; Human Visual Excellence; rollback; release; and explicit production approval.
 
-This remains a source-level consumer foundation only. Complete rendered visual acceptance, runtime Deep Dark policy, reduced-transparency/increased-contrast and other accessibility/resilience equivalents, complete semantic-color/state coverage, motion evaluation, screen-reader acceptance, large-font/200% text acceptance, RTL/localization, adaptive/foldable behavior, Touch Assistance mode, Human Visual Excellence review, representative physical-device acceptance, release, production approval, and Stable qualification remain open.
+Privacy Shield, Wardveil Security, GoreeCloud Identity, Everkeep, Mesh, Manager, controlled migration, protected signing/provenance, Release Candidate qualification, deployment, production acceptance, and Stable qualification remain independently blocked.
 
 ## Validation and acceptance artifact
 
-`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1.1 target metadata drifts, the Deep Dark/optical/atmosphere source boundary regresses, the atmosphere contract becomes a Home renderer dependency, the native Home loses its Compose staggered-card/Back/IME-focus contracts, the saved-card local-persistence boundary disappears, or the native text-share/New-memo entry points disappear.
+`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1.3 exact anchors drift, inherited geometry/target floors regress, the adaptive policy gains unaccepted authority, the atmosphere/adaptive contracts become Home renderer dependencies, the native Home loses its Compose staggered-card/Back/IME-focus contracts, the saved-card local-persistence boundary disappears, or the native text-share/New-memo entry points disappear.
 
 Android CI runs native-boundary validation, platform-integration validation, lint, JVM unit tests, a debug APK build, and handheld-emulator acceptance. A successful exact-head run stages the APK with `BUILD-PROVENANCE.txt` and a verified `SHA256SUMS` file, then uploads the set as `goreecloud-memos-native-android-dev`; emulator test evidence is uploaded separately. Provenance binds the evidence to the exact source SHA, Development version, `.native.dev` package identity, workflow run, and the Development-only local-authority boundary.
+
+Passing those automated checks validates only the source/build/emulator tranche they exercise. It does not substitute for the fresh V1.3 rendered/accessibility/representative-device/Human Visual Excellence and production acceptance still required.
 
 This artifact exists for controlled side-by-side Development acceptance against the transitional Tauri client. It is not a signed Stable Android release and does not authorize production data binding, migration, deployment, or replacement of the retained client.

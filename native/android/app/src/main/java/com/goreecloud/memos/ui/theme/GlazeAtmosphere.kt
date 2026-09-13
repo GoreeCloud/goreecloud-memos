@@ -1,16 +1,17 @@
 package com.goreecloud.memos.ui.theme
 
 /**
- * Non-semantic GLAZE UI V1.1 atmospheric source contract for native Memos.
+ * Non-semantic atmospheric source contract retained under native GLAZE UI V1.3.
  *
- * These values are deliberately not consumed by the current Home/Capture surface. Memo
- * content and capture actions remain certainty-first, and atmosphere must not represent
- * privacy, security, identity, recovery, synchronization, availability, pin state,
- * persistence state, or any other authoritative meaning.
+ * V1.3 Adaptive Resonance permits richer contextual/adaptive expression only behind explicit
+ * authority. These existing Memos-local values remain deliberately unrendered by Home/Capture
+ * and cannot represent privacy, security, identity, recovery, synchronization, availability,
+ * pin state, persistence state, or any other authoritative meaning.
  *
- * Environmental Color Memory is disabled: this source mapping authorizes no memo-content
- * sampling, remote color derivation, persistent sample history, semantic inference,
- * telemetry, or animated atmosphere.
+ * Environmental Color Memory remains disabled: this source mapping authorizes no memo-content
+ * sampling, remote color derivation, persistent sample history, semantic inference, telemetry,
+ * or animated atmosphere. GlazeAdaptivePolicy separately keeps V1.3 user/context adapters
+ * fail-closed until independently accepted.
  */
 object GlazeAtmosphere {
     const val deepTealArgb = 0xFF0F6B6F.toInt()

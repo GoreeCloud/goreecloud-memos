@@ -9,6 +9,11 @@ import androidx.compose.ui.graphics.Color
 
 enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }
 
+/*
+ * V1.3 inherits the accepted structural rendering foundation from V1.2. These static
+ * Memos schemes therefore remain the deterministic fallback while native V1.3 dynamic-
+ * color/context adapters are unaccepted. GlazeAdaptivePolicy owns that fail-closed boundary.
+ */
 private val lightColors = lightColorScheme(
     primary = Color(0xFF3478F6),
     onPrimary = Color(0xFFFFFFFF),
@@ -52,11 +57,12 @@ private val deepDarkColors = darkColorScheme(
 )
 
 /**
- * Applies the current GLAZE UI V1.1 structural appearance mapping.
+ * Applies the deterministic native GLAZE UI V1.3 fallback appearance mapping.
  *
  * SYSTEM intentionally follows Android's binary light/dark signal and therefore does not
- * infer Deep Dark. DEEP_DARK is an explicit source capability only until Memos gains a
- * separately reviewed runtime appearance policy or user choice.
+ * infer Deep Dark. DEEP_DARK remains explicit. V1.3 adaptive user/context color is not
+ * activated here because Memos has no independently accepted native Personalization or
+ * environmental-color adapter in this Development tranche.
  */
 @Composable
 fun GlazeTheme(

@@ -12,6 +12,7 @@ SOURCES = "\n".join(path.read_text(encoding="utf-8") for path in SOURCE_ROOT.rgl
 METRICS = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeMetrics.kt").read_text(encoding="utf-8")
 THEME = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeTheme.kt").read_text(encoding="utf-8")
 ATMOSPHERE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt").read_text(encoding="utf-8")
+ADAPTIVE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAdaptivePolicy.kt").read_text(encoding="utf-8")
 HOME = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeScreen.kt").read_text(encoding="utf-8")
 VIEWMODEL = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeViewModel.kt").read_text(encoding="utf-8")
 LOCAL_STORE = (SOURCE_ROOT / "com/goreecloud/memos/home/NativeMemoLocalStore.kt").read_text(encoding="utf-8")
@@ -35,8 +36,9 @@ def main() -> None:
     require('applicationId = "com.goreecloud.memos.native.dev"' in BUILD, "Development package identity must remain isolated from the transitional client")
     require("compileSdk = 36" in BUILD and "targetSdk = 36" in BUILD, "native Android foundation must target the current Android baseline")
 
-    require('const val targetVersion = "1.1.0"' in METRICS, "GLAZE UI V1.1 target must remain pinned")
-    require('const val sourceRevision = "15cc76d2bcd4065552dc31c77145b63f34d9e7b2"' in METRICS, "GLAZE UI V1.1 source revision must remain exact")
+    require('const val targetVersion = "1.3.0"' in METRICS, "GLAZE UI V1.3 target must remain pinned")
+    require('const val sourceRevision = "fc7cc91d2eace8da2371371c2855c24cbcb326a1"' in METRICS, "GLAZE UI V1.3 implementation revision must remain exact")
+    require('const val stableAuthorityRevision = "d68e408a9abd946a7fd1b30816a0e3876d8bf8bb"' in METRICS, "GLAZE UI V1.3 Stable authority revision must remain exact")
     require("val minimumTarget: Dp = 48.dp" in METRICS, "48 dp normal interaction floor is required")
     require("val touchAssistanceTarget: Dp = 56.dp" in METRICS, "56 dp touch-assistance target must remain available")
     for marker in (
@@ -46,9 +48,9 @@ def main() -> None:
         "val opticalHero: Dp = 32.dp",
         "val opticalCapsule: Dp = 999.dp",
     ):
-        require(marker in METRICS, f"missing V1.1 optical geometry marker: {marker}")
+        require(marker in METRICS, f"missing inherited optical geometry marker: {marker}")
 
-    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.1 explicit appearance source contract is required")
+    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.3 explicit appearance source contract is required")
     require("GlazeAppearance.SYSTEM -> if (isSystemInDarkTheme()) darkColors else lightColors" in THEME, "SYSTEM must remain Android Light/Dark only")
     require("GlazeAppearance.DEEP_DARK -> deepDarkColors" in THEME, "Deep Dark must remain an explicit source capability")
     for marker in (
@@ -57,7 +59,31 @@ def main() -> None:
         "surfaceVariant = Color(0xE6171C23)",
         "onSurfaceVariant = Color(0xFFABB4C2)",
     ):
-        require(marker in THEME, f"missing exact V1.1 Deep Dark structural marker: {marker}")
+        require(marker in THEME, f"missing inherited Deep Dark structural marker: {marker}")
+
+    for marker in (
+        'const val targetVersion = "1.3.0"',
+        'const val implementationRevision = "fc7cc91d2eace8da2371371c2855c24cbcb326a1"',
+        "const val defaultGlazeAccentArgb = 0xFF68AEE0.toInt()",
+        '"accessibility"',
+        '"semantic"',
+        '"privacy-status"',
+        '"security-status"',
+        '"recovery-status"',
+        "const val userAccentAdapterAccepted = false",
+        "const val contextAccentAdapterAccepted = false",
+        "const val environmentalSamplingAllowed = false",
+        "const val remoteDynamicColorAllowed = false",
+        "const val persistentColorMemoryAllowed = false",
+        "const val semanticInferenceAllowed = false",
+        "const val interactionZoneStart = 0.62f",
+        "const val reachabilityReviewIsProductAuthority = false",
+        "const val physicalDeviceAcceptanceEstablished = false",
+        "const val continuousDecorativeMorphingAllowed = false",
+        "const val adaptiveExpressionMayCarrySemanticState = false",
+        "const val accessibilityPrecedenceRequired = true",
+    ):
+        require(marker in ADAPTIVE, f"missing bounded V1.3 adaptive policy marker: {marker}")
 
     for marker in (
         "const val deepTealArgb = 0xFF0F6B6F.toInt()",
@@ -68,8 +94,9 @@ def main() -> None:
         "const val semanticInferenceAllowed = false",
         "no memo-content",
     ):
-        require(marker in ATMOSPHERE, f"missing bounded V1.1 atmosphere boundary: {marker}")
-    require("GlazeAtmosphere" not in HOME, "Home/Capture must not render V1.1 atmosphere in this source-mapping slice")
+        require(marker in ATMOSPHERE, f"missing bounded atmosphere boundary: {marker}")
+    require("GlazeAtmosphere" not in HOME, "Home/Capture must not render atmosphere in this source-mapping slice")
+    require("GlazeAdaptivePolicy" not in HOME, "Home/Capture must not activate V1.3 adaptive policy without accepted runtime adapters")
     require("GlazeAppearance.DEEP_DARK" not in HOME, "Home/Capture must not auto-select Deep Dark in this source-mapping slice")
 
     require("enableEdgeToEdge()" in ACTIVITY, "native Activity must preserve edge-to-edge Android presentation")
