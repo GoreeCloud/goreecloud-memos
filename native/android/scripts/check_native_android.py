@@ -164,6 +164,12 @@ def main() -> None:
         "native Home must truthfully distinguish saved-card and transient capture lifetimes",
     )
     require("NativeStorageIssueNotice" in HOME, "native Home must visibly surface local-storage recovery/write failures")
+    require('label = { Text("Find saved memos") }' in HOME, "native saved-memo filter must expose a persistent text-field label")
+    require('.testTag("clear-saved-memo-filter")' in HOME, "native saved-memo filter must expose an explicit clear affordance")
+    require(
+        'onClickLabel = "Open memo composer"' in HOME and "role = Role.Button" in HOME,
+        "collapsed quick capture must expose explicit button semantics",
+    )
 
     for marker in (
         'androidTestImplementation("androidx.test.ext:junit:',
@@ -175,9 +181,12 @@ def main() -> None:
     for marker in (
         "launchShowsNativeDevelopmentBoundaryAndQuickCapture",
         "quickCaptureSavesOneLocalMemo",
+        "savedMemoFilterClearRestoresLocalResults",
         "systemBackCollapsesComposerWithoutDiscardingDraft",
         "textShareIntentEntersTheNativeComposer",
         '"Native Development preview · saved cards stay on-device · drafts/shares stay session-only"',
+        '"clear-saved-memo-filter"',
+        '"No matching saved memos"',
         "Intent.ACTION_SEND",
     ):
         require(marker in EMULATOR_TEST, f"native Android emulator acceptance contract missing: {marker}")
