@@ -1,21 +1,20 @@
 package com.goreecloud.memos.ui.theme
 
 /**
- * GoreeCloud Memos' bounded native mapping of GLAZE UI V1.3 Adaptive Resonance policy.
+ * GoreeCloud Memos' bounded native mapping of the Adaptive Resonance policy inherited by
+ * GLAZE UI V1.4 Optical Intelligence.
  *
- * V1.3 supports adaptive color, expressive shape, reachability review, and richer material
- * behavior, but those capabilities do not gain product truth or data authority merely because
- * the shared design system supports them. Memos keeps every adaptive source that could depend
- * on user/environment context disabled until an independently accepted native adapter exists.
+ * V1.4 preserves the V1.3 token/adaptive baseline. Memos keeps every adaptive source that could
+ * depend on user/environment context disabled until an independently accepted native adapter
+ * exists. V1.4 optical behavior is additionally bounded by [GlazeOpticalPolicy].
  */
 object GlazeAdaptivePolicy {
-    const val targetVersion = "1.3.0"
-    const val implementationRevision = "fc7cc91d2eace8da2371371c2855c24cbcb326a1"
+    const val targetVersion = "1.4.0"
+    const val implementationRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"
 
-    // Shared V1.3 default presentation accent. This is not a semantic status color.
+    // Retained shared non-semantic presentation accent.
     const val defaultGlazeAccentArgb = 0xFF68AEE0.toInt()
 
-    // V1.3 color-authority precedence. Protected truth remains owned outside Glaze.
     val colorAuthorityPrecedence = listOf(
         "accessibility",
         "semantic",
@@ -49,7 +48,7 @@ object GlazeAdaptivePolicy {
     const val persistentColorMemoryAllowed = false
     const val semanticInferenceAllowed = false
 
-    // V1.3 compact reachability values are review signals only, not autonomous authority.
+    // Compact reachability values remain review signals only, not autonomous authority.
     const val viewingZoneStart = 0.00f
     const val viewingZoneEnd = 0.42f
     const val transitionZoneStart = 0.30f
