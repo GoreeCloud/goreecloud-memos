@@ -34,9 +34,11 @@ Maintain the native Android current-Stable GLAZE UI V1.4 / 1.4.0 source mapping 
 ## Immediate next work
 
 ### MR-005 — Physical-device retrieval ergonomics
-**Status:** Next
+**Status:** In progress — source ergonomics tranche implemented; representative-device acceptance pending
 
-Validate and refine native saved-memo filtering on representative Android hardware, including keyboard/IME interaction, query editing and clearing, focus behavior, empty/no-result states, large text, touch targets, Back behavior, and useful memo density.
+The native saved-memo filter now exposes a persistent field label and an explicit Clear action that retains the normal Glaze interaction-target floor. Emulator regression coverage exercises the no-result-to-clear workflow so query clearing cannot silently regress at source/emulator level.
+
+Continue representative Android hardware validation for keyboard/IME interaction, query editing and clearing, focus behavior, empty/no-result states, large text, touch targets, Back behavior, useful memo density, and physical-device performance. Source/emulator evidence does not establish those representative-device outcomes.
 
 ### MR-006 — Large-library local retrieval performance
 **Status:** In progress — bounded source optimization implemented; representative-device performance acceptance pending
@@ -46,9 +48,11 @@ The native Home filter now prepares a process-memory-only normalized snapshot wh
 This is deterministic source/test coverage, not representative-device latency, memory, thermal, or degradation acceptance. Continue measurement against representative local memo-library sizes and Android hardware. Do not introduce unauthorized remote search, semantic inference, query telemetry, persistent query/search indexes, or a second ungoverned indexing authority. Escalate to GoreeCloud Index/Search integration only through an approved contract and platform authority boundary.
 
 ### MR-007 — Accessibility, localization, and RTL acceptance
-**Status:** Next
+**Status:** In progress — source semantic readiness started; manual and representative-device acceptance pending
 
-Complete TalkBack/semantic labeling, keyboard/focus behavior where applicable, 200% text/reflow, contrast and forced/high-contrast equivalents available to the platform, reduced-motion behavior, localization expansion safety, RTL layout/navigation, reduced-transparency/effects behavior where applicable, and representative-device acceptance against the V1.4 source mapping.
+The collapsed quick-capture entry point now exposes an explicit button role and action label, while the saved-memo filter exposes a persistent label and explicit Clear control. Source validation and emulator coverage protect this bounded semantic/interaction readiness tranche.
+
+Complete manual TalkBack/assistive-technology review, keyboard/focus behavior where applicable, 200% text/reflow, contrast and forced/high-contrast equivalents available to the platform, reduced-motion behavior, localization expansion safety, RTL layout/navigation, reduced-transparency/effects behavior where applicable, and representative-device acceptance against the V1.4 source mapping. Automated source/emulator checks do not establish those manual outcomes.
 
 ## Product-completion sequence
 
