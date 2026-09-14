@@ -19,6 +19,8 @@ The Development surface provides:
 - Save into bounded app-private local Development storage;
 - native staggered memo cards with content-driven heights;
 - local pin/unpin prioritization persisted atomically;
+- local `Find saved memos` filtering over already-loaded cards with Unicode-normalized, locale-stable, multi-term semantics;
+- a process-memory-only prepared filter snapshot that reuses normalized memo bodies while the saved-card list is unchanged;
 - a visible storage/recovery warning when the local saved-card store cannot be read or safely written;
 - GLAZE UI V1.4 source authority with inherited structural spacing, radii, optical geometry, 48 dp normal targets, and a 56 dp Touch Assistance target;
 - deterministic Light/Dark fallback plus explicit Deep Dark source capability;
@@ -40,6 +42,12 @@ The persistence boundary remains narrow:
 - transient write failure preserves the prior accepted UI/store state.
 
 This local store has no network, server, GoreeCloud Identity, synchronization, attachment, backup, migration, or production memo-library authority. It is not an Everkeep backup/restore implementation.
+
+## Local saved-memo retrieval boundary
+
+`HomeMemoFilterSnapshot` is a process-memory-only prepared view of the already-loaded saved cards. When the saved-card list changes, Home prepares a fresh snapshot and normalizes each memo body once. Query edits then reuse those normalized bodies while continuing to normalize the query, collapse Unicode separator whitespace, deduplicate repeated terms, require every query term, and preserve the existing card order.
+
+The snapshot is deliberately not a persistent search index. It stores no query history, performs no semantic ranking or inference, contacts no service, emits no telemetry, and has no GoreeCloud Index/Search authority. JVM regression coverage exercises repeated filtering at the current 5,000-card local-store ceiling without using wall-clock thresholds. That source/test coverage does not establish representative-device latency, memory, thermal, or degradation acceptance; those measurements remain part of MR-006/MR-005 device work.
 
 ## Android-native capture entry points
 
