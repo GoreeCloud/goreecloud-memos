@@ -1,4 +1,4 @@
-schema_version: "0.2"
+schema_version: "0.3"
 
 component:
   type: application
@@ -114,6 +114,14 @@ platform_systems:
       - native/internal/memo/portable_snapshot_reconcile.go
     notes: Native memo operations are owner-scoped and recovery primitives require an explicit target owner, but accepted GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding are not established.
 
+  sync:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - FEATURE-ROADMAP.md
+      - native/android/README.md
+    notes: Cross-device native memo synchronization is planned, but accepted GoreeCloud Sync change tracking, version coordination, conflict resolution, offline-resume, authorized replication, and cross-device continuity are not implemented. The current app-private Android saved-card store is device-local Development state and does not become Sync authority; synchronization remains separate from Everkeep backup/recovery.
+
 health:
   health_endpoint: null
   readiness_endpoint: null
@@ -151,10 +159,10 @@ external_dependencies:
     version_constraint: ">=29"
 
 compatibility:
-  platform_contract: "0.2"
+  platform_contract: "0.3"
   glaze_ui_required: "1.4.0"
   requires:
-    - goreecloud-platform-contract==0.2
+    - goreecloud-platform-contract==0.3
     - glaze-ui==1.4.0
     - android-api>=29
   provides:
@@ -190,6 +198,7 @@ conformance:
     - Privacy Shield integration and acceptance are not established.
     - Bounded native clean-target restore and exact current-state reconciliation primitives exist in Development source, but Everkeep runtime integration plus accepted backup, authenticated restore, recovery lineage/provenance, recovery-drill, target-environment failure-reconciliation, and production recovery evidence are not established.
     - GoreeCloud Mesh registration, Browser capture endpoint and adapter readiness, capability publication, and runtime acceptance are not established.
+    - GoreeCloud Sync change tracking, version coordination, conflict handling, authorized replication, offline-resume, and cross-device continuity acceptance are not established.
     - Manager platform visibility and administrative integration acceptance are not established.
     - Controlled migration from the retained accepted web/server runtime into the native rebuild is not implemented or approved.
     - Native deployment, protected Android release signing, representative-device production acceptance, release approval, and Stable qualification remain outstanding.
