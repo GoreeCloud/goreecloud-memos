@@ -39,6 +39,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -165,8 +166,22 @@ fun MemosHomeScreen(
                             .fillMaxWidth()
                             .testTag("saved-memo-filter"),
                         singleLine = true,
-                        placeholder = { Text("Find saved memos") },
+                        label = { Text("Find saved memos") },
                         supportingText = { Text("Filters saved cards on this device only") },
+                        trailingIcon = if (memoQuery.isNotEmpty()) {
+                            {
+                                TextButton(
+                                    onClick = { memoQuery = "" },
+                                    modifier = Modifier
+                                        .heightIn(min = GlazeMetrics.minimumTarget)
+                                        .testTag("clear-saved-memo-filter"),
+                                ) {
+                                    Text("Clear")
+                                }
+                            }
+                        } else {
+                            null
+                        },
                         shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
                     )
                 }
@@ -303,7 +318,11 @@ private fun QuickCapture(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = GlazeMetrics.minimumTarget)
-                .clickable(onClick = onExpand),
+                .clickable(
+                    onClickLabel = "Open memo composer",
+                    role = Role.Button,
+                    onClick = onExpand,
+                ),
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 1.dp,
