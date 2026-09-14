@@ -14,12 +14,14 @@ The Development surface provides:
 
 - a native top app bar and edge-to-edge Activity;
 - quick capture that expands into a native text editor;
+- explicit button-role/action semantics for the collapsed quick-capture entry point;
 - native Back behavior that collapses the composer while preserving the process draft;
 - explicit Cancel behavior for transient drafts;
 - Save into bounded app-private local Development storage;
 - native staggered memo cards with content-driven heights;
 - local pin/unpin prioritization persisted atomically;
 - local `Find saved memos` filtering over already-loaded cards with Unicode-normalized, locale-stable, multi-term semantics;
+- a persistent saved-memo filter label plus an explicit Clear action using the normal Glaze interaction-target floor;
 - a process-memory-only prepared filter snapshot that reuses normalized memo bodies while the saved-card list is unchanged;
 - a visible storage/recovery warning when the local saved-card store cannot be read or safely written;
 - GLAZE UI V1.4 source authority with inherited structural spacing, radii, optical geometry, 48 dp normal targets, and a 56 dp Touch Assistance target;
@@ -48,6 +50,14 @@ This local store has no network, server, GoreeCloud Identity, synchronization, a
 `HomeMemoFilterSnapshot` is a process-memory-only prepared view of the already-loaded saved cards. When the saved-card list changes, Home prepares a fresh snapshot and normalizes each memo body once. Query edits then reuse those normalized bodies while continuing to normalize the query, collapse Unicode separator whitespace, deduplicate repeated terms, require every query term, and preserve the existing card order.
 
 The snapshot is deliberately not a persistent search index. It stores no query history, performs no semantic ranking or inference, contacts no service, emits no telemetry, and has no GoreeCloud Index/Search authority. JVM regression coverage exercises repeated filtering at the current 5,000-card local-store ceiling without using wall-clock thresholds. That source/test coverage does not establish representative-device latency, memory, thermal, or degradation acceptance; those measurements remain part of MR-006/MR-005 device work.
+
+## Retrieval ergonomics and accessibility source readiness
+
+The saved-memo filter uses a persistent `Find saved memos` field label instead of relying on placeholder-only identification. When the query is non-empty, a text-based Clear action is available without adding an icon dependency; its interaction surface retains the normal Glaze minimum target. Emulator acceptance exercises entering a guaranteed no-result query and clearing it back to the local result set.
+
+The collapsed quick-capture surface also exposes an explicit `Button` role and `Open memo composer` action label to Android accessibility semantics while retaining the existing native tap behavior.
+
+These are bounded source and emulator improvements only. They do not establish manual TalkBack acceptance, keyboard/focus acceptance, 200% text/reflow acceptance, localization or RTL acceptance, representative physical-device ergonomics, or physical-device performance. Those requirements remain open under MR-005/MR-007 and the V1.4/V1.4.1 acceptance boundary.
 
 ## Android-native capture entry points
 
@@ -93,7 +103,7 @@ Privacy Shield, Wardveil Security, GoreeCloud Identity, Everkeep, Mesh, Manager,
 
 ## Validation and acceptance artifact
 
-`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit`, requests `INTERNET`, embeds the production web origin, changes the Development package identity, drifts from the Android SDK baseline or exact V1.4 authority, regresses geometry/target floors, activates unaccepted adaptive/optical authority, lets Home consume atmosphere/adaptive/optical context, or loses the existing native capture/local-persistence contracts.
+`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit`, requests `INTERNET`, embeds the production web origin, changes the Development package identity, drifts from the Android SDK baseline or exact V1.4 authority, regresses geometry/target floors, activates unaccepted adaptive/optical authority, lets Home consume atmosphere/adaptive/optical context, loses the existing native capture/local-persistence contracts, or drops the labeled filter/Clear/quick-capture semantic readiness markers added by the current source tranche.
 
 Android CI runs native-boundary validation, platform-integration validation, lint, JVM tests, debug APK build, and handheld-emulator acceptance. Generated artifacts/provenance remain Development evidence only.
 
