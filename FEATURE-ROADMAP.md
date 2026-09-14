@@ -2,8 +2,8 @@
 
 **Lifecycle:** Development for the original GoreeCloud-owned native rebuild  
 **Operational baseline:** GoreeCloud Memos web/server v0.1.3 remains the separately accepted Stable production runtime  
-**Current design-system requirement:** GLAZE UI V1.3 / 1.3.0  
-**Last reconciled:** September 10, 2026
+**Current design-system requirement:** GLAZE UI V1.4 / 1.4.0  
+**Last reconciled:** September 14, 2026
 
 This roadmap governs the native-from-the-ground-up GoreeCloud Memos line. It is subordinate to the canonical GoreeCloud project specification, governing GoreeCloud instructions, the machine-readable Platform Contract, verified source state, and exact-revision acceptance evidence.
 
@@ -26,12 +26,12 @@ Maintain app-private durable storage for explicitly saved native memo cards with
 
 Continue the local `Find saved memos` path over already-loaded native saved cards. Preserve Unicode-normalized, locale-stable, multi-term matching, pinned-before-ordinary ordering, and the no-network/no-query-persistence/no-telemetry boundary.
 
+### MR-004 — GLAZE UI V1.4 source migration
+**Status:** Implemented Development source mapping; application acceptance pending
+
+Maintain the native Android current-Stable GLAZE UI V1.4 / 1.4.0 source mapping established by Draft PR #66 at exact Stable source revision `84cb3db4884042f0fa25ed6d475a127fb110f596`. Preserve the V1.3 structural/token baseline and bounded Optical Intelligence policy while keeping unaccepted Optical Engine/context capabilities inactive. Source/build validation does not establish rendered, accessibility, adaptive/form-factor, representative-device, performance/degradation, V1.4.1 human/manual/physical-device, rollback, release, or production acceptance.
+
 ## Immediate next work
-
-### MR-004 — GLAZE UI V1.3 source migration
-**Status:** Next
-
-Migrate the native Android application from its current V1.1 source mapping to current Stable GLAZE UI V1.3 / 1.3.0. Preserve Android-native interaction patterns rather than recreating a desktop/web shell. Do not mark Glaze conformant until fresh rendered, accessibility, resilience, adaptive/form-factor, representative-device, Human Visual Excellence, rollback, release, and production acceptance is complete.
 
 ### MR-005 — Physical-device retrieval ergonomics
 **Status:** Next
@@ -46,7 +46,7 @@ Measure retrieval behavior against representative local memo-library sizes. Keep
 ### MR-007 — Accessibility, localization, and RTL acceptance
 **Status:** Next
 
-Complete TalkBack/semantic labeling, keyboard/focus behavior where applicable, 200% text/reflow, contrast and forced/high-contrast equivalents available to the platform, reduced-motion behavior, localization expansion safety, RTL layout/navigation, and representative-device acceptance.
+Complete TalkBack/semantic labeling, keyboard/focus behavior where applicable, 200% text/reflow, contrast and forced/high-contrast equivalents available to the platform, reduced-motion behavior, localization expansion safety, RTL layout/navigation, reduced-transparency/effects behavior where applicable, and representative-device acceptance against the V1.4 source mapping.
 
 ## Product-completion sequence
 
@@ -95,5 +95,6 @@ Complete protected Android signing and independent signature/provenance verifica
 - Source implementation, CI success, emulator evidence, documentation, or a Platform Contract declaration does not by itself establish production or Stable acceptance.
 - The accepted web/server v0.1.3 runtime remains operationally separate until a controlled migration and deployment changes that state.
 - Native local data must not be represented as the accepted production memo library until Identity, synchronization, migration, privacy, security, and recovery authority are accepted.
-- GLAZE UI source-version labels must distinguish the actual mapped source from the current required Stable baseline.
+- GLAZE UI source-version labels must distinguish implemented source mapping from application acceptance; V1.4 source adoption remains `applicable-migration-required` until required acceptance evidence exists.
+- V1.4.1 is Candidate validation work and must not be represented as Stable or as automatically accepted by Memos.
 - Every material roadmap completion must be reconciled against exact source revisions, applicable CI/runtime evidence, the Platform Contract, canonical Drive records, and GoreeCloud task records.
