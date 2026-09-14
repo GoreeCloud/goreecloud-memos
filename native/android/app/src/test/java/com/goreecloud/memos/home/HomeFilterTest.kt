@@ -105,8 +105,8 @@ class HomeFilterTest {
     }
 
     @Test
-    fun preparedSnapshotHandlesLargeLocalLibraryDeterministically() {
-        val largeLibrary = List(10_000) { index ->
+    fun preparedSnapshotHandlesMaximumLocalLibraryDeterministically() {
+        val localLibrary = List(NativeMemoPersistenceCodec.MAX_MEMOS) { index ->
             NativeMemoCard(
                 id = "memo-$index",
                 body = if (index % 250 == 0) {
@@ -117,12 +117,12 @@ class HomeFilterTest {
                 pinned = index % 1_000 == 0,
             )
         }
-        val expected = largeLibrary.filterIndexed { index, _ -> index % 250 == 0 }
-        val snapshot = HomeMemoFilterSnapshot(largeLibrary)
+        val expected = localLibrary.filterIndexed { index, _ -> index % 250 == 0 }
+        val snapshot = HomeMemoFilterSnapshot(localLibrary)
 
         assertEquals(expected, snapshot.filter("CAFÉ needle"))
         assertEquals(expected, snapshot.filter("needle café needle"))
-        assertEquals(largeLibrary, snapshot.filter("   "))
+        assertEquals(localLibrary, snapshot.filter("   "))
         assertEquals(emptyList<NativeMemoCard>(), snapshot.filter("remote semantic search"))
     }
 }
