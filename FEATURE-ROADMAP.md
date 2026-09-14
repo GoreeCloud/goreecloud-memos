@@ -39,9 +39,11 @@ Maintain the native Android current-Stable GLAZE UI V1.4 / 1.4.0 source mapping 
 Validate and refine native saved-memo filtering on representative Android hardware, including keyboard/IME interaction, query editing and clearing, focus behavior, empty/no-result states, large text, touch targets, Back behavior, and useful memo density.
 
 ### MR-006 — Large-library local retrieval performance
-**Status:** Next
+**Status:** In progress — bounded source optimization implemented; representative-device performance acceptance pending
 
-Measure retrieval behavior against representative local memo-library sizes. Keep filtering responsive and bounded without introducing unauthorized remote search, semantic inference, query telemetry, or a second ungoverned indexing authority. Escalate to GoreeCloud Index/Search integration only through an approved contract and platform authority boundary.
+The native Home filter now prepares a process-memory-only normalized snapshot whenever the already-loaded saved-card list changes and reuses that snapshot across query edits. This removes repeated memo-body normalization from each query change while preserving current card order, Unicode-normalized locale-stable multi-term matching, and existing local-only semantics. JVM regression coverage exercises repeated filtering at the current 5,000-card Development store ceiling.
+
+This is deterministic source/test coverage, not representative-device latency, memory, thermal, or degradation acceptance. Continue measurement against representative local memo-library sizes and Android hardware. Do not introduce unauthorized remote search, semantic inference, query telemetry, persistent query/search indexes, or a second ungoverned indexing authority. Escalate to GoreeCloud Index/Search integration only through an approved contract and platform authority boundary.
 
 ### MR-007 — Accessibility, localization, and RTL acceptance
 **Status:** Next
