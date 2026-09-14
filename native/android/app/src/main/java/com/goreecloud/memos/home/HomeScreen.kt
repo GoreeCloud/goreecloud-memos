@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,7 +99,8 @@ fun MemosHomeScreen(
     onTogglePinned: (String) -> Unit,
 ) {
     var memoQuery by rememberSaveable { mutableStateOf("") }
-    val visibleMemos = filterMemosForHome(state.memos, memoQuery)
+    val memoFilter = remember(state.memos) { HomeMemoFilterSnapshot(state.memos) }
+    val visibleMemos = remember(memoFilter, memoQuery) { memoFilter.filter(memoQuery) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -163,8 +166,22 @@ fun MemosHomeScreen(
                             .fillMaxWidth()
                             .testTag("saved-memo-filter"),
                         singleLine = true,
-                        placeholder = { Text("Find saved memos") },
+                        label = { Text("Find saved memos") },
                         supportingText = { Text("Filters saved cards on this device only") },
+                        trailingIcon = if (memoQuery.isNotEmpty()) {
+                            {
+                                TextButton(
+                                    onClick = { memoQuery = "" },
+                                    modifier = Modifier
+                                        .heightIn(min = GlazeMetrics.minimumTarget)
+                                        .testTag("clear-saved-memo-filter"),
+                                ) {
+                                    Text("Clear")
+                                }
+                            }
+                        } else {
+                            null
+                        },
                         shape = RoundedCornerShape(GlazeMetrics.radiusSmall),
                     )
                 }
@@ -196,23 +213,55 @@ fun MemosHomeScreen(
     }
 }
 
+/**
+ * Process-memory-only prepared view of the already-loaded local cards used by Home filtering.
+ *
+ * Each memo body is normalized once when the card list changes, rather than once per card for every
+ * query edit. This snapshot is not persisted, does not rank or infer meaning, and does not introduce
+ * GoreeCloud Index/Search authority; it only reuses deterministic normalization for the current
+ * in-memory list while preserving its order.
+ */
+internal class HomeMemoFilterSnapshot(memos: List<NativeMemoCard>) {
+    private data class SearchableMemo(
+        val memo: NativeMemoCard,
+        val normalizedBody: String,
+    )
+
+    private val orderedMemos = memos.toList()
+    private val searchableMemos = orderedMemos.map { memo ->
+        SearchableMemo(
+            memo = memo,
+            normalizedBody = normalizeMemoSearchText(memo.body),
+        )
+    }
+
+    fun filter(query: String): List<NativeMemoCard> {
+        val terms = memoSearchTerms(query)
+        if (terms.isEmpty()) return orderedMemos
+
+        return buildList {
+            searchableMemos.forEach { candidate ->
+                if (terms.all(candidate.normalizedBody::contains)) {
+                    add(candidate.memo)
+                }
+            }
+        }
+    }
+}
+
 internal fun filterMemosForHome(
     memos: List<NativeMemoCard>,
     query: String,
-): List<NativeMemoCard> {
-    val normalizedQuery = normalizeMemoSearchText(query).trim()
-    if (normalizedQuery.isEmpty()) return memos
+): List<NativeMemoCard> = HomeMemoFilterSnapshot(memos).filter(query)
 
-    val terms = normalizedQuery
+private fun memoSearchTerms(query: String): List<String> {
+    val normalizedQuery = normalizeMemoSearchText(query).trim()
+    if (normalizedQuery.isEmpty()) return emptyList()
+
+    return normalizedQuery
         .split(MEMO_SEARCH_WHITESPACE)
         .filter(String::isNotEmpty)
         .distinct()
-    if (terms.isEmpty()) return memos
-
-    return memos.filter { memo ->
-        val normalizedBody = normalizeMemoSearchText(memo.body)
-        terms.all(normalizedBody::contains)
-    }
 }
 
 private fun normalizeMemoSearchText(value: String): String =
@@ -269,7 +318,11 @@ private fun QuickCapture(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = GlazeMetrics.minimumTarget)
-                .clickable(onClick = onExpand),
+                .clickable(
+                    onClickLabel = "Open memo composer",
+                    role = Role.Button,
+                    onClick = onExpand,
+                ),
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 1.dp,

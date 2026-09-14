@@ -1,85 +1,110 @@
 # GoreeCloud Memos Native Android — Development Foundation
 
-This directory is the first committed Android-native application foundation for the original GoreeCloud-owned GoreeCloud Memos rebuild.
+This directory contains the Android-native Development application for the original GoreeCloud-owned GoreeCloud Memos rebuild.
 
 ## Product direction
 
 The long-term Android product is native Android software, not a WebView, Tauri presentation shell, PWA wrapper, or embedded copy of `https://memos.goreecloud.com`. The retained Tauri client remains transition, compatibility, and rollback material while this native line is developed and accepted separately.
 
-The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge system presentation, native staggered cards, and Android resources. GLAZE UI V1.3 is mapped into these Android-native patterns rather than reproducing the web layout.
+The foundation uses Kotlin, Jetpack Compose, Android lifecycle/ViewModel state, Android Back handling, native IME focus, edge-to-edge presentation, native staggered cards, and Android resources. Current Stable GLAZE UI V1.4 is mapped into these native patterns rather than reproducing the web layout.
 
 ## Current Home/Capture surface
 
-The surface provides:
+The Development surface provides:
 
-- a native Android top app bar and edge-to-edge Activity;
-- a collapsed quick-capture surface that expands into a native text editor;
-- native Back behavior that collapses the composer while preserving its current process draft;
-- explicit Cancel behavior that discards the transient draft;
+- a native top app bar and edge-to-edge Activity;
+- quick capture that expands into a native text editor;
+- explicit button-role/action semantics for the collapsed quick-capture entry point;
+- native Back behavior that collapses the composer while preserving the process draft;
+- explicit Cancel behavior for transient drafts;
 - Save into bounded app-private local Development storage;
-- native staggered memo cards with content-driven heights and a 168 dp adaptive minimum card width;
-- local pin/unpin prioritization whose saved-card state is persisted atomically;
-- a visible storage/recovery warning when the bounded local saved-card store cannot be read or safely written;
-- GLAZE UI V1.3 source authority with inherited 4/8/12/16/20/24/32/48/64 dp structural spacing, 12/20/28 dp structural radius tiers, separate 8/16/24/32 dp optical geometry plus capsule, 48 dp normal targets, and a 56 dp Touch Assistance target token;
-- deterministic Light/Dark fallback colors plus explicit Deep Dark source capability; and
-- a fail-closed V1.3 Adaptive Resonance policy covering color-authority precedence, protected semantic roles, compact reachability review bands, accessibility precedence, and disabled/unaccepted contextual adapters.
+- native staggered memo cards with content-driven heights;
+- local pin/unpin prioritization persisted atomically;
+- local `Find saved memos` filtering over already-loaded cards with Unicode-normalized, locale-stable, multi-term semantics;
+- a persistent saved-memo filter label plus an explicit Clear action using the normal Glaze interaction-target floor;
+- a process-memory-only prepared filter snapshot that reuses normalized memo bodies while the saved-card list is unchanged;
+- a visible storage/recovery warning when the local saved-card store cannot be read or safely written;
+- GLAZE UI V1.4 source authority with inherited structural spacing, radii, optical geometry, 48 dp normal targets, and a 56 dp Touch Assistance target;
+- deterministic Light/Dark fallback plus explicit Deep Dark source capability;
+- inherited fail-closed Adaptive Resonance policy; and
+- a separate V1.4 Optical Intelligence policy whose runtime adapters remain inactive/unaccepted.
 
 ## Saved-card local persistence
 
-Explicitly saved native memo cards survive Activity replacement and application-process restart through one app-private, versioned `AtomicFile` store. The store is a Development-only local authority and is not the production GoreeCloud Memos library.
+Explicitly saved native memo cards survive Activity replacement and application-process restart through one app-private, versioned `AtomicFile` store. This store is Development-only local authority and is not the production GoreeCloud Memos library.
 
-The persistence boundary is intentionally narrow:
+The persistence boundary remains narrow:
 
-- only saved card ID, body, order, and pin state are written;
+- only saved card ID, body, order, and pin state are durable;
 - draft text and queued Android share payloads remain process-memory only;
-- the format is versioned and validates unique nonblank IDs, nonblank memo bodies, UTF-8 decoding, pin-state values, record shape, and upper bounds before accepting data;
-- the current implementation limits the store to 5,000 saved cards, 1 MiB per memo body, 512 bytes per local ID, and 16 MiB total encoded file size;
-- writes use Android `AtomicFile` plus file-descriptor sync so a failed replacement can roll back to the prior complete file;
-- a malformed, unsupported, or oversized existing store fails closed into a visible recovery-required state rather than being silently overwritten; and
-- transient write failure leaves the previous accepted UI/store state intact and surfaces a retryable local-storage warning.
+- the format validates unique/nonblank IDs, nonblank bodies, UTF-8, record shape, pin state, memo count, field sizes, and total encoded size;
+- current bounds are 5,000 saved cards, 1 MiB per memo body, 512 bytes per local ID, and 16 MiB encoded file size;
+- writes use Android `AtomicFile` and file-descriptor sync;
+- malformed, unsupported, or oversized existing storage fails closed into a visible recovery-required state; and
+- transient write failure preserves the prior accepted UI/store state.
 
-This store has no network, server, GoreeCloud Identity, synchronization, attachment, backup, migration, or production memo-library authority. It is not yet an Everkeep backup/restore implementation; durable local storage and platform continuity are separate responsibilities.
+This local store has no network, server, GoreeCloud Identity, synchronization, attachment, backup, migration, or production memo-library authority. It is not an Everkeep backup/restore implementation.
+
+## Local saved-memo retrieval boundary
+
+`HomeMemoFilterSnapshot` is a process-memory-only prepared view of the already-loaded saved cards. When the saved-card list changes, Home prepares a fresh snapshot and normalizes each memo body once. Query edits then reuse those normalized bodies while continuing to normalize the query, collapse Unicode separator whitespace, deduplicate repeated terms, require every query term, and preserve the existing card order.
+
+The snapshot is deliberately not a persistent search index. It stores no query history, performs no semantic ranking or inference, contacts no service, emits no telemetry, and has no GoreeCloud Index/Search authority. JVM regression coverage exercises repeated filtering at the current 5,000-card local-store ceiling without using wall-clock thresholds. That source/test coverage does not establish representative-device latency, memory, thermal, or degradation acceptance; those measurements remain part of MR-006/MR-005 device work.
+
+## Retrieval ergonomics and accessibility source readiness
+
+The saved-memo filter uses a persistent `Find saved memos` field label instead of relying on placeholder-only identification. When the query is non-empty, a text-based Clear action is available without adding an icon dependency; its interaction surface retains the normal Glaze minimum target. Emulator acceptance exercises entering a guaranteed no-result query and clearing it back to the local result set.
+
+The collapsed quick-capture surface also exposes an explicit `Button` role and `Open memo composer` action label to Android accessibility semantics while retaining the existing native tap behavior.
+
+These are bounded source and emulator improvements only. They do not establish manual TalkBack acceptance, keyboard/focus acceptance, 200% text/reflow acceptance, localization or RTL acceptance, representative physical-device ergonomics, or physical-device performance. Those requirements remain open under MR-005/MR-007 and the V1.4/V1.4.1 acceptance boundary.
 
 ## Android-native capture entry points
 
-The Development package accepts Android `ACTION_SEND` with MIME type `text/plain`. Shared text opens the same native quick composer; no separate browser or share UI exists. If a user already has a nonblank draft, incoming shared text is queued in memory rather than overwriting the draft. Saving or explicitly canceling the current draft advances the oldest queued share into the composer. Duplicate queued payloads are ignored.
+The Development package accepts Android `ACTION_SEND` with MIME type `text/plain`. Shared text enters the same native quick composer. If a nonblank draft already exists, incoming shared text is queued in memory instead of overwriting the draft. Duplicate queued payloads are ignored.
 
-The app also publishes a static launcher shortcut named **New memo**. The shortcut targets the Development application ID and opens the same quick composer with no synthetic content. `MainActivity` uses `singleTop` and handles new intents so these entry points work both for a cold launch and while the native Activity is already open.
+The app also publishes a static **New memo** launcher shortcut. `MainActivity` uses `singleTop` and handles new intents so capture works on cold launch and while the Activity is already open.
 
-These entry points are text-only. They do not accept file streams, request storage access, create background services, start sync, or gain production memo authority. Incoming share text remains volatile until the user explicitly saves it.
+These entry points are text-only. They do not accept file streams, request storage access, create background services, start sync, or gain production authority. Incoming share text remains volatile until the user saves it.
 
 ## Deliberate authority limits
 
-This line has **no** production memo authority. It does not load or mutate the accepted GoreeCloud Memos web/server v0.1.3 runtime. It has no network permission, WebView, embedded production URL, native server API, GoreeCloud Identity session, synchronization engine, attachment transfer, reminder scheduling, production durable queue, backup/restore path, or migration authority.
+This line has **no** production memo authority. It does not load or mutate the accepted GoreeCloud Memos web/server runtime. It has no network permission, WebView, embedded production URL, native server API, GoreeCloud Identity session, synchronization engine, attachment transfer, reminder scheduling, production queue, backup/restore path, or migration authority.
 
-Explicitly saved cards are durable only inside the Development application's private local store. Drafts and queued text shares remain process-memory only. The visible Development notice distinguishes these lifetimes so local persistence is not mistaken for production synchronization or server-backed durability.
+The Development application ID is `com.goreecloud.memos.native.dev`; Kotlin source remains under `com.goreecloud.memos`. This allows controlled side-by-side Development comparison with the transitional package. A production native package identity is not established here.
 
-The Development application ID is `com.goreecloud.memos.native.dev`, while Kotlin source remains under the canonical `com.goreecloud.memos` namespace. This lets the native Development package coexist with the transitional `com.goreecloud.memos` Tauri package during physical-device comparison. A production native package identity is not established by this foundation.
+## GLAZE UI V1.4 source boundary
 
-## GLAZE UI V1.3 source boundary
+Native source targets **GLAZE UI V1.4 / `1.4.0` — Optical Intelligence** at exact Stable revision `84cb3db4884042f0fa25ed6d475a127fb110f596`.
 
-Native source now targets GLAZE UI V1.3 (`1.3.0`) at exact integrated implementation revision `fc7cc91d2eace8da2371371c2855c24cbcb326a1`, with Stable lifecycle authority explicitly anchored at `d68e408a9abd946a7fd1b30816a0e3876d8bf8bb`.
+V1.4 inherits the V1.3 token system and public component baseline. Memos therefore preserves the established geometry and Adaptive Resonance restrictions instead of inventing replacement tokens merely to change versions.
 
-V1.3 inherits the V1.2 structural rendering baseline, so Memos preserves the established geometry instead of inventing replacement spacing/radii merely to change versions. `GlazeAdaptivePolicy` separately records V1.3 Adaptive Resonance behavior relevant to the native line: the default non-semantic Glaze accent, accessibility/semantic-first color precedence, protected product-truth roles, compact reachability review bands, and the rule that adaptive expression cannot carry authoritative semantic state.
+`GlazeAdaptivePolicy` retains accessibility/semantic-first color precedence, protected semantic roles, reachability review bands, and disabled user/context/environment adapters. `GlazeOpticalPolicy` separately records the V1.4 contract:
 
-Android system appearance currently selects only the deterministic mapped Light or Dark fallback scheme. Deep Dark remains an explicit source capability. Native user-accent/context-color/Personalization adapters are not accepted, so user/context accent application, environmental sampling, remote dynamic color, persistent color memory, and semantic inference remain disabled. `GlazeAtmosphere` remains unrendered and content-independent.
+- the shared Optical Engine is local and deterministic;
+- telemetry, camera access, and remote context are not required;
+- environmental memory tint influence is capped at `0.08`;
+- Forced Colors and Reduced Transparency require solid-accessible behavior;
+- Increased Contrast suppresses decorative tint/warmth;
+- optical context cannot outrank accessibility or carry semantic/product authority; and
+- memo content, drafts, queued shares, Identity state, and privacy/security/recovery state are prohibited optical sampling sources in this Development mapping.
 
-The current `HomeScreen` deliberately consumes neither `GlazeAdaptivePolicy` nor `GlazeAtmosphere`. Source support for V1.3 adaptive behavior is not runtime authority to inspect memo content, drafts, queued shares, editor metadata, location, time, weather, account state, privacy/security/recovery state, synchronization state, or other user/environmental content.
+The current `HomeScreen` consumes neither `GlazeAdaptivePolicy`, `GlazeOpticalPolicy`, nor `GlazeAtmosphere`. The renderer stays on deterministic mapped Light/Dark/explicit Deep Dark source behavior. V1.4 source support does not authorize context inspection or Optical Engine activation.
 
 ## GLAZE UI acceptance boundary
 
-This is a V1.3 **source migration**, not application conformance. Earlier V1.1 emulator/rendering evidence is historical and is not reused as V1.3 acceptance.
+This is a V1.4 **source migration**, not application conformance. Earlier V1.3 source/build/emulator evidence remains historical and is not reused as V1.4 acceptance.
 
-Fresh exact-revision acceptance remains required for rendered/native visual behavior; touch/focus/selection/consequential-action interaction; accessibility/resilience including TalkBack, Switch Access, large text/reflow, RTL/localization, Reduced Motion, transparency/contrast equivalents; adaptive phone/tablet/foldable/multi-pane composition; any native Personalization/runtime appearance adapters; product workflows; representative performance/degradation; physical-device capture/share/shortcut/retrieval behavior; Human Visual Excellence; rollback; release; and explicit production approval.
+V1.4.0 Stable explicitly defers human/manual/physical-device validation to V1.4.1. Native Memos therefore does **not** claim passed physical-device, manual assistive-technology, human optical-finish, Human Visual Excellence, or representative real-device performance acceptance.
+
+Fresh exact-revision evidence is still required for rendered/native visual behavior; interaction; accessibility/resilience; any Optical Engine/Personalization adapter; adaptive phone/tablet/foldable composition; product workflows; representative performance/degradation; V1.4.1 human validation; rollback; release; and explicit production approval.
 
 Privacy Shield, Wardveil Security, GoreeCloud Identity, Everkeep, Mesh, Manager, controlled migration, protected signing/provenance, Release Candidate qualification, deployment, production acceptance, and Stable qualification remain independently blocked.
 
 ## Validation and acceptance artifact
 
-`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit` usage, the Android manifest requests `INTERNET`, the production web origin is embedded, the Development package identity changes, the Android SDK baseline drifts, required V1.3 exact anchors drift, inherited geometry/target floors regress, the adaptive policy gains unaccepted authority, the atmosphere/adaptive contracts become Home renderer dependencies, the native Home loses its Compose staggered-card/Back/IME-focus contracts, the saved-card local-persistence boundary disappears, or the native text-share/New-memo entry points disappear.
+`native/android/scripts/check_native_android.py` fails closed if the source gains WebView/`android.webkit`, requests `INTERNET`, embeds the production web origin, changes the Development package identity, drifts from the Android SDK baseline or exact V1.4 authority, regresses geometry/target floors, activates unaccepted adaptive/optical authority, lets Home consume atmosphere/adaptive/optical context, loses the existing native capture/local-persistence contracts, or drops the labeled filter/Clear/quick-capture semantic readiness markers added by the current source tranche.
 
-Android CI runs native-boundary validation, platform-integration validation, lint, JVM unit tests, a debug APK build, and handheld-emulator acceptance. A successful exact-head run stages the APK with `BUILD-PROVENANCE.txt` and a verified `SHA256SUMS` file, then uploads the set as `goreecloud-memos-native-android-dev`; emulator test evidence is uploaded separately. Provenance binds the evidence to the exact source SHA, Development version, `.native.dev` package identity, workflow run, and the Development-only local-authority boundary.
+Android CI runs native-boundary validation, platform-integration validation, lint, JVM tests, debug APK build, and handheld-emulator acceptance. Generated artifacts/provenance remain Development evidence only.
 
-Passing those automated checks validates only the source/build/emulator tranche they exercise. It does not substitute for the fresh V1.3 rendered/accessibility/representative-device/Human Visual Excellence and production acceptance still required.
-
-This artifact exists for controlled side-by-side Development acceptance against the transitional Tauri client. It is not a signed Stable Android release and does not authorize production data binding, migration, deployment, or replacement of the retained client.
+Passing automated checks validates only the source/build/emulator tranche exercised. It does not substitute for V1.4/V1.4.1 application, physical-device, accessibility, human-visual, production, or Stable acceptance.

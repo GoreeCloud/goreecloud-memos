@@ -41,6 +41,23 @@ class NativeHomeEmulatorAcceptanceTest {
     }
 
     @Test
+    fun savedMemoFilterClearRestoresLocalResults() {
+        val memoText = "Clear-filter acceptance memo 94721"
+        val noMatchQuery = "no-local-match-58310"
+
+        composeRule.onNodeWithText("Take a memo…").performClick()
+        composeRule.onNodeWithTag("memo-composer").performTextInput(memoText)
+        composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
+
+        composeRule.onNodeWithTag("saved-memo-filter").performTextInput(noMatchQuery)
+        composeRule.onNodeWithText("No matching saved memos").assertIsDisplayed()
+        composeRule.onNodeWithTag("clear-saved-memo-filter").performClick()
+
+        composeRule.onNodeWithTag("clear-saved-memo-filter").assertDoesNotExist()
+        composeRule.onNodeWithText("No matching saved memos").assertDoesNotExist()
+    }
+
+    @Test
     fun systemBackCollapsesComposerWithoutDiscardingDraft() {
         val draftText = "Draft survives Back"
 

@@ -13,6 +13,7 @@ METRICS = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeMetrics.kt").read_t
 THEME = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeTheme.kt").read_text(encoding="utf-8")
 ATMOSPHERE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAtmosphere.kt").read_text(encoding="utf-8")
 ADAPTIVE = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeAdaptivePolicy.kt").read_text(encoding="utf-8")
+OPTICAL = (SOURCE_ROOT / "com/goreecloud/memos/ui/theme/GlazeOpticalPolicy.kt").read_text(encoding="utf-8")
 HOME = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeScreen.kt").read_text(encoding="utf-8")
 VIEWMODEL = (SOURCE_ROOT / "com/goreecloud/memos/home/HomeViewModel.kt").read_text(encoding="utf-8")
 LOCAL_STORE = (SOURCE_ROOT / "com/goreecloud/memos/home/NativeMemoLocalStore.kt").read_text(encoding="utf-8")
@@ -36,9 +37,9 @@ def main() -> None:
     require('applicationId = "com.goreecloud.memos.native.dev"' in BUILD, "Development package identity must remain isolated from the transitional client")
     require("compileSdk = 36" in BUILD and "targetSdk = 36" in BUILD, "native Android foundation must target the current Android baseline")
 
-    require('const val targetVersion = "1.3.0"' in METRICS, "GLAZE UI V1.3 target must remain pinned")
-    require('const val sourceRevision = "fc7cc91d2eace8da2371371c2855c24cbcb326a1"' in METRICS, "GLAZE UI V1.3 implementation revision must remain exact")
-    require('const val stableAuthorityRevision = "d68e408a9abd946a7fd1b30816a0e3876d8bf8bb"' in METRICS, "GLAZE UI V1.3 Stable authority revision must remain exact")
+    require('const val targetVersion = "1.4.0"' in METRICS, "GLAZE UI V1.4 target must remain pinned")
+    require('const val sourceRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"' in METRICS, "GLAZE UI V1.4 source revision must remain exact")
+    require('const val stableAuthorityRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"' in METRICS, "GLAZE UI V1.4 Stable authority revision must remain exact")
     require("val minimumTarget: Dp = 48.dp" in METRICS, "48 dp normal interaction floor is required")
     require("val touchAssistanceTarget: Dp = 56.dp" in METRICS, "56 dp touch-assistance target must remain available")
     for marker in (
@@ -50,7 +51,7 @@ def main() -> None:
     ):
         require(marker in METRICS, f"missing inherited optical geometry marker: {marker}")
 
-    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.3 explicit appearance source contract is required")
+    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.4 explicit appearance source contract is required")
     require("GlazeAppearance.SYSTEM -> if (isSystemInDarkTheme()) darkColors else lightColors" in THEME, "SYSTEM must remain Android Light/Dark only")
     require("GlazeAppearance.DEEP_DARK -> deepDarkColors" in THEME, "Deep Dark must remain an explicit source capability")
     for marker in (
@@ -62,8 +63,8 @@ def main() -> None:
         require(marker in THEME, f"missing inherited Deep Dark structural marker: {marker}")
 
     for marker in (
-        'const val targetVersion = "1.3.0"',
-        'const val implementationRevision = "fc7cc91d2eace8da2371371c2855c24cbcb326a1"',
+        'const val targetVersion = "1.4.0"',
+        'const val implementationRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"',
         "const val defaultGlazeAccentArgb = 0xFF68AEE0.toInt()",
         '"accessibility"',
         '"semantic"',
@@ -83,7 +84,39 @@ def main() -> None:
         "const val adaptiveExpressionMayCarrySemanticState = false",
         "const val accessibilityPrecedenceRequired = true",
     ):
-        require(marker in ADAPTIVE, f"missing bounded V1.3 adaptive policy marker: {marker}")
+        require(marker in ADAPTIVE, f"missing bounded inherited adaptive policy marker: {marker}")
+
+    for marker in (
+        'const val targetVersion = "1.4.0"',
+        'const val stableRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"',
+        "const val opticalEngineIsLocalAndDeterministic = true",
+        "const val telemetryRequired = false",
+        "const val cameraAccessRequired = false",
+        "const val remoteContextRequired = false",
+        "const val environmentalMemoryTintInfluenceCap = 0.08f",
+        "const val opticalEngineAdapterAccepted = false",
+        "const val contentAwareFrostAccepted = false",
+        "const val semanticBlurProtectionAccepted = false",
+        "const val environmentTintAdapterAccepted = false",
+        "const val chromaticDepthLayersAccepted = false",
+        "const val environmentalColorMemoryAccepted = false",
+        "const val forcedColorsMustUseSolidAccessibleMode = true",
+        "const val reducedTransparencyMustUseSolidAccessibleMode = true",
+        "const val increasedContrastSuppressesDecorativeTintAndWarmth = true",
+        "const val accessibilityMayBeOverriddenByOpticalContext = false",
+        "const val opticalContextMayCarrySemanticAuthority = false",
+        "const val memoContentSamplingAllowed = false",
+        "const val draftSamplingAllowed = false",
+        "const val sharePayloadSamplingAllowed = false",
+        "const val identityStateSamplingAllowed = false",
+        "const val privacySecurityRecoveryStateSamplingAllowed = false",
+        "const val physicalDeviceAcceptanceEstablished = false",
+        "const val manualAssistiveTechnologyAcceptanceEstablished = false",
+        "const val humanOpticalFinishAcceptanceEstablished = false",
+        "const val humanVisualExcellenceAcceptanceEstablished = false",
+        "const val representativeRealDevicePerformanceAccepted = false",
+    ):
+        require(marker in OPTICAL, f"missing fail-closed V1.4 optical policy marker: {marker}")
 
     for marker in (
         "const val deepTealArgb = 0xFF0F6B6F.toInt()",
@@ -96,7 +129,8 @@ def main() -> None:
     ):
         require(marker in ATMOSPHERE, f"missing bounded atmosphere boundary: {marker}")
     require("GlazeAtmosphere" not in HOME, "Home/Capture must not render atmosphere in this source-mapping slice")
-    require("GlazeAdaptivePolicy" not in HOME, "Home/Capture must not activate V1.3 adaptive policy without accepted runtime adapters")
+    require("GlazeAdaptivePolicy" not in HOME, "Home/Capture must not activate inherited adaptive policy without accepted runtime adapters")
+    require("GlazeOpticalPolicy" not in HOME, "Home/Capture must not activate V1.4 optical policy without accepted runtime adapters")
     require("GlazeAppearance.DEEP_DARK" not in HOME, "Home/Capture must not auto-select Deep Dark in this source-mapping slice")
 
     require("enableEdgeToEdge()" in ACTIVITY, "native Activity must preserve edge-to-edge Android presentation")
@@ -130,6 +164,12 @@ def main() -> None:
         "native Home must truthfully distinguish saved-card and transient capture lifetimes",
     )
     require("NativeStorageIssueNotice" in HOME, "native Home must visibly surface local-storage recovery/write failures")
+    require('label = { Text("Find saved memos") }' in HOME, "native saved-memo filter must expose a persistent text-field label")
+    require('.testTag("clear-saved-memo-filter")' in HOME, "native saved-memo filter must expose an explicit clear affordance")
+    require(
+        'onClickLabel = "Open memo composer"' in HOME and "role = Role.Button" in HOME,
+        "collapsed quick capture must expose explicit button semantics",
+    )
 
     for marker in (
         'androidTestImplementation("androidx.test.ext:junit:',
@@ -141,9 +181,12 @@ def main() -> None:
     for marker in (
         "launchShowsNativeDevelopmentBoundaryAndQuickCapture",
         "quickCaptureSavesOneLocalMemo",
+        "savedMemoFilterClearRestoresLocalResults",
         "systemBackCollapsesComposerWithoutDiscardingDraft",
         "textShareIntentEntersTheNativeComposer",
         '"Native Development preview · saved cards stay on-device · drafts/shares stay session-only"',
+        '"clear-saved-memo-filter"',
+        '"No matching saved memos"',
         "Intent.ACTION_SEND",
     ):
         require(marker in EMULATOR_TEST, f"native Android emulator acceptance contract missing: {marker}")
