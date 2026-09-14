@@ -84,4 +84,45 @@ class HomeFilterTest {
     fun noMatchReturnsEmptyList() {
         assertEquals(emptyList<NativeMemoCard>(), filterMemosForHome(memos, "calendar"))
     }
+
+    @Test
+    fun preparedSnapshotPreservesStableOrderAcrossRepeatedQueries() {
+        val snapshot = HomeMemoFilterSnapshot(memos)
+
+        assertEquals(
+            listOf(memos[0], memos[2]),
+            snapshot.filter("launch"),
+        )
+        assertEquals(
+            listOf(memos[1]),
+            snapshot.filter("beans café"),
+        )
+        assertEquals(memos, snapshot.filter(""))
+        assertEquals(
+            listOf(memos[0], memos[2]),
+            snapshot.filter("LAUNCH"),
+        )
+    }
+
+    @Test
+    fun preparedSnapshotHandlesLargeLocalLibraryDeterministically() {
+        val largeLibrary = List(10_000) { index ->
+            NativeMemoCard(
+                id = "memo-$index",
+                body = if (index % 250 == 0) {
+                    "Release café needle $index"
+                } else {
+                    "Local memo body $index"
+                },
+                pinned = index % 1_000 == 0,
+            )
+        }
+        val expected = largeLibrary.filterIndexed { index, _ -> index % 250 == 0 }
+        val snapshot = HomeMemoFilterSnapshot(largeLibrary)
+
+        assertEquals(expected, snapshot.filter("CAFÉ needle"))
+        assertEquals(expected, snapshot.filter("needle café needle"))
+        assertEquals(largeLibrary, snapshot.filter("   "))
+        assertEquals(emptyList<NativeMemoCard>(), snapshot.filter("remote semantic search"))
+    }
 }
