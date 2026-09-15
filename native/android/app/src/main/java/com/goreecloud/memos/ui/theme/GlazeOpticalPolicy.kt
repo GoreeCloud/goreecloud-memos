@@ -1,24 +1,23 @@
 package com.goreecloud.memos.ui.theme
 
 /**
- * GoreeCloud Memos' source-level adoption boundary for GLAZE UI V1.4 Optical Intelligence.
+ * GoreeCloud Memos' source-level adoption boundary for GLAZE UI V1.4.1 Optical Hardening.
  *
- * The shared V1.4 Optical Engine is local and deterministic, but Memos does not activate it merely
- * by targeting V1.4. Consumer-supplied context, rendering behavior, accessibility behavior, and
- * human/device acceptance remain independently gated here.
+ * The shared V1.4.1 release carries the validated V1.4 optical behavior and governed shared
+ * human-validation record. Memos does not inherit downstream acceptance merely by pinning the
+ * release: its own adapters, rendering, accessibility, performance, and representative-device
+ * behavior remain independently gated here.
  */
 object GlazeOpticalPolicy {
-    const val targetVersion = "1.4.0"
-    const val stableRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"
+    const val targetVersion = "1.4.1"
+    const val stableRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"
 
-    // Shared V1.4 capability facts. These describe the source contract, not Memos acceptance.
     const val opticalEngineIsLocalAndDeterministic = true
     const val telemetryRequired = false
     const val cameraAccessRequired = false
     const val remoteContextRequired = false
     const val environmentalMemoryTintInfluenceCap = 0.08f
 
-    // Consumer adapters/rendering remain unaccepted and therefore inactive.
     const val opticalEngineAdapterAccepted = false
     const val contentAwareFrostAccepted = false
     const val semanticBlurProtectionAccepted = false
@@ -26,13 +25,11 @@ object GlazeOpticalPolicy {
     const val chromaticDepthLayersAccepted = false
     const val environmentalColorMemoryAccepted = false
 
-    // Accessibility precedence is mandatory even before optical rendering can activate.
     const val forcedColorsMustUseSolidAccessibleMode = true
     const val reducedTransparencyMustUseSolidAccessibleMode = true
     const val increasedContrastSuppressesDecorativeTintAndWarmth = true
     const val accessibilityMayBeOverriddenByOpticalContext = false
 
-    // Product, security, privacy, and recovery truth cannot be inferred by optical presentation.
     const val opticalContextMayCarrySemanticAuthority = false
     const val memoContentSamplingAllowed = false
     const val draftSamplingAllowed = false
@@ -40,7 +37,7 @@ object GlazeOpticalPolicy {
     const val identityStateSamplingAllowed = false
     const val privacySecurityRecoveryStateSamplingAllowed = false
 
-    // V1.4.0 Stable explicitly defers these human/manual gates to V1.4.1.
+    // Shared Glaze 1.4.1 qualification does not automatically establish Memos-local acceptance.
     const val physicalDeviceAcceptanceEstablished = false
     const val manualAssistiveTechnologyAcceptanceEstablished = false
     const val humanOpticalFinishAcceptanceEstablished = false

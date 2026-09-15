@@ -37,9 +37,9 @@ def main() -> None:
     require('applicationId = "com.goreecloud.memos.native.dev"' in BUILD, "Development package identity must remain isolated from the transitional client")
     require("compileSdk = 36" in BUILD and "targetSdk = 36" in BUILD, "native Android foundation must target the current Android baseline")
 
-    require('const val targetVersion = "1.4.0"' in METRICS, "GLAZE UI V1.4 target must remain pinned")
-    require('const val sourceRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"' in METRICS, "GLAZE UI V1.4 source revision must remain exact")
-    require('const val stableAuthorityRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"' in METRICS, "GLAZE UI V1.4 Stable authority revision must remain exact")
+    require('const val targetVersion = "1.4.1"' in METRICS, "GLAZE UI V1.4.1 target must remain pinned")
+    require('const val sourceRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"' in METRICS, "GLAZE UI V1.4.1 source revision must remain exact")
+    require('const val stableAuthorityRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"' in METRICS, "GLAZE UI V1.4.1 Stable authority revision must remain exact")
     require("val minimumTarget: Dp = 48.dp" in METRICS, "48 dp normal interaction floor is required")
     require("val touchAssistanceTarget: Dp = 56.dp" in METRICS, "56 dp touch-assistance target must remain available")
     for marker in (
@@ -51,7 +51,7 @@ def main() -> None:
     ):
         require(marker in METRICS, f"missing inherited optical geometry marker: {marker}")
 
-    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.4 explicit appearance source contract is required")
+    require("enum class GlazeAppearance { SYSTEM, LIGHT, DARK, DEEP_DARK }" in THEME, "V1.4.1 explicit appearance source contract is required")
     require("GlazeAppearance.SYSTEM -> if (isSystemInDarkTheme()) darkColors else lightColors" in THEME, "SYSTEM must remain Android Light/Dark only")
     require("GlazeAppearance.DEEP_DARK -> deepDarkColors" in THEME, "Deep Dark must remain an explicit source capability")
     for marker in (
@@ -63,8 +63,8 @@ def main() -> None:
         require(marker in THEME, f"missing inherited Deep Dark structural marker: {marker}")
 
     for marker in (
-        'const val targetVersion = "1.4.0"',
-        'const val implementationRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"',
+        'const val targetVersion = "1.4.1"',
+        'const val implementationRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"',
         "const val defaultGlazeAccentArgb = 0xFF68AEE0.toInt()",
         '"accessibility"',
         '"semantic"',
@@ -87,8 +87,8 @@ def main() -> None:
         require(marker in ADAPTIVE, f"missing bounded inherited adaptive policy marker: {marker}")
 
     for marker in (
-        'const val targetVersion = "1.4.0"',
-        'const val stableRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"',
+        'const val targetVersion = "1.4.1"',
+        'const val stableRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"',
         "const val opticalEngineIsLocalAndDeterministic = true",
         "const val telemetryRequired = false",
         "const val cameraAccessRequired = false",
@@ -116,7 +116,7 @@ def main() -> None:
         "const val humanVisualExcellenceAcceptanceEstablished = false",
         "const val representativeRealDevicePerformanceAccepted = false",
     ):
-        require(marker in OPTICAL, f"missing fail-closed V1.4 optical policy marker: {marker}")
+        require(marker in OPTICAL, f"missing fail-closed V1.4.1 optical policy marker: {marker}")
 
     for marker in (
         "const val deepTealArgb = 0xFF0F6B6F.toInt()",
@@ -130,7 +130,7 @@ def main() -> None:
         require(marker in ATMOSPHERE, f"missing bounded atmosphere boundary: {marker}")
     require("GlazeAtmosphere" not in HOME, "Home/Capture must not render atmosphere in this source-mapping slice")
     require("GlazeAdaptivePolicy" not in HOME, "Home/Capture must not activate inherited adaptive policy without accepted runtime adapters")
-    require("GlazeOpticalPolicy" not in HOME, "Home/Capture must not activate V1.4 optical policy without accepted runtime adapters")
+    require("GlazeOpticalPolicy" not in HOME, "Home/Capture must not activate V1.4.1 optical policy without accepted runtime adapters")
     require("GlazeAppearance.DEEP_DARK" not in HOME, "Home/Capture must not auto-select Deep Dark in this source-mapping slice")
 
     require("enableEdgeToEdge()" in ACTIVITY, "native Activity must preserve edge-to-edge Android presentation")
