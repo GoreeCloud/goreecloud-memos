@@ -42,7 +42,7 @@ platform_systems:
       - docs/development/native-android-glaze-v1.4.md
       - docs/development/native-android-emulator-acceptance.md
     notes: >-
-      Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, explicit caller-supplied target-owner reconstruction, and content-minimized reconciliation reduce accidental scope expansion but do not authenticate or authorize an owner. The V1.4 Android presentation contract keeps user/context accent, environmental sampling, remote dynamic color, persistent color memory, Optical Engine adapters, Content-Aware Frost, Semantic Blur Protection, Environment Tinting, Chromatic Depth, and Environmental Color Memory inactive until independently accepted. Memo bodies, drafts, queued shares, Identity state, and privacy/security/recovery state are prohibited optical sampling sources. Accepted Privacy Shield integration and production privacy validation are not established.
+      Owner-scoped source controls, owner-omitting portability, aggregate-only preflight, explicit caller-supplied target-owner reconstruction, and content-minimized reconciliation reduce accidental scope expansion but do not authenticate or authorize an owner. The V1.4.1 Android presentation contract keeps user/context accent, environmental sampling, remote dynamic color, persistent color memory, Optical Engine adapters, Content-Aware Frost, Semantic Blur Protection, Environment Tinting, Chromatic Depth, and Environmental Color Memory inactive until independently accepted. Memo bodies, drafts, queued shares, Identity state, and privacy/security/recovery state are prohibited optical sampling sources. Accepted Privacy Shield integration and production privacy validation are not established.
 
   wardveil_security:
     result: applicable-blocked
@@ -75,7 +75,7 @@ platform_systems:
 
   glaze_ui:
     result: applicable-migration-required
-    version: "1.4.0"
+    version: "1.4.1"
     evidence:
       - native/android/app/src/main/java/com/goreecloud/memos/MainActivity.kt
       - native/android/app/src/main/java/com/goreecloud/memos/home/HomeScreen.kt
@@ -92,7 +92,7 @@ platform_systems:
       - docs/development/native-android-glaze-v1.4.md
       - docs/development/native-android-emulator-acceptance.md
     notes: >-
-      Native Development source now maps current Stable GLAZE UI V1.4 / 1.4.0 at exact Stable revision 84cb3db4884042f0fa25ed6d475a127fb110f596. V1.4 inherits the V1.3 token/component baseline, so existing structural geometry, interaction floors, Adaptive Resonance restrictions, and explicit Deep Dark source capability remain intact. A separate fail-closed GlazeOpticalPolicy records local/deterministic Optical Engine facts, the 0.08 environmental-memory tint ceiling, mandatory Forced Colors/Reduced Transparency solid-accessible behavior, Increased Contrast precedence, prohibited private-state sampling, inactive consumer optical adapters, and unestablished V1.4.1 human/device gates. Home/Capture activates neither adaptive nor optical context. The result remains applicable-migration-required because source migration is not application acceptance; fresh rendered, interaction, accessibility, runtime Optical Engine/Personalization, adaptive/form-factor, representative-device, performance, V1.4.1 human validation, rollback, release, and production evidence remain required.
+      Native Development source maps current Stable GLAZE UI V1.4.1 / 1.4.1 at exact signed Stable revision 4fab9da0fad2e5c974e0e66ec88632c61745751c, with V1.4.0 retained as the immediate rollback baseline. The source preserves the inherited token/component baseline, structural geometry, interaction floors, Adaptive Resonance restrictions, explicit Deep Dark capability, local deterministic optical-policy limits, the 0.08 environmental-memory tint ceiling, mandatory Forced Colors/Reduced Transparency solid-accessible behavior, Increased Contrast precedence, prohibited private-state sampling, and inactive consumer optical adapters. Upstream V1.4.1 shared human qualification does not auto-certify Memos. The result remains applicable-migration-required because source migration is not downstream application acceptance; fresh Memos-local rendered, interaction, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production evidence remain required.
 
   mesh:
     result: applicable-blocked
@@ -113,14 +113,6 @@ platform_systems:
       - native/internal/memo/portable_snapshot_restore.go
       - native/internal/memo/portable_snapshot_reconcile.go
     notes: Native memo operations are owner-scoped and recovery primitives require an explicit target owner, but accepted GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding are not established.
-
-  sync:
-    result: applicable-blocked
-    version: null
-    evidence:
-      - FEATURE-ROADMAP.md
-      - native/android/README.md
-    notes: Cross-device native memo synchronization is planned, but accepted GoreeCloud Sync change tracking, version coordination, conflict resolution, offline-resume, authorized replication, and cross-device continuity are not implemented. The current app-private Android saved-card store is device-local Development state and does not become Sync authority; synchronization remains separate from Everkeep backup/recovery.
 
 health:
   health_endpoint: null
@@ -160,10 +152,10 @@ external_dependencies:
 
 compatibility:
   platform_contract: "0.3"
-  glaze_ui_required: "1.4.0"
+  glaze_ui_required: "1.4.1"
   requires:
     - goreecloud-platform-contract==0.3
-    - glaze-ui==1.4.0
+    - glaze-ui==1.4.1
     - android-api>=29
   provides:
     - goreecloud-memos-portable-snapshot/1
@@ -191,7 +183,7 @@ conformance:
     - docs/development/native-android-glaze-v1.4.md
     - docs/development/native-android-emulator-acceptance.md
   blockers:
-    - Native source now maps GLAZE UI V1.4 / 1.4.0, but source migration is not application acceptance; fresh exact-revision rendered, interaction, accessibility, runtime Optical Engine/Personalization, adaptive/form-factor, representative physical-device, performance, V1.4.1 human validation, rollback, release, and production acceptance remain outstanding.
+    - Native source now maps GLAZE UI V1.4.1 / 1.4.1 at signed Stable authority 4fab9da0fad2e5c974e0e66ec88632c61745751c, but source migration and upstream shared human qualification are not Memos application acceptance; fresh exact-revision rendered, interaction, accessibility, adaptive/form-factor, representative physical-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain outstanding.
     - The Android foundation remains Development-only and has no authorized production memo repository, API, synchronization, or migration binding.
     - GoreeCloud Identity authentication, session, owner authorization, and restore-owner binding integration are not established.
     - Wardveil Security integration, recovery provenance, and acceptance are not established.
