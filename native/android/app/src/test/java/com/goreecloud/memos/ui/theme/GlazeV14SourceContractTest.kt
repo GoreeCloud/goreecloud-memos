@@ -8,10 +8,10 @@ import org.junit.Test
 
 class GlazeV14SourceContractTest {
     @Test
-    fun `native Memos pins exact GLAZE UI V1_4 Stable authority`() {
-        assertEquals("1.4.0", GlazeMetrics.targetVersion)
+    fun `native Memos pins exact GLAZE UI V1_4_1 Stable authority`() {
+        assertEquals("1.4.1", GlazeMetrics.targetVersion)
         assertEquals(
-            "84cb3db4884042f0fa25ed6d475a127fb110f596",
+            "4fab9da0fad2e5c974e0e66ec88632c61745751c",
             GlazeMetrics.sourceRevision,
         )
         assertEquals(GlazeMetrics.sourceRevision, GlazeMetrics.stableAuthorityRevision)
@@ -22,7 +22,7 @@ class GlazeV14SourceContractTest {
     }
 
     @Test
-    fun `V1_4 preserves inherited geometry and interaction floors`() {
+    fun `V1_4_1 preserves inherited geometry and interaction floors`() {
         assertEquals(8.dp, GlazeMetrics.opticalMicro)
         assertEquals(16.dp, GlazeMetrics.opticalControl)
         assertEquals(24.dp, GlazeMetrics.opticalContainer)
@@ -56,7 +56,7 @@ class GlazeV14SourceContractTest {
     }
 
     @Test
-    fun `V1_4 optical contract is local bounded and inactive for Memos`() {
+    fun `V1_4_1 optical contract is local bounded and inactive for Memos`() {
         assertTrue(GlazeOpticalPolicy.opticalEngineIsLocalAndDeterministic)
         assertFalse(GlazeOpticalPolicy.telemetryRequired)
         assertFalse(GlazeOpticalPolicy.cameraAccessRequired)
@@ -71,7 +71,7 @@ class GlazeV14SourceContractTest {
     }
 
     @Test
-    fun `V1_4 accessibility precedence cannot be overridden by optical context`() {
+    fun `V1_4_1 accessibility precedence cannot be overridden by optical context`() {
         assertTrue(GlazeOpticalPolicy.forcedColorsMustUseSolidAccessibleMode)
         assertTrue(GlazeOpticalPolicy.reducedTransparencyMustUseSolidAccessibleMode)
         assertTrue(GlazeOpticalPolicy.increasedContrastSuppressesDecorativeTintAndWarmth)
@@ -89,7 +89,7 @@ class GlazeV14SourceContractTest {
     }
 
     @Test
-    fun `V1_4_0 does not fabricate deferred human acceptance`() {
+    fun `shared V1_4_1 qualification does not fabricate Memos acceptance`() {
         assertFalse(GlazeOpticalPolicy.physicalDeviceAcceptanceEstablished)
         assertFalse(GlazeOpticalPolicy.manualAssistiveTechnologyAcceptanceEstablished)
         assertFalse(GlazeOpticalPolicy.humanOpticalFinishAcceptanceEstablished)
