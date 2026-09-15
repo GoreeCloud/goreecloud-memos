@@ -4,17 +4,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Native Android mapping of the GLAZE UI V1.4 structural foundation consumed by Memos.
+ * Native Android mapping of the GLAZE UI V1.4.1 structural foundation consumed by Memos.
  *
- * V1.4 inherits the V1.3 token system and public component baseline. Memos therefore preserves
- * its already-reviewed spacing, structural-radius, optical-geometry, and interaction-target
- * contracts while pinning current V1.4 Stable authority explicitly. Optical Intelligence is a
- * separate additive policy layer and must not silently redefine these values or product truth.
+ * V1.4.1 is the current Stable optical-hardening patch over the V1.4/V1.3 structural baseline.
+ * Memos therefore preserves its already-reviewed spacing, structural-radius, optical-geometry,
+ * and interaction-target contracts while pinning current V1.4.1 Stable authority explicitly.
+ * Repository-local rendered, accessibility, device, and product acceptance remain separate.
  */
 object GlazeMetrics {
-    const val targetVersion = "1.4.0"
-    const val sourceRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"
-    const val stableAuthorityRevision = "84cb3db4884042f0fa25ed6d475a127fb110f596"
+    const val targetVersion = "1.4.1"
+    const val sourceRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"
+    const val stableAuthorityRevision = "4fab9da0fad2e5c974e0e66ec88632c61745751c"
 
     val space1: Dp = 4.dp
     val space2: Dp = 8.dp
@@ -31,7 +31,7 @@ object GlazeMetrics {
     val radiusPanel: Dp = 28.dp
     val radiusPill: Dp = 999.dp
 
-    // V1.4 preserves these inherited interaction floors.
+    // V1.4.1 preserves these inherited interaction floors.
     val minimumTarget: Dp = 48.dp
     val touchAssistanceTarget: Dp = 56.dp
 
