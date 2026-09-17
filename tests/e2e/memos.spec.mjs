@@ -16,13 +16,11 @@ test("draft recovery and saved memo persistence survive reload", async ({ page }
   await page.locator("#memo-labels").fill("Work, Ideas");
   await page.locator("#memo-content").fill("Recovered draft");
   await expect(page.getByText("Draft saved on this device.")).toBeVisible();
-
   await page.reload();
   await expect(page.locator("#memo-title")).toHaveValue("Draft title");
   await expect(page.locator("#memo-color")).toHaveValue("teal");
   await expect(page.locator("#memo-labels")).toHaveValue("Work, Ideas");
   await expect(page.locator("#memo-content")).toHaveValue("Recovered draft");
-
   await page.getByRole("button", { name: "Save memo" }).click();
   const card = page.locator(".memo-card", { hasText: "Recovered draft" });
   await expect(card).toBeVisible();
@@ -30,6 +28,13 @@ test("draft recovery and saved memo persistence survive reload", async ({ page }
   await expect(card.getByText("Work", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator(".memo-card", { hasText: "Recovered draft" })).toBeVisible();
+
+  const snapshot = await readManagedSnapshot(page);
+  const saved = snapshot.memos.find((memo) => memo.content === "Recovered draft");
+  expect(saved.schemaVersion).toBe(4);
+  expect(saved.labelIds).toHaveLength(2);
+  expect(snapshot.labels.map((label) => label.name).sort()).toEqual(["Ideas", "Work"]);
+  expect(snapshot.memoLabels.filter((relation) => relation.memoId === saved.id)).toHaveLength(2);
 });
 
 test("editing autosaves organization metadata and survives reload", async ({ page }) => {
@@ -64,8 +69,8 @@ test("pinning retains manual order across reload", async ({ page }) => {
   let second = page.locator(".memo-card", { hasText: "Second pinned memo" });
   await first.getByRole("button", { name: "Pin", exact: true }).click();
   await page.locator(".memo-card", { hasText: "Second pinned memo" }).getByRole("button", { name: "Pin", exact: true }).click();
-
   await expect(page.locator(".memo-card").nth(0)).toContainText("First pinned memo");
+
   second = page.locator(".memo-card", { hasText: "Second pinned memo" });
   await second.getByRole("button", { name: "Move pin up", exact: true }).click();
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
@@ -91,7 +96,6 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
 
   await expect(comfortable).toBeChecked();
   await expect(list).toHaveAttribute("data-presentation", "comfortable");
-
   await comfortable.focus();
   await page.keyboard.press("ArrowRight");
   await expect(compact).toBeChecked();
@@ -100,7 +104,6 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
   await page.reload();
   await expect(compact).toBeChecked();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "compact");
-
   await listMode.check();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "list");
   await dense.check();
@@ -119,31 +122,32 @@ test("Archive and Trash are recoverable before explicit permanent deletion", asy
   await card.getByRole("button", { name: "Archive", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Trash", exact: true }).click();
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Memos", exact: true }).click();
+  await location.getByRole("button", { name: "Memos", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Trash", exact: true }).click();
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
   page.once("dialog", (dialog) => dialog.accept());
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await card.getByRole("button", { name: "Delete permanently", exact: true }).click();
@@ -185,43 +189,118 @@ async function seedLegacyMemo(page, version) {
   }, version);
 }
 
-async function readMemoRecord(page, id) {
-  return page.evaluate(async (memoId) => new Promise((resolve, reject) => {
-    const request = indexedDB.open("goreecloud-memos-local", 3);
+async function seedSchemaV3Labels(page) {
+  await page.goto("/README.md");
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.open("goreecloud-memos-local", 3);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        const store = database.createObjectStore("memos", { keyPath: "id" });
+        store.createIndex("updatedAt", "updatedAt", { unique: false });
+        store.createIndex("state", "state", { unique: false });
+      };
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction("memos", "readwrite");
+        const store = tx.objectStore("memos");
+        const base = {
+          schemaVersion: 3,
+          title: "",
+          color: null,
+          state: "active",
+          pinned: false,
+          pinOrder: null,
+          archivedAt: null,
+          trashedAt: null,
+          restoreState: null
+        };
+        store.put({ ...base, id: "v3-a", content: "First v3", labels: ["Work", "Ideas"], createdAt: "2026-09-17T09:00:00.000Z", updatedAt: "2026-09-17T09:00:00.000Z" });
+        store.put({ ...base, id: "v3-b", content: "Second v3", labels: ["work", "Research"], createdAt: "2026-09-17T10:00:00.000Z", updatedAt: "2026-09-17T10:00:00.000Z" });
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+  });
+}
+
+async function readManagedSnapshot(page) {
+  return page.evaluate(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open("goreecloud-memos-local", 4);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
-      const tx = db.transaction("memos", "readonly");
-      const getRequest = tx.objectStore("memos").get(memoId);
-      getRequest.onerror = () => reject(getRequest.error);
-      getRequest.onsuccess = () => { db.close(); resolve(getRequest.result); };
+      const tx = db.transaction(["memos", "labels", "memoLabels"], "readonly");
+      const result = {};
+      const reads = [
+        ["memos", tx.objectStore("memos").getAll()],
+        ["labels", tx.objectStore("labels").getAll()],
+        ["memoLabels", tx.objectStore("memoLabels").getAll()]
+      ];
+      let remaining = reads.length;
+      for (const [key, read] of reads) {
+        read.onerror = () => reject(read.error);
+        read.onsuccess = () => {
+          result[key] = read.result;
+          remaining -= 1;
+          if (remaining === 0) {
+            result.version = db.version;
+            db.close();
+            resolve(result);
+          }
+        };
+      }
     };
-  }), id);
+  }));
 }
 
-test("opening schema v3 migrates an existing schema v1 memo", async ({ page }) => {
+test("opening schema v4 migrates an existing schema v1 memo", async ({ page }) => {
   await seedLegacyMemo(page, 1);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserved through v1 migration" })).toBeVisible();
-
-  const record = await readMemoRecord(page, "legacy-1");
-  expect(record.schemaVersion).toBe(3);
-  expect(record.content).toBe("Preserved through v1 migration");
-  expect(record.color).toBeNull();
-  expect(record.labels).toEqual([]);
-  expect(record.pinOrder).toBeNull();
+  const snapshot = await readManagedSnapshot(page);
+  const record = snapshot.memos.find((memo) => memo.id === "legacy-1");
+  expect(snapshot.version).toBe(4);
+  expect(record.schemaVersion).toBe(4);
+  expect(record.labelIds).toEqual([]);
 });
 
-test("opening schema v3 migrates an existing schema v2 memo and preserves pin state", async ({ page }) => {
+test("opening schema v4 migrates an existing schema v2 memo and preserves pin state", async ({ page }) => {
   await seedLegacyMemo(page, 2);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserved through v2 migration" })).toBeVisible();
-
-  const record = await readMemoRecord(page, "legacy-2");
-  expect(record.schemaVersion).toBe(3);
-  expect(record.content).toBe("Preserved through v2 migration");
+  const snapshot = await readManagedSnapshot(page);
+  const record = snapshot.memos.find((memo) => memo.id === "legacy-2");
+  expect(record.schemaVersion).toBe(4);
   expect(record.pinned).toBe(true);
   expect(Number.isSafeInteger(record.pinOrder)).toBe(true);
-  expect(record.color).toBeNull();
-  expect(record.labels).toEqual([]);
+  expect(record.labelIds).toEqual([]);
+});
+
+test("opening schema v4 migrates v3 label names into stable managed labels and memo-label relations", async ({ page }) => {
+  await seedSchemaV3Labels(page);
+  await page.goto("/web/");
+  await expect(page.locator(".memo-card", { hasText: "First v3" }).getByText("Work", { exact: true })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Second v3" }).getByText("Work", { exact: true })).toBeVisible();
+
+  const snapshot = await readManagedSnapshot(page);
+  expect(snapshot.version).toBe(4);
+  expect(snapshot.labels).toHaveLength(3);
+  expect(snapshot.memoLabels).toHaveLength(4);
+
+  const work = snapshot.labels.find((label) => label.nameKey === "work");
+  expect(work).toBeTruthy();
+  expect(work.name).toBe("Work");
+  expect(typeof work.id).toBe("string");
+  expect(work.id.length).toBeGreaterThan(0);
+
+  const first = snapshot.memos.find((memo) => memo.id === "v3-a");
+  const second = snapshot.memos.find((memo) => memo.id === "v3-b");
+  expect(first.schemaVersion).toBe(4);
+  expect(second.schemaVersion).toBe(4);
+  expect(first.labelIds).toContain(work.id);
+  expect(second.labelIds).toContain(work.id);
+  expect(first.labels).toEqual(["Work", "Ideas"]);
+  expect(second.labels).toEqual(["Work", "Research"]);
 });
