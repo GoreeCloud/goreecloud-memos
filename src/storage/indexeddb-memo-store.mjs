@@ -2,6 +2,7 @@ import { migrateMemoRecord } from "../domain/memo.mjs";
 import {
   createLabel,
   labelNameKey,
+  MAX_LABELS_PER_MEMO,
   migrateLabelRecord,
   reconcileManagedLabels,
   renameLabel,
@@ -32,6 +33,30 @@ function transactionComplete(transaction) {
     transaction.addEventListener("abort", () => reject(transaction.error ?? new Error("IndexedDB transaction aborted")), { once: true });
     transaction.addEventListener("error", () => reject(transaction.error ?? new Error("IndexedDB transaction failed")), { once: true });
   });
+}
+
+function normalizeChangedAt(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new TypeError("changedAt must be a valid date");
+  return date.toISOString();
+}
+
+function normalizeMemoIds(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new TypeError("memoIds must be a non-empty array");
+  }
+  const ids = [];
+  const seen = new Set();
+  for (const rawId of value) {
+    if (typeof rawId !== "string" || rawId.trim().length === 0) {
+      throw new TypeError("memoIds must contain non-empty strings");
+    }
+    const id = rawId.trim();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
 }
 
 function createStores(database, transaction) {
@@ -137,6 +162,37 @@ function mergeMemoLabelProjection(memo, sourceId, targetId, targetName) {
   return { ...normalized, labels, labelIds };
 }
 
+function applyLabelToMemo(memo, label, changedAt) {
+  const normalized = migrateMemoRecord(memo);
+  if (normalized.labelIds.includes(label.id)) return { memo: normalized, changed: false };
+  if (normalized.labelIds.length >= MAX_LABELS_PER_MEMO) {
+    throw new RangeError(`a memo can have at most ${MAX_LABELS_PER_MEMO} labels`);
+  }
+  return {
+    changed: true,
+    memo: {
+      ...normalized,
+      labels: [...normalized.labels, label.name],
+      labelIds: [...normalized.labelIds, label.id],
+      updatedAt: changedAt
+    }
+  };
+}
+
+function removeLabelFromMemo(memo, labelId, changedAt) {
+  const normalized = migrateMemoRecord(memo);
+  const index = normalized.labelIds.indexOf(labelId);
+  if (index === -1) return { memo: normalized, changed: false };
+  const labels = [...normalized.labels];
+  const labelIds = [...normalized.labelIds];
+  labels.splice(index, 1);
+  labelIds.splice(index, 1);
+  return {
+    changed: true,
+    memo: { ...normalized, labels, labelIds, updatedAt: changedAt }
+  };
+}
+
 export class IndexedDbMemoStore {
   #databasePromise;
   #idFactory;
@@ -200,6 +256,49 @@ export class IndexedDbMemoStore {
     const relations = await requestResult(transaction.objectStore(MEMO_LABEL_STORE_NAME).index("memoId").getAll(id));
     await transactionComplete(transaction);
     return relations.map((relation) => relation.labelId);
+  }
+
+  async bulkUpdateLabel(memoIds, labelId, mode, changedAt = this.#clock()) {
+    if (mode !== "apply" && mode !== "remove") throw new TypeError("mode must be apply or remove");
+    if (typeof labelId !== "string" || labelId.trim().length === 0) {
+      throw new TypeError("labelId must be a non-empty string");
+    }
+    const ids = normalizeMemoIds(memoIds);
+    const timestamp = normalizeChangedAt(changedAt);
+    const database = await this.#databasePromise;
+    const transaction = database.transaction([MEMO_STORE_NAME, LABEL_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const labelStore = transaction.objectStore(LABEL_STORE_NAME);
+    const memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
+
+    const rawLabel = await requestResult(labelStore.get(labelId.trim()));
+    if (!rawLabel) throw new Error("label not found");
+    const label = migrateLabelRecord(rawLabel);
+    const planned = [];
+
+    for (const id of ids) {
+      const rawMemo = await requestResult(memoStore.get(id));
+      if (!rawMemo) throw new Error(`memo not found: ${id}`);
+      const result = mode === "apply"
+        ? applyLabelToMemo(rawMemo, label, timestamp)
+        : removeLabelFromMemo(rawMemo, label.id, timestamp);
+      planned.push({ id, ...result });
+    }
+
+    labelStore.put(label);
+    for (const item of planned) {
+      if (mode === "apply") memoLabelStore.put({ memoId: item.id, labelId: label.id });
+      else memoLabelStore.delete([item.id, label.id]);
+      if (item.changed) memoStore.put(item.memo);
+    }
+
+    await transactionComplete(transaction);
+    return {
+      mode,
+      label,
+      requestedMemoCount: ids.length,
+      changedMemoCount: planned.filter((item) => item.changed).length
+    };
   }
 
   async renameLabel(id, name, changedAt = this.#clock()) {

@@ -1,0 +1,23 @@
+.filter-panel h3 { margin: 0 0 0.35rem; }
+.bulk-label-grid { grid-template-columns: minmax(12rem, 1fr); }
+.bulk-label-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.memo-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.memo-select input { width: auto; padding: 0; accent-color: var(--accent); }
+.memo-select:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.memo-select:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--accent) 65%, transparent); outline-offset: 2px; }
+.memo-select input:focus-visible { outline: none; }
+
+@media (max-width: 680px) {
+  .bulk-label-actions { width: 100%; }
+  .bulk-label-actions button { width: 100%; }
+}

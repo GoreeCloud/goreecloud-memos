@@ -14,7 +14,7 @@
 | `labels` | string array | Synchronized local display/search projection of the memo's managed Label relationships. It remains for current UI/search compatibility; it is not the identity authority. |
 | `labelIds` | string array | Stable managed Label identifiers associated with the memo, in the same display order as the `labels` projection. |
 | `createdAt` | ISO-8601 UTC string | Creation timestamp. |
-| `updatedAt` | ISO-8601 UTC string | Last persisted memo content, organization, pinning, or lifecycle update timestamp. Managed-label maintenance does not rewrite this memo timestamp. |
+| `updatedAt` | ISO-8601 UTC string | Last persisted memo content, organization, pinning, or lifecycle update timestamp. Managed-label identity/metadata maintenance such as Rename, Save details, Delete, or Merge does not rewrite this memo timestamp; direct memo organization edits, including bulk Apply/Remove label when a memo changes, do. |
 | `state` | `active` \| `archived` \| `trashed` | Current local lifecycle location. |
 | `pinned` | boolean | Whether the memo participates in the pinned section/order. |
 | `pinOrder` | non-negative safe integer or `null` | Persisted manual ordering key for pinned memos. |
@@ -67,7 +67,24 @@ Rename, Delete, and Merge use one IndexedDB read-write transaction across `memos
 - **Delete:** removes the managed Label identity and every Memo Label relation for it, and removes the corresponding `labelId`/display-name projection from every related memo. Memo content and lifecycle state are not deleted. The UI requires explicit confirmation.
 - **Merge:** transfers every source Label relationship to an existing target Label, deduplicates the target relation/projection when a memo already had both labels, deletes the source relationships, updates affected memo projections to the target identity/name, then removes the source Label in the same transaction. The target Label identity and metadata are preserved. The UI requires explicit confirmation.
 
-These are browser-local Development operations. They do not establish ownership, authorization, synchronization, cross-device conflict behavior, or bulk label workflows.
+These managed-label maintenance operations are browser-local Development behavior. They do not establish ownership, authorization, synchronization, or cross-device conflict behavior.
+
+## Bulk label Apply/Remove semantics
+
+Bulk Apply/Remove is a direct memo-organization workflow over existing managed Label identities. The browser selection itself is ephemeral and is not stored in IndexedDB.
+
+For each bulk action:
+
+- Selected memo IDs are normalized and deduplicated before the store operation.
+- The target managed Label must already exist.
+- Every selected memo must exist before writes are queued.
+- **Apply** validates the current 20-label-per-memo limit for the full selected set before writes. If any selected memo would exceed the limit, the operation is rejected before changing any selected memo.
+- The relation changes and affected memo `labels`/`labelIds` projections are written in one read-write transaction across `memos`, `labels`, and `memoLabels`.
+- A memo that already has the target Label on Apply, or lacks it on Remove, is left unchanged.
+- Every memo actually changed by the bulk action receives the same normalized `updatedAt` timestamp because the operation is one user-directed organization edit.
+- The managed Label identity and its metadata are preserved. A legacy Label v1 target is normalized to the current Label v2 record shape when the bulk operation writes it.
+
+These semantics apply equally to selected memos currently rendered from Memos, Archive, or Trash. They do not add cross-device synchronization, authorization, ownership, or server-side bulk processing.
 
 ## IndexedDB database version 4
 
@@ -78,7 +95,7 @@ Version 4 provides:
 - `memoLabels` object store keyed by `[memoId, labelId]`, with `memoId` and `labelId` indexes.
 - `labelIds` on memo records while retaining `labels` as a synchronized compatibility projection.
 
-Managed-label Rename, metadata updates, Delete, and Merge operate within database version 4 and therefore do not require another IndexedDB version increment.
+Managed-label Rename, metadata updates, Delete, Merge, and bulk Apply/Remove operate within database version 4 and therefore do not require another IndexedDB version increment.
 
 ### v3 → v4
 
@@ -88,11 +105,11 @@ During the upgrade transaction, v3 memo-local label names are normalized and ded
 
 Opening a version 1 or version 2 database directly with the current application first normalizes the legacy memo record into the current memo shape, then establishes the managed-label stores. Because those legacy memo schemas did not contain label names, their migrated `labels` and `labelIds` arrays are empty. Existing v2 pin state continues to receive deterministic pin ordering.
 
-Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, transactional managed-label rename/collision/delete/merge behavior, and browser-local Label v2 metadata persistence.
+Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, transactional managed-label rename/collision/delete/merge behavior, browser-local Label v2 metadata persistence, ephemeral bulk selection, successful bulk Apply/Remove, and atomic pre-write rejection when a selected memo would exceed the label limit.
 
 ## Remaining roadmap expansion
 
-User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, synchronization, and bulk operations remain open.
+User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, authorization, synchronization, metadata-aware search/filter dimensions, and broader multi-selection bulk actions remain open.
 
 ## Migration rule
 
