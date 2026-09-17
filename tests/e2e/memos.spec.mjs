@@ -27,10 +27,11 @@ test("editing autosaves and survives reload", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, { content: "Before edit" });
 
-  const card = page.locator(".memo-card", { hasText: "Before edit" });
+  const card = page.locator(".memo-card").first();
+  await expect(card.locator(".memo-card__content")).toHaveText("Before edit");
   await card.getByRole("button", { name: "Edit" }).click();
   await card.locator("[data-edit-field='content']").fill("After edit");
-  await expect(card.getByText("Saved.")).toBeVisible();
+  await expect(card.locator(".editor-status")).toHaveText("Saved.");
   await expect(card.locator(".memo-card__content")).toHaveText("After edit");
 
   await page.reload();
@@ -42,32 +43,37 @@ test("Archive and Trash are recoverable before explicit permanent deletion", asy
   await captureMemo(page, { content: "Lifecycle memo" });
 
   let card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
-  await card.getByRole("button", { name: "Archive" }).click();
+  await card.getByRole("button", { name: "Archive", exact: true }).click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Archive" }).click();
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash" }).click();
+  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Trash" }).click();
+  await page.getByRole("button", { name: "Trash", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore" }).click();
+  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Archive" }).click();
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore" }).click();
+  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Memos" }).click();
+  await page.getByRole("button", { name: "Memos", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash" }).click();
+  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await expect(card).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Trash" }).click();
+  await page.getByRole("button", { name: "Trash", exact: true }).click();
   page.once("dialog", (dialog) => dialog.accept());
-  await page.locator(".memo-card", { hasText: "Lifecycle memo" }).getByRole("button", { name: "Delete permanently" }).click();
+  card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
+  await card.getByRole("button", { name: "Delete permanently", exact: true }).click();
   await expect(page.getByText("Trash is empty.")).toBeVisible();
 });
 
