@@ -15,20 +15,38 @@ Open `http://localhost:4173/web/` in a modern browser with IndexedDB support.
 ## Capture a memo
 
 1. Optionally enter a title.
-2. Enter memo content.
-3. Select **Save memo**.
-4. The memo is stored in that browser's local IndexedDB database and appears in **Memos**.
+2. Optionally choose a memo color.
+3. Optionally enter one or more labels separated by commas.
+4. Enter memo content.
+5. Select **Save memo**.
+6. The memo is stored in that browser's local IndexedDB database and appears in **Memos**.
 
-Text entered into the composer is preserved locally as a draft while typing. Reloading the page restores that draft. A successfully saved memo clears the composer draft.
+Text and organization fields entered into the composer are preserved locally as a draft while typing. Reloading the page restores the draft. A successfully saved memo clears the composer draft.
+
+Labels in this Development slice are memo-local name metadata. Names are trimmed, duplicate names are removed case-insensitively, and the first entered display spelling is retained. Central label management, label colors, rename/merge operations, filtering, and bulk label workflows are not implemented yet.
 
 ## Edit a memo
 
 1. In **Memos**, select **Edit** on a memo card.
-2. Change the title or memo content.
+2. Change the title, color, labels, or memo content.
 3. Changes save automatically after a short pause in typing.
 4. Wait for **Saved.** before closing the page when you need confirmation that the most recent edit was written locally.
 
 Memo content cannot be saved as blank.
+
+## Pin and reorder memos
+
+Select **Pin** on an active memo to place it before ordinary memos. Pinned memos retain a stored manual order.
+
+Use **Move pin up** and **Move pin down** to change that order. The controls are disabled when a pinned memo is already at the corresponding boundary. Select **Unpin** to return the memo to ordinary update-time ordering.
+
+Pin state and manual pin order persist across reloads in the same browser profile.
+
+## Memo colors
+
+The current local palette includes Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, and Gray. A memo can also have no color.
+
+Color is stored as memo metadata. The card shows both a visual color treatment and visible `Color: …` text so color is not the sole carrier of meaning.
 
 ## Archive and restore
 
@@ -44,7 +62,9 @@ Select **Restore** in Trash to return the memo to the location it came from. A m
 
 ## Data migration
 
-The local memo record format is currently schema v2. When this development slice opens a schema v1 IndexedDB database created by the first repository implementation, it migrates those memo records to v2 while preserving their core content and timestamps.
+The local memo record format and IndexedDB database are currently version 3. Version 3 adds memo color, labels, and manual pin-order metadata.
+
+When this Development slice opens a version 1 or version 2 `goreecloud-memos-local` database from earlier repository implementations, existing memo records are normalized to v3 during the IndexedDB upgrade transaction. Core content, timestamps, lifecycle state, and prior pin state are preserved. Older pinned records receive a deterministic initial pin order that preserves the earlier pinned-by-recency behavior until the user manually reorders them.
 
 ## Data boundary
 
@@ -67,4 +87,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, labels, colors, pin controls, checklists, reminders, search, import/export, backups, native clients, administration, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, managed label entities, label colors/icons/descriptions, label filtering/search, bulk label operations, checklists, reminders, full search, import/export, backups, native clients, administration, and Stable release qualification are not implemented.
