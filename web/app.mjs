@@ -1,5 +1,6 @@
 import { MemoService } from "../src/app/memo-service.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
+import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -15,13 +16,28 @@ const template = document.querySelector("#memo-template");
 const status = document.querySelector("#status");
 const draftState = document.querySelector("#draft-state");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
+const presentationInputs = [...document.querySelectorAll("input[name='presentation']")];
+const presentationStatus = document.querySelector("#presentation-status");
 
 const service = new MemoService(new IndexedDbMemoStore());
 const editTimers = new Map();
 let currentView = "active";
+let currentPresentation = loadPresentationMode(localStorage);
 
 function setStatus(message) {
   status.textContent = message;
+}
+
+function applyPresentationMode(mode, { persist = false } = {}) {
+  currentPresentation = mode;
+  listElement.dataset.presentation = mode;
+  for (const input of presentationInputs) {
+    input.checked = input.value === mode;
+  }
+  presentationStatus.textContent = `Presentation: ${mode[0].toUpperCase()}${mode.slice(1)}.`;
+  if (persist && !savePresentationMode(mode, localStorage)) {
+    presentationStatus.textContent += " Preference could not be stored in this browser.";
+  }
 }
 
 function parseLabelsInput(value) {
@@ -279,6 +295,12 @@ for (const button of viewButtons) {
   });
 }
 
+for (const input of presentationInputs) {
+  input.addEventListener("change", () => {
+    if (input.checked) applyPresentationMode(input.value, { persist: true });
+  });
+}
+
 listElement.addEventListener("input", (event) => {
   const editor = event.target.closest(".memo-editor");
   if (editor) scheduleEditSave(editor);
@@ -339,6 +361,7 @@ listElement.addEventListener("click", async (event) => {
   }
 });
 
+applyPresentationMode(currentPresentation);
 restoreDraft();
 refresh().catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load local memos");

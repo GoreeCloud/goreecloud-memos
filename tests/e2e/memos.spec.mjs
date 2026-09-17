@@ -79,6 +79,38 @@ test("pinning retains manual order across reload", async ({ page }) => {
   await expect(page.locator(".memo-card", { hasText: "First pinned memo" }).getByText("Pinned", { exact: true })).toHaveCount(0);
 });
 
+test("presentation mode is keyboard accessible and persists across reload", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { content: "Presentation memo", color: "blue", labels: "Layout" });
+
+  const list = page.locator("#memo-list");
+  const comfortable = page.getByRole("radio", { name: "Comfortable" });
+  const compact = page.getByRole("radio", { name: "Compact" });
+  const listMode = page.getByRole("radio", { name: "List", exact: true });
+  const dense = page.getByRole("radio", { name: "Dense" });
+
+  await expect(comfortable).toBeChecked();
+  await expect(list).toHaveAttribute("data-presentation", "comfortable");
+
+  await comfortable.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(compact).toBeChecked();
+  await expect(list).toHaveAttribute("data-presentation", "compact");
+
+  await page.reload();
+  await expect(compact).toBeChecked();
+  await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "compact");
+
+  await listMode.check();
+  await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "list");
+  await dense.check();
+  await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
+
+  await page.reload();
+  await expect(page.getByRole("radio", { name: "Dense" })).toBeChecked();
+  await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
+});
+
 test("Archive and Trash are recoverable before explicit permanent deletion", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, { content: "Lifecycle memo" });
