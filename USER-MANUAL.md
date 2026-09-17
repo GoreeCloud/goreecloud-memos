@@ -29,13 +29,14 @@ Label input still looks like simple comma-separated names. Internally, the curre
 
 The **Manage labels** panel works only with managed labels already created by memo capture or editing.
 
-- **Rename** changes the label's display name while preserving its stable identity. All affected memo label displays/search projections update together. Renaming to a name already used by another managed label is rejected; use Merge instead.
-- **Merge** moves every relationship from the source label to the selected target label, deduplicates memos that already had both labels, updates memo projections, and removes the source label.
+- **Rename** changes the label's display name while preserving its stable identity and metadata. All affected memo label displays/search projections update together. Renaming to a name already used by another managed label is rejected; use Merge instead.
+- **Save details** stores an optional label color, optional icon text, and optional description. The label color uses the same local Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, and Gray palette; the icon and description may be left blank.
+- **Merge** moves every relationship from the source label to the selected target label, deduplicates memos that already had both labels, updates memo projections, removes the source label, and preserves the target label's metadata.
 - **Delete** explicitly removes the label from every related memo and deletes the managed Label identity. It does **not** delete any memo.
 
 Merge and Delete require confirmation. Successful management operations reload the Development page so memo cards, search/filter options, and the management panel all reflect the committed transaction.
 
-Label colors/icons/descriptions, bulk label operations, ownership, and synchronization are not implemented yet.
+Bulk label operations, ownership, authorization, and synchronization are not implemented yet.
 
 ## Edit a memo
 
@@ -65,10 +66,12 @@ Color is stored as memo metadata. The card shows both a visual color treatment a
 The current Development slice supports browser-local filtering within the selected lifecycle location: **Memos**, **Archive**, or **Trash**.
 
 - **Search memos** performs a case-insensitive substring match across the memo title, memo body, and current label-name projection.
-- **Color** can show all colors, memos with no color, or one exact palette color.
+- **Color** can show all colors, memos with no color, or one exact memo color.
 - **Label** can show all labels or one exact current label name. Label matching is case-insensitive.
 - Search, color, and label constraints can be combined.
 - **Clear search and filters** returns the current lifecycle view to its unfiltered state.
+
+Label color/icon/description metadata does not currently add new search/filter dimensions; the existing Label filter remains name-based.
 
 Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, and saved views are not implemented yet.
 
@@ -94,11 +97,11 @@ When the application opens older databases:
 - **v2 → v4:** existing pin state is preserved with deterministic initial pin order; labels and label IDs begin empty.
 - **v3 → v4:** existing memo-local label names are deduplicated case-insensitively across the local library, assigned stable Label UUIDs, related to memos through Memo–Label rows, and written back with aligned `labelIds` plus canonical label-name projections. Existing memo content, timestamps, color, pin state/order, and lifecycle state are preserved.
 
-Rename, Delete, and Merge operate inside the existing v4 schema; they do not require another database-version migration.
+Managed Label records are currently schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, and Merge operate inside the existing IndexedDB v4 stores and do not require another database-version migration.
 
 ## Data boundary
 
-This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, labels, drafts, and the presentation preference. Search terms and filter selections are not persisted. Operational backup and restore are not implemented.
+This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, drafts, and the presentation preference. Search terms and filter selections are not persisted. Operational backup and restore are not implemented.
 
 ## Validation commands
 
@@ -117,4 +120,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, label colors/icons/descriptions, bulk label operations, label ownership/synchronization metadata, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk label operations, label ownership/authorization/synchronization metadata, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
