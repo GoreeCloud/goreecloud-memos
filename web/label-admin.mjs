@@ -1,4 +1,5 @@
 import { LabelService } from "../src/app/label-service.mjs";
+import { LABEL_COLORS } from "../src/domain/label.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 
 const STATUS_KEY = "goreecloud-memos:label-admin-status:v1";
@@ -19,6 +20,30 @@ function rememberStatus(message) {
 function reloadWithStatus(message) {
   rememberStatus(message);
   window.location.reload();
+}
+
+function displayColor(color) {
+  return color[0].toUpperCase() + color.slice(1);
+}
+
+function createColorSelect(label) {
+  const select = document.createElement("select");
+  select.dataset.labelColor = "";
+  select.setAttribute("aria-label", `Color for ${label.name}`);
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No color";
+  select.append(none);
+
+  for (const color of LABEL_COLORS) {
+    const option = document.createElement("option");
+    option.value = color;
+    option.textContent = displayColor(color);
+    select.append(option);
+  }
+  select.value = label.color ?? "";
+  return select;
 }
 
 function createTargetSelect(labels, sourceId) {
@@ -66,6 +91,7 @@ function renderLabels(labels) {
     const row = document.createElement("article");
     row.className = "filter-panel label-admin-row";
     row.dataset.labelId = label.id;
+    row.dataset.labelColor = label.color ?? "none";
 
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Label name";
@@ -76,6 +102,30 @@ function renderLabels(labels) {
     input.setAttribute("aria-label", `Label name for ${label.name}`);
     nameLabel.append(input);
 
+    const colorLabel = document.createElement("label");
+    colorLabel.textContent = "Label color";
+    colorLabel.append(createColorSelect(label));
+
+    const iconLabel = document.createElement("label");
+    iconLabel.textContent = "Icon (optional)";
+    const iconInput = document.createElement("input");
+    iconInput.value = label.icon ?? "";
+    iconInput.maxLength = 32;
+    iconInput.dataset.labelIcon = "";
+    iconInput.setAttribute("aria-label", `Icon for ${label.name}`);
+    iconInput.placeholder = "Example: 💡";
+    iconLabel.append(iconInput);
+
+    const descriptionLabel = document.createElement("label");
+    descriptionLabel.textContent = "Description (optional)";
+    const descriptionInput = document.createElement("input");
+    descriptionInput.value = label.description ?? "";
+    descriptionInput.maxLength = 280;
+    descriptionInput.dataset.labelDescription = "";
+    descriptionInput.setAttribute("aria-label", `Description for ${label.name}`);
+    descriptionInput.placeholder = "What this label is for";
+    descriptionLabel.append(descriptionInput);
+
     const mergeLabel = document.createElement("label");
     mergeLabel.textContent = "Merge into";
     const target = createTargetSelect(labels, label.id);
@@ -85,13 +135,14 @@ function renderLabels(labels) {
     controls.className = "filter-actions";
     controls.append(
       createButton("Rename", "rename", label.id),
+      createButton("Save details", "metadata", label.id),
       createButton("Merge", "merge", label.id, { disabled: labels.length < 2 }),
       createButton("Delete", "delete", label.id, { danger: true })
     );
 
     const fields = document.createElement("div");
     fields.className = "filter-grid";
-    fields.append(nameLabel, mergeLabel);
+    fields.append(nameLabel, colorLabel, iconLabel, descriptionLabel, mergeLabel);
     row.append(fields, controls);
     listElement.append(row);
   }
@@ -128,6 +179,15 @@ listElement.addEventListener("click", async (event) => {
         const name = row.querySelector("[data-label-name]").value;
         const renamed = await service.rename(labelId, name);
         reloadWithStatus(`Renamed label to ${renamed.name}.`);
+        return;
+      }
+      case "metadata": {
+        const updated = await service.updateMetadata(labelId, {
+          color: row.querySelector("[data-label-color]").value,
+          icon: row.querySelector("[data-label-icon]").value,
+          description: row.querySelector("[data-label-description]").value
+        });
+        reloadWithStatus(`Saved details for ${updated.name}.`);
         return;
       }
       case "delete": {

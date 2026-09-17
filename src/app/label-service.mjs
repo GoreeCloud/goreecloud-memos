@@ -1,5 +1,5 @@
 function validateStore(store) {
-  for (const method of ["listLabels", "renameLabel", "deleteLabel", "mergeLabels"]) {
+  for (const method of ["listLabels", "renameLabel", "updateLabelMetadata", "deleteLabel", "mergeLabels"]) {
     if (typeof store?.[method] !== "function") {
       throw new TypeError(`store.${method} must be a function`);
     }
@@ -29,6 +29,13 @@ export class LabelService {
 
   async rename(id, name) {
     return this.#store.renameLabel(validateId(id), name, this.#clock());
+  }
+
+  async updateMetadata(id, metadata) {
+    if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+      throw new TypeError("label metadata must be an object");
+    }
+    return this.#store.updateLabelMetadata(validateId(id), metadata, this.#clock());
   }
 
   async delete(id) {
