@@ -1,5 +1,11 @@
 import { migrateMemoRecord } from "../domain/memo.mjs";
-import { createLabel, labelNameKey, migrateLabelRecord, reconcileManagedLabels } from "../domain/label.mjs";
+import {
+  createLabel,
+  labelNameKey,
+  migrateLabelRecord,
+  reconcileManagedLabels,
+  renameLabel
+} from "../domain/label.mjs";
 
 export const DATABASE_NAME = "goreecloud-memos-local";
 export const DATABASE_VERSION = 4;
@@ -11,12 +17,14 @@ function defaultIdFactory() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
   throw new Error("A cryptographically strong UUID generator is required for managed labels");
 }
+
 function requestResult(request) {
   return new Promise((resolve, reject) => {
     request.addEventListener("success", () => resolve(request.result), { once: true });
     request.addEventListener("error", () => reject(request.error), { once: true });
   });
 }
+
 function transactionComplete(transaction) {
   return new Promise((resolve, reject) => {
     transaction.addEventListener("complete", () => resolve(), { once: true });
@@ -24,6 +32,7 @@ function transactionComplete(transaction) {
     transaction.addEventListener("error", () => reject(transaction.error ?? new Error("IndexedDB transaction failed")), { once: true });
   });
 }
+
 function createStores(database, transaction) {
   let memoStore;
   if (!database.objectStoreNames.contains(MEMO_STORE_NAME)) {
@@ -46,6 +55,7 @@ function createStores(database, transaction) {
   } else memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
   return { memoStore, labelStore, memoLabelStore };
 }
+
 function migrateToManagedLabels(memoStore, labelStore, memoLabelStore, { idFactory, clock }) {
   const request = memoStore.getAll();
   request.addEventListener("success", () => {
@@ -74,25 +84,69 @@ function migrateToManagedLabels(memoStore, labelStore, memoLabelStore, { idFacto
     }
   }, { once: true });
 }
+
 function openDatabase({ idFactory, clock }) {
   if (!globalThis.indexedDB) throw new Error("IndexedDB is not available in this environment");
   const request = globalThis.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
   request.addEventListener("upgradeneeded", (event) => {
     const stores = createStores(request.result, request.transaction);
-    if (event.oldVersion > 0 && event.oldVersion < DATABASE_VERSION) migrateToManagedLabels(stores.memoStore, stores.labelStore, stores.memoLabelStore, { idFactory, clock });
+    if (event.oldVersion > 0 && event.oldVersion < DATABASE_VERSION) {
+      migrateToManagedLabels(stores.memoStore, stores.labelStore, stores.memoLabelStore, { idFactory, clock });
+    }
   });
   return requestResult(request);
+}
+
+function replaceMemoLabelName(memo, labelId, nextName) {
+  const normalized = migrateMemoRecord(memo);
+  const labels = [...normalized.labels];
+  for (let index = 0; index < normalized.labelIds.length; index += 1) {
+    if (normalized.labelIds[index] === labelId) labels[index] = nextName;
+  }
+  return { ...normalized, labels };
+}
+
+function removeMemoLabel(memo, labelId) {
+  const normalized = migrateMemoRecord(memo);
+  const labels = [];
+  const labelIds = [];
+  for (let index = 0; index < normalized.labelIds.length; index += 1) {
+    if (normalized.labelIds[index] === labelId) continue;
+    labelIds.push(normalized.labelIds[index]);
+    labels.push(normalized.labels[index]);
+  }
+  return { ...normalized, labels, labelIds };
+}
+
+function mergeMemoLabelProjection(memo, sourceId, targetId, targetName) {
+  const normalized = migrateMemoRecord(memo);
+  const labels = [];
+  const labelIds = [];
+  const seen = new Set();
+
+  for (let index = 0; index < normalized.labelIds.length; index += 1) {
+    const currentId = normalized.labelIds[index];
+    const nextId = currentId === sourceId ? targetId : currentId;
+    if (seen.has(nextId)) continue;
+    seen.add(nextId);
+    labelIds.push(nextId);
+    labels.push(currentId === sourceId ? targetName : normalized.labels[index]);
+  }
+
+  return { ...normalized, labels, labelIds };
 }
 
 export class IndexedDbMemoStore {
   #databasePromise;
   #idFactory;
   #clock;
+
   constructor({ idFactory = defaultIdFactory, clock = () => new Date() } = {}) {
     this.#idFactory = idFactory;
     this.#clock = clock;
     this.#databasePromise = openDatabase({ idFactory, clock });
   }
+
   async put(memo) {
     const database = await this.#databasePromise;
     const transaction = database.transaction([MEMO_STORE_NAME, LABEL_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
@@ -101,7 +155,10 @@ export class IndexedDbMemoStore {
     const memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
     const normalized = migrateMemoRecord(memo);
     const existingLabels = (await requestResult(labelStore.getAll())).map(migrateLabelRecord);
-    const reconciled = reconcileManagedLabels(existingLabels, normalized.labels, { idFactory: this.#idFactory, createdAt: this.#clock() });
+    const reconciled = reconcileManagedLabels(existingLabels, normalized.labels, {
+      idFactory: this.#idFactory,
+      createdAt: this.#clock()
+    });
     for (const label of reconciled.created) labelStore.put(label);
     const relationKeys = await requestResult(memoLabelStore.index("memoId").getAllKeys(normalized.id));
     for (const key of relationKeys) memoLabelStore.delete(key);
@@ -109,6 +166,7 @@ export class IndexedDbMemoStore {
     memoStore.put({ ...normalized, labels: reconciled.labelNames, labelIds: reconciled.labelIds });
     await transactionComplete(transaction);
   }
+
   async get(id) {
     const database = await this.#databasePromise;
     const transaction = database.transaction(MEMO_STORE_NAME, "readonly");
@@ -116,6 +174,7 @@ export class IndexedDbMemoStore {
     await transactionComplete(transaction);
     return memo ? migrateMemoRecord(memo) : undefined;
   }
+
   async list() {
     const database = await this.#databasePromise;
     const transaction = database.transaction(MEMO_STORE_NAME, "readonly");
@@ -123,13 +182,17 @@ export class IndexedDbMemoStore {
     await transactionComplete(transaction);
     return memos.map(migrateMemoRecord);
   }
+
   async listLabels() {
     const database = await this.#databasePromise;
     const transaction = database.transaction(LABEL_STORE_NAME, "readonly");
     const labels = await requestResult(transaction.objectStore(LABEL_STORE_NAME).getAll());
     await transactionComplete(transaction);
-    return labels.map(migrateLabelRecord).sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+    return labels
+      .map(migrateLabelRecord)
+      .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
   }
+
   async listLabelIdsForMemo(id) {
     const database = await this.#databasePromise;
     const transaction = database.transaction(MEMO_LABEL_STORE_NAME, "readonly");
@@ -137,6 +200,82 @@ export class IndexedDbMemoStore {
     await transactionComplete(transaction);
     return relations.map((relation) => relation.labelId);
   }
+
+  async renameLabel(id, name, changedAt = this.#clock()) {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction([MEMO_STORE_NAME, LABEL_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const labelStore = transaction.objectStore(LABEL_STORE_NAME);
+    const memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
+
+    const current = await requestResult(labelStore.get(id));
+    if (!current) throw new Error("label not found");
+    const renamed = renameLabel(current, name, changedAt);
+    const collision = await requestResult(labelStore.index("nameKey").get(renamed.nameKey));
+    if (collision && collision.id !== id) {
+      throw new Error("a label with that name already exists; merge the labels instead");
+    }
+
+    const relations = await requestResult(memoLabelStore.index("labelId").getAll(id));
+    for (const relation of relations) {
+      const memo = await requestResult(memoStore.get(relation.memoId));
+      if (memo) memoStore.put(replaceMemoLabelName(memo, id, renamed.name));
+    }
+    labelStore.put(renamed);
+    await transactionComplete(transaction);
+    return renamed;
+  }
+
+  async deleteLabel(id) {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction([MEMO_STORE_NAME, LABEL_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const labelStore = transaction.objectStore(LABEL_STORE_NAME);
+    const memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
+
+    const label = await requestResult(labelStore.get(id));
+    if (!label) throw new Error("label not found");
+    const relations = await requestResult(memoLabelStore.index("labelId").getAll(id));
+    for (const relation of relations) {
+      const memo = await requestResult(memoStore.get(relation.memoId));
+      if (memo) memoStore.put(removeMemoLabel(memo, id));
+      memoLabelStore.delete([relation.memoId, id]);
+    }
+    labelStore.delete(id);
+    await transactionComplete(transaction);
+    return { label: migrateLabelRecord(label), affectedMemoCount: relations.length };
+  }
+
+  async mergeLabels(sourceId, targetId) {
+    if (sourceId === targetId) throw new Error("source and target labels must be different");
+    const database = await this.#databasePromise;
+    const transaction = database.transaction([MEMO_STORE_NAME, LABEL_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const labelStore = transaction.objectStore(LABEL_STORE_NAME);
+    const memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
+
+    const source = await requestResult(labelStore.get(sourceId));
+    const target = await requestResult(labelStore.get(targetId));
+    if (!source || !target) throw new Error("source and target labels must both exist");
+    const normalizedTarget = migrateLabelRecord(target);
+    const relations = await requestResult(memoLabelStore.index("labelId").getAll(sourceId));
+
+    for (const relation of relations) {
+      const memo = await requestResult(memoStore.get(relation.memoId));
+      if (memo) memoStore.put(mergeMemoLabelProjection(memo, sourceId, targetId, normalizedTarget.name));
+      memoLabelStore.put({ memoId: relation.memoId, labelId: targetId });
+      memoLabelStore.delete([relation.memoId, sourceId]);
+    }
+
+    labelStore.delete(sourceId);
+    await transactionComplete(transaction);
+    return {
+      source: migrateLabelRecord(source),
+      target: normalizedTarget,
+      affectedMemoCount: relations.length
+    };
+  }
+
   async remove(id) {
     const database = await this.#databasePromise;
     const transaction = database.transaction([MEMO_STORE_NAME, MEMO_LABEL_STORE_NAME], "readwrite");
