@@ -117,8 +117,9 @@ function scheduleLabelRefresh() {
 listElement.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-label-action]");
   if (!button) return;
-  const row = button.closest("[data-label-id]");
-  const labelId = button.dataset.labelId;
+  const row = button.closest(".label-admin-row");
+  if (!row) return;
+  const labelId = row.dataset.labelId;
   button.disabled = true;
 
   try {
