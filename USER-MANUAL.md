@@ -23,7 +23,7 @@ Open `http://localhost:4173/web/` in a modern browser with IndexedDB support.
 
 Text and organization fields entered into the composer are preserved locally as a draft while typing. Reloading the page restores the draft. A successfully saved memo clears the composer draft.
 
-Labels in this Development slice are memo-local name metadata. Names are trimmed, duplicate names are removed case-insensitively, and the first entered display spelling is retained. Central label management, label colors, rename/merge operations, filtering, and bulk label workflows are not implemented yet.
+Labels in this Development slice are memo-local name metadata. Names are trimmed, duplicate names are removed case-insensitively, and the first entered display spelling is retained. Central label management, label colors, rename/merge operations, and bulk label workflows are not implemented yet.
 
 ## Edit a memo
 
@@ -47,6 +47,18 @@ Pin state and manual pin order persist across reloads in the same browser profil
 The current local palette includes Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, and Gray. A memo can also have no color.
 
 Color is stored as memo metadata. The card shows both a visual color treatment and visible `Color: …` text so color is not the sole carrier of meaning.
+
+## Search and filters
+
+The current Development slice supports browser-local filtering within the selected lifecycle location: **Memos**, **Archive**, or **Trash**.
+
+- **Search memos** performs a case-insensitive substring match across the memo title, memo body, and memo-local label names.
+- **Color** can show all colors, memos with no color, or one exact palette color.
+- **Label** can show all labels or one exact memo-local label name. Label matching is case-insensitive.
+- Search, color, and label constraints can be combined.
+- **Clear search and filters** returns the current lifecycle view to its unfiltered state.
+
+Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, saved views, and managed label search are not implemented yet.
 
 ## Presentation modes
 
@@ -79,7 +91,7 @@ When this Development slice opens a version 1 or version 2 `goreecloud-memos-loc
 
 ## Data boundary
 
-This development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, drafts, and the presentation preference. Operational backup and restore are not implemented.
+This development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, drafts, and the presentation preference. Search terms and filter selections are not persisted. Operational backup and restore are not implemented.
 
 ## Validation commands
 
@@ -98,4 +110,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, managed label entities, label colors/icons/descriptions, label filtering/search, bulk label operations, checklists, reminders, full search, import/export, backups, native clients, administration, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, managed label entities, label colors/icons/descriptions, label rename/merge, bulk label operations, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration, and Stable release qualification are not implemented.
