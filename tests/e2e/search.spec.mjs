@@ -55,7 +55,7 @@ test("local search and filters combine within the current lifecycle view and res
 
   const reference = page.locator(".memo-card", { hasText: "Reference" });
   await reference.getByRole("button", { name: "Archive", exact: true }).click();
-  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await page.getByRole("navigation", { name: "Memo location" }).getByRole("button", { name: "Archive", exact: true }).click();
 
   await search.fill("alpha");
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toBeVisible();
