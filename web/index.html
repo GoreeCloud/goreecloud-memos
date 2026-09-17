@@ -21,6 +21,26 @@
           <label for="memo-title">Title <span>(optional)</span></label>
           <input id="memo-title" name="title" maxlength="240" autocomplete="off" />
 
+          <div class="field-grid">
+            <label for="memo-color">Color
+              <select id="memo-color" name="color">
+                <option value="">No color</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+                <option value="yellow">Yellow</option>
+                <option value="green">Green</option>
+                <option value="teal">Teal</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="pink">Pink</option>
+                <option value="gray">Gray</option>
+              </select>
+            </label>
+            <label for="memo-labels">Labels <span>(comma separated)</span>
+              <input id="memo-labels" name="labels" autocomplete="off" placeholder="Work, Ideas" />
+            </label>
+          </div>
+
           <label for="memo-content">Memo</label>
           <textarea id="memo-content" name="content" rows="6" required placeholder="Write something before it is forgotten…"></textarea>
 
@@ -48,7 +68,7 @@
     </main>
 
     <template id="memo-template">
-      <article class="memo-card">
+      <article class="memo-card" data-color="none">
         <div class="memo-card__header">
           <div>
             <h3 class="memo-card__title"></h3>
@@ -56,11 +76,31 @@
           </div>
           <div class="memo-card__actions"></div>
         </div>
+        <div class="memo-card__meta" aria-label="Memo organization"></div>
         <p class="memo-card__content"></p>
         <form class="memo-editor" hidden>
           <label>Title <span>(optional)</span>
             <input data-edit-field="title" maxlength="240" autocomplete="off" />
           </label>
+          <div class="field-grid">
+            <label>Color
+              <select data-edit-field="color">
+                <option value="">No color</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+                <option value="yellow">Yellow</option>
+                <option value="green">Green</option>
+                <option value="teal">Teal</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="pink">Pink</option>
+                <option value="gray">Gray</option>
+              </select>
+            </label>
+            <label>Labels <span>(comma separated)</span>
+              <input data-edit-field="labels" autocomplete="off" />
+            </label>
+          </div>
           <label>Memo
             <textarea data-edit-field="content" rows="5" required></textarea>
           </label>

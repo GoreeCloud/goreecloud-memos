@@ -26,30 +26,56 @@ class MemoryMemoStore {
 
 function createService() {
   let tick = 0;
+  let id = 0;
   return new MemoService(new MemoryMemoStore(), {
-    idFactory: () => "memo-1",
+    idFactory: () => `memo-${++id}`,
     clock: () => new Date(1789646400000 + tick++ * 60_000)
   });
 }
 
-test("capture persists a memo and active list returns it", async () => {
+test("capture persists memo organization metadata and active list returns it", async () => {
   const service = createService();
-  await service.capture({ title: "First", content: "Remember this" });
+  await service.capture({ title: "First", content: "Remember this", color: "green", labels: ["Work"] });
   const memos = await service.list();
 
   assert.equal(memos.length, 1);
   assert.equal(memos[0].id, "memo-1");
   assert.equal(memos[0].content, "Remember this");
+  assert.equal(memos[0].color, "green");
+  assert.deepEqual(memos[0].labels, ["Work"]);
 });
 
-test("edit persists content updates", async () => {
+test("edit persists content, color, and labels", async () => {
   const service = createService();
   await service.capture({ content: "Before" });
-  const updated = await service.edit("memo-1", { title: "Edited", content: "After" });
+  const updated = await service.edit("memo-1", {
+    title: "Edited",
+    content: "After",
+    color: "purple",
+    labels: ["Ideas", "Work"]
+  });
 
   assert.equal(updated.title, "Edited");
   assert.equal(updated.content, "After");
+  assert.equal(updated.color, "purple");
+  assert.deepEqual(updated.labels, ["Ideas", "Work"]);
   assert.equal((await service.get("memo-1")).content, "After");
+});
+
+test("pin, movePin and unpin preserve manual pinned ordering", async () => {
+  const service = createService();
+  await service.capture({ content: "First" });
+  await service.capture({ content: "Second" });
+  await service.pin("memo-1");
+  await service.pin("memo-2");
+
+  assert.deepEqual((await service.list()).map((memo) => memo.id), ["memo-1", "memo-2"]);
+  await service.movePin("memo-2", "up");
+  assert.deepEqual((await service.list()).map((memo) => memo.id), ["memo-2", "memo-1"]);
+  await service.unpin("memo-2");
+  const active = await service.list();
+  assert.equal(active[0].id, "memo-1");
+  assert.equal((await service.get("memo-2")).pinOrder, null);
 });
 
 test("archive, trash and restore keep recoverable state", async () => {
