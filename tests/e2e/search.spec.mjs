@@ -31,8 +31,8 @@ test("local search and filters combine within the current lifecycle view and res
   });
 
   const search = page.getByRole("searchbox", { name: "Search memos" });
-  const color = page.getByLabel("Color", { exact: true }).nth(1);
-  const label = page.getByLabel("Label", { exact: true });
+  const color = page.locator("#memo-filter-color");
+  const label = page.locator("#memo-filter-label");
 
   await search.fill("alpha");
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toBeVisible();
