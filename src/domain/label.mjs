@@ -31,7 +31,7 @@ export function normalizeLabelName(value) {
 }
 
 export function labelNameKey(value) {
-  return normalizeLabelName(value).toLocaleLowerCase();
+  return normalizeLabelName(value).toLowerCase();
 }
 
 export function normalizeLabelNames(value) {
