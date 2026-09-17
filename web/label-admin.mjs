@@ -4,7 +4,9 @@ import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 const STATUS_KEY = "goreecloud-memos:label-admin-status:v1";
 const listElement = document.querySelector("#label-admin-list");
 const statusElement = document.querySelector("#label-admin-status");
+const memoListElement = document.querySelector("#memo-list");
 const service = new LabelService(new IndexedDbMemoStore());
+let refreshPending = false;
 
 function setStatus(message) {
   statusElement.textContent = message;
@@ -101,6 +103,17 @@ async function refreshLabels() {
   return labels;
 }
 
+function scheduleLabelRefresh() {
+  if (refreshPending) return;
+  refreshPending = true;
+  queueMicrotask(() => {
+    refreshPending = false;
+    refreshLabels().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "Could not refresh labels");
+    });
+  });
+}
+
 listElement.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-label-action]");
   if (!button) return;
@@ -154,6 +167,10 @@ const restoredStatus = sessionStorage.getItem(STATUS_KEY);
 if (restoredStatus) {
   sessionStorage.removeItem(STATUS_KEY);
   setStatus(restoredStatus);
+}
+
+if (memoListElement) {
+  new MutationObserver(scheduleLabelRefresh).observe(memoListElement, { childList: true, subtree: true });
 }
 
 refreshLabels().catch((error) => {
