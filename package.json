@@ -1,6 +1,6 @@
 {
   "name": "@goreecloud/memos",
-  "version": "0.0.7-dev.0",
+  "version": "0.0.8-dev.0",
   "private": true,
   "description": "GoreeCloud Memos development workspace",
   "type": "module",
