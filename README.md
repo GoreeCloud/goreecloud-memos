@@ -15,6 +15,7 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Optional memo color metadata using a curated local palette.
 - Managed local Label identities with stable UUIDs and a Memo–Label relation layer, while retaining the current label-name projection for UI/search compatibility.
 - Browser-local managed-label administration for transactional rename, explicit delete, and merge. These operations update affected Memo–Label relations and memo label-name/ID projections atomically; deleting a label does not delete its memos.
+- Browser-local managed-label metadata editing for an optional curated color, optional icon text, and optional description. Existing Label v1 records normalize to Label schema v2 without changing IndexedDB database version 4.
 - Per-memo label input with trimming, case-insensitive deduplication, and identity reuse by normalized name.
 - Pin/unpin controls with persisted manual ordering for active pinned memos.
 - Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
