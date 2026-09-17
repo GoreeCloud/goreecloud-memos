@@ -4,16 +4,18 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 
 ## Status
 
-**Development.** The current repository implements only the first local quick-capture vertical slice. It is not a Stable release and does not yet provide a server, synchronization, account system, desktop client, mobile client, backup/recovery system, import/export pipeline, or accepted Glaze UI conformance.
+**Development.** The current repository implements a browser-local Memos Core slice. It is not a Stable release and does not yet provide a server, synchronization, account system, desktop client, mobile client, backup/recovery system, import/export pipeline, or accepted Glaze UI conformance.
 
 ### Implemented in this slice
 
 - Browser quick-capture composer with optional title.
 - Local draft preservation in browser storage.
 - Local saved-memo persistence through IndexedDB.
-- Local memo listing and deletion.
+- Memo editing with debounced local autosave.
+- Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
+- Versioned local data schema with tested v1 → v2 migration.
 - Framework-independent memo domain and service modules.
-- Automated domain/service tests and source-syntax validation.
+- Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
 
 ## Run locally
 
@@ -25,11 +27,19 @@ python3 -m http.server 4173
 
 Then open `http://localhost:4173/web/`.
 
-Run validation with Node.js 22 or newer:
+Run source and unit validation with Node.js 22 or newer:
 
 ```bash
 npm run check
 npm test
+```
+
+End-to-end tests additionally require the pinned Playwright development dependency and Chromium browser runtime:
+
+```bash
+npm install --ignore-scripts
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ## Repository documentation
