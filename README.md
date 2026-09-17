@@ -9,11 +9,14 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 ### Implemented in this slice
 
 - Browser quick-capture composer with optional title.
-- Local draft preservation in browser storage.
+- Local draft preservation in browser storage, including draft color and label fields.
 - Local saved-memo persistence through IndexedDB.
 - Memo editing with debounced local autosave.
+- Optional memo color metadata using a curated local palette.
+- Per-memo label-name metadata with trimming, case-insensitive deduplication, and local persistence.
+- Pin/unpin controls with persisted manual ordering for active pinned memos.
 - Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
-- Versioned local data schema with tested v1 → v2 migration.
+- Versioned local data schema v3 with tested v1 → v3 and v2 → v3 migration paths.
 - Framework-independent memo domain and service modules.
 - Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
 
