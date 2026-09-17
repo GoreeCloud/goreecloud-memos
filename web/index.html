@@ -53,7 +53,7 @@
 
       <section class="composer-card" aria-labelledby="label-admin-heading">
         <h2 id="label-admin-heading">Manage labels</h2>
-        <p class="muted">Rename, merge, or explicitly delete managed labels stored in this browser. These operations update label relationships and memo label displays together.</p>
+        <p class="muted">Edit details, rename, merge, or explicitly delete managed labels stored in this browser. Identity, metadata, relationships, and memo label projections stay consistent.</p>
         <div id="label-admin-list"></div>
         <output id="label-admin-status" class="muted" aria-live="polite">Label changes stay on this device.</output>
       </section>
@@ -100,6 +100,26 @@
           <div class="filter-actions">
             <output id="filter-status" class="muted" aria-live="polite">Search and filters are not saved.</output>
             <button id="clear-filters" type="button" class="secondary" disabled>Clear search and filters</button>
+          </div>
+        </div>
+
+        <div class="filter-panel" aria-labelledby="bulk-label-heading">
+          <h3 id="bulk-label-heading">Bulk labels</h3>
+          <p class="muted">Select currently visible memos, then apply or remove one existing managed label. Selection is temporary and clears when this memo list rerenders.</p>
+          <div class="filter-grid bulk-label-grid">
+            <label for="bulk-label-select">Managed label
+              <select id="bulk-label-select">
+                <option value="">Choose label…</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-actions">
+            <output id="bulk-label-status" class="muted" aria-live="polite">0 memos selected. Selection stays only in this view and is not saved.</output>
+            <div class="bulk-label-actions">
+              <button id="bulk-label-apply" type="button" disabled>Apply label</button>
+              <button id="bulk-label-remove" type="button" class="secondary" disabled>Remove label</button>
+              <button id="bulk-selection-clear" type="button" class="secondary" disabled>Clear selection</button>
+            </div>
           </div>
         </div>
 
@@ -161,5 +181,6 @@
 
     <script type="module" src="./app.mjs"></script>
     <script type="module" src="./label-admin.mjs"></script>
+    <script type="module" src="./bulk-labels.mjs"></script>
   </body>
 </html>
