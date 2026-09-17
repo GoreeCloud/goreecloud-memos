@@ -12,7 +12,7 @@
       <header class="hero">
         <p class="eyebrow">GoreeCloud Memos · Development</p>
         <h1>Open → type → done.</h1>
-        <p>This first implementation slice stores memos only in this browser. Synchronization and server features are not implemented.</p>
+        <p>This development slice stores memos only in this browser. Synchronization and server features are not implemented.</p>
       </header>
 
       <section class="composer-card" aria-labelledby="composer-heading">
@@ -33,7 +33,14 @@
 
       <section aria-labelledby="memos-heading">
         <div class="section-heading">
-          <h2 id="memos-heading">Memos</h2>
+          <div>
+            <h2 id="memos-heading">Memos</h2>
+            <nav class="view-tabs" aria-label="Memo location">
+              <button type="button" class="view-tab" data-view="active" aria-pressed="true">Memos</button>
+              <button type="button" class="view-tab secondary" data-view="archived" aria-pressed="false">Archive</button>
+              <button type="button" class="view-tab secondary" data-view="trashed" aria-pressed="false">Trash</button>
+            </nav>
+          </div>
           <output id="status" aria-live="polite"></output>
         </div>
         <div id="memo-list" class="memo-list" aria-live="polite"></div>
@@ -47,9 +54,18 @@
             <h3 class="memo-card__title"></h3>
             <time class="memo-card__time"></time>
           </div>
-          <button type="button" class="secondary" data-action="delete">Delete</button>
+          <div class="memo-card__actions"></div>
         </div>
         <p class="memo-card__content"></p>
+        <form class="memo-editor" hidden>
+          <label>Title <span>(optional)</span>
+            <input data-edit-field="title" maxlength="240" autocomplete="off" />
+          </label>
+          <label>Memo
+            <textarea data-edit-field="content" rows="5" required></textarea>
+          </label>
+          <div class="editor-status muted" aria-live="polite">Changes save automatically.</div>
+        </form>
       </article>
     </template>
 
