@@ -92,3 +92,32 @@ test("managed labels rename, reject collisions, merge, and explicitly delete wit
   }
   expect(snapshot.memos[0].labelIds[0]).toBe(snapshot.memos[1].labelIds[0]);
 });
+
+test("managed label color, icon, and description persist without changing memo relationships", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, "Metadata memo", "Ideas");
+
+  const row = labelRow(page, "Ideas");
+  await row.getByLabel("Color for Ideas").selectOption("purple");
+  await row.getByLabel("Icon for Ideas").fill("💡");
+  await row.getByLabel("Description for Ideas").fill("Things to explore");
+  await row.getByRole("button", { name: "Save details", exact: true }).click();
+  await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Ideas.");
+
+  const refreshedRow = labelRow(page, "Ideas");
+  await expect(refreshedRow.getByLabel("Color for Ideas")).toHaveValue("purple");
+  await expect(refreshedRow.getByLabel("Icon for Ideas")).toHaveValue("💡");
+  await expect(refreshedRow.getByLabel("Description for Ideas")).toHaveValue("Things to explore");
+
+  const snapshot = await readManagedSnapshot(page);
+  expect(snapshot.labels).toHaveLength(1);
+  expect(snapshot.labels[0].schemaVersion).toBe(2);
+  expect(snapshot.labels[0].name).toBe("Ideas");
+  expect(snapshot.labels[0].color).toBe("purple");
+  expect(snapshot.labels[0].icon).toBe("💡");
+  expect(snapshot.labels[0].description).toBe("Things to explore");
+  expect(snapshot.memoLabels).toHaveLength(1);
+  expect(snapshot.memos).toHaveLength(1);
+  expect(snapshot.memos[0].labels).toEqual(["Ideas"]);
+  expect(snapshot.memos[0].labelIds).toEqual([snapshot.labels[0].id]);
+});
