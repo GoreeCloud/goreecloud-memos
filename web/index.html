@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>GoreeCloud Memos — Development</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">GoreeCloud Memos · Development</p>
+        <h1>Open → type → done.</h1>
+        <p>This first implementation slice stores memos only in this browser. Synchronization and server features are not implemented.</p>
+      </header>
+
+      <section class="composer-card" aria-labelledby="composer-heading">
+        <h2 id="composer-heading">Take a memo…</h2>
+        <form id="memo-form">
+          <label for="memo-title">Title <span>(optional)</span></label>
+          <input id="memo-title" name="title" maxlength="240" autocomplete="off" />
+
+          <label for="memo-content">Memo</label>
+          <textarea id="memo-content" name="content" rows="6" required placeholder="Write something before it is forgotten…"></textarea>
+
+          <div class="composer-actions">
+            <span id="draft-state" class="muted">Drafts stay on this device.</span>
+            <button id="save-button" type="submit">Save memo</button>
+          </div>
+        </form>
+      </section>
+
+      <section aria-labelledby="memos-heading">
+        <div class="section-heading">
+          <h2 id="memos-heading">Memos</h2>
+          <output id="status" aria-live="polite"></output>
+        </div>
+        <div id="memo-list" class="memo-list" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <template id="memo-template">
+      <article class="memo-card">
+        <div class="memo-card__header">
+          <div>
+            <h3 class="memo-card__title"></h3>
+            <time class="memo-card__time"></time>
+          </div>
+          <button type="button" class="secondary" data-action="delete">Delete</button>
+        </div>
+        <p class="memo-card__content"></p>
+      </article>
+    </template>
+
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>
