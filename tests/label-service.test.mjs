@@ -15,6 +15,10 @@ function createStore() {
       calls.push(["rename", id, name, changedAt.toISOString()]);
       return { id, name };
     },
+    async updateLabelMetadata(id, metadata, changedAt) {
+      calls.push(["metadata", id, metadata, changedAt.toISOString()]);
+      return { id, name: "Work", ...metadata };
+    },
     async deleteLabel(id) {
       calls.push(["delete", id]);
       return { label: { id, name: "Work" }, affectedMemoCount: 2 };
@@ -32,6 +36,15 @@ test("label service exposes list and forwards timestamped rename", async () => {
   assert.equal((await service.list()).length, 2);
   assert.equal((await service.rename(" work ", "Projects")).name, "Projects");
   assert.deepEqual(store.calls[0], ["rename", "work", "Projects", "2026-09-17T19:45:00.000Z"]);
+});
+
+test("label service forwards timestamped metadata updates", async () => {
+  const store = createStore();
+  const service = new LabelService(store, { clock: () => new Date("2026-09-17T20:00:00Z") });
+  const metadata = { color: "blue", icon: "💼", description: "Office tasks" };
+  assert.equal((await service.updateMetadata(" work ", metadata)).color, "blue");
+  assert.deepEqual(store.calls[0], ["metadata", "work", metadata, "2026-09-17T20:00:00.000Z"]);
+  await assert.rejects(() => service.updateMetadata("work", null), /metadata must be an object/);
 });
 
 test("label service forwards explicit delete and merge operations", async () => {
