@@ -23,7 +23,19 @@ Open `http://localhost:4173/web/` in a modern browser with IndexedDB support.
 
 Text and organization fields entered into the composer are preserved locally as a draft while typing. Reloading the page restores the draft. A successfully saved memo clears the composer draft.
 
-Label input still looks like simple comma-separated names. Internally, the current Development slice maps those names to managed local Label identities with stable UUIDs and Memo–Label relationships. Names are trimmed and duplicate input is removed case-insensitively. Existing managed identity is reused for the same normalized name. User-facing central label management, label colors/icons/descriptions, rename/delete/merge controls, and bulk label workflows are not implemented yet.
+Label input still looks like simple comma-separated names. Internally, the current Development slice maps those names to managed local Label identities with stable UUIDs and Memo–Label relationships. Names are trimmed and duplicate input is removed case-insensitively. Existing managed identity is reused for the same normalized name.
+
+## Manage labels
+
+The **Manage labels** panel works only with managed labels already created by memo capture or editing.
+
+- **Rename** changes the label's display name while preserving its stable identity. All affected memo label displays/search projections update together. Renaming to a name already used by another managed label is rejected; use Merge instead.
+- **Merge** moves every relationship from the source label to the selected target label, deduplicates memos that already had both labels, updates memo projections, and removes the source label.
+- **Delete** explicitly removes the label from every related memo and deletes the managed Label identity. It does **not** delete any memo.
+
+Merge and Delete require confirmation. Successful management operations reload the Development page so memo cards, search/filter options, and the management panel all reflect the committed transaction.
+
+Label colors/icons/descriptions, bulk label operations, ownership, and synchronization are not implemented yet.
 
 ## Edit a memo
 
@@ -58,7 +70,7 @@ The current Development slice supports browser-local filtering within the select
 - Search, color, and label constraints can be combined.
 - **Clear search and filters** returns the current lifecycle view to its unfiltered state.
 
-Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, saved views, and managed-label administration are not implemented yet.
+Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, and saved views are not implemented yet.
 
 ## Presentation modes
 
@@ -82,6 +94,8 @@ When the application opens older databases:
 - **v2 → v4:** existing pin state is preserved with deterministic initial pin order; labels and label IDs begin empty.
 - **v3 → v4:** existing memo-local label names are deduplicated case-insensitively across the local library, assigned stable Label UUIDs, related to memos through Memo–Label rows, and written back with aligned `labelIds` plus canonical label-name projections. Existing memo content, timestamps, color, pin state/order, and lifecycle state are preserved.
 
+Rename, Delete, and Merge operate inside the existing v4 schema; they do not require another database-version migration.
+
 ## Data boundary
 
 This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, labels, drafts, and the presentation preference. Search terms and filter selections are not persisted. Operational backup and restore are not implemented.
@@ -103,4 +117,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, user-facing managed-label administration, label colors/icons/descriptions, label rename/delete/merge controls, bulk label operations, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, label colors/icons/descriptions, bulk label operations, label ownership/synchronization metadata, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
