@@ -13,13 +13,14 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Local saved-memo persistence through IndexedDB.
 - Memo editing with debounced local autosave.
 - Optional memo color metadata using a curated local palette.
-- Per-memo label-name metadata with trimming, case-insensitive deduplication, and local persistence.
+- Managed local Label identities with stable UUIDs and a Memo–Label relation layer, while retaining the current label-name projection for UI/search compatibility.
+- Per-memo label input with trimming, case-insensitive deduplication, and identity reuse by normalized name.
 - Pin/unpin controls with persisted manual ordering for active pinned memos.
 - Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
 - Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
-- Ephemeral browser-local substring search across memo title, body, and memo-local label names, plus combinable exact color and label filters within the current lifecycle view.
-- Versioned local data schema v3 with tested v1 → v3 and v2 → v3 migration paths.
-- Framework-independent memo domain and service modules.
+- Ephemeral browser-local substring search across memo title, body, and label-name projection, plus combinable exact color and label filters within the current lifecycle view.
+- Versioned local memo schema v4 / IndexedDB database v4 with tested v1 → v4, v2 → v4, and v3 → v4 migration paths.
+- Framework-independent memo/label domain and memo-service modules.
 - Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
 
 ## Run locally
