@@ -1,7 +1,7 @@
 import { migrateMemoRecord } from "../domain/memo.mjs";
 
 export const DATABASE_NAME = "goreecloud-memos-local";
-export const DATABASE_VERSION = 2;
+export const DATABASE_VERSION = 3;
 const MEMO_STORE_NAME = "memos";
 
 function requestResult(request) {
@@ -51,7 +51,7 @@ function openDatabase() {
       store.createIndex("state", "state", { unique: false });
     }
 
-    if (event.oldVersion > 0 && event.oldVersion < 2) {
+    if (event.oldVersion > 0 && event.oldVersion < DATABASE_VERSION) {
       migrateStoreRecords(store);
     }
   });
