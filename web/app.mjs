@@ -1,6 +1,7 @@
 import { MemoService } from "../src/app/memo-service.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
+import { ALL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -18,11 +19,17 @@ const draftState = document.querySelector("#draft-state");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
 const presentationInputs = [...document.querySelectorAll("input[name='presentation']")];
 const presentationStatus = document.querySelector("#presentation-status");
+const searchInput = document.querySelector("#memo-search");
+const filterColorInput = document.querySelector("#memo-filter-color");
+const filterLabelInput = document.querySelector("#memo-filter-label");
+const clearFiltersButton = document.querySelector("#clear-filters");
+const filterStatus = document.querySelector("#filter-status");
 
 const service = new MemoService(new IndexedDbMemoStore());
 const editTimers = new Map();
 let currentView = "active";
 let currentPresentation = loadPresentationMode(localStorage);
+let refreshGeneration = 0;
 
 function setStatus(message) {
   status.textContent = message;
@@ -165,17 +172,61 @@ function applyMemoToCard(card, memo) {
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
 }
 
-function renderMemos(memos) {
+function hasActiveFilters() {
+  return searchInput.value.trim().length > 0 || filterColorInput.value !== ALL_COLORS || filterLabelInput.value !== "all";
+}
+
+function readFilterState() {
+  return {
+    query: searchInput.value,
+    color: filterColorInput.value,
+    label: filterLabelInput.value
+  };
+}
+
+function updateLabelFilterOptions(memos) {
+  const previous = filterLabelInput.value || "all";
+  const previousKey = previous.toLocaleLowerCase();
+  const labels = collectLabelOptions(memos);
+  filterLabelInput.replaceChildren();
+
+  const all = document.createElement("option");
+  all.value = "all";
+  all.textContent = "All labels";
+  filterLabelInput.append(all);
+
+  for (const labelName of labels) {
+    const option = document.createElement("option");
+    option.value = labelName;
+    option.textContent = labelName;
+    filterLabelInput.append(option);
+  }
+
+  const retained = labels.find((labelName) => labelName.toLocaleLowerCase() === previousKey);
+  filterLabelInput.value = retained ?? "all";
+}
+
+function updateFilterStatus() {
+  const active = hasActiveFilters();
+  clearFiltersButton.disabled = !active;
+  filterStatus.textContent = active
+    ? "Search and filters apply only to the current memo location and are not saved."
+    : "Search and filters are not saved.";
+}
+
+function renderMemos(memos, { filtered = false } = {}) {
   listElement.replaceChildren();
 
   if (memos.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-state";
-    empty.textContent = currentView === "active"
-      ? "No memos yet. Capture the first one above."
-      : currentView === "archived"
-        ? "Archive is empty."
-        : "Trash is empty.";
+    empty.textContent = filtered
+      ? "No memos match the current search and filters."
+      : currentView === "active"
+        ? "No memos yet. Capture the first one above."
+        : currentView === "archived"
+          ? "Archive is empty."
+          : "Trash is empty.";
     listElement.append(empty);
     return;
   }
@@ -210,10 +261,23 @@ function renderMemos(memos) {
 }
 
 async function refresh() {
-  const memos = await service.list({ state: currentView });
-  renderMemos(memos);
+  const generation = ++refreshGeneration;
+  const requestedView = currentView;
+  const memos = await service.list({ state: requestedView });
+  if (generation !== refreshGeneration || requestedView !== currentView) return;
+
+  updateLabelFilterOptions(memos);
+  const filtered = hasActiveFilters();
+  const visibleMemos = filterMemos(memos, readFilterState());
+  renderMemos(visibleMemos, { filtered });
+  updateFilterStatus();
+
   const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
-  setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
+  if (filtered) {
+    setStatus(`${visibleMemos.length} of ${memos.length} ${memos.length === 1 ? label : `${label}s`} shown`);
+  } else {
+    setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
+  }
 }
 
 function setView(nextView) {
@@ -263,6 +327,12 @@ function scheduleEditSave(editor) {
   editTimers.set(memoId, timer);
 }
 
+function refreshFromFilterControl() {
+  refresh().catch((error) => {
+    setStatus(error instanceof Error ? error.message : "Could not filter memos");
+  });
+}
+
 form.addEventListener("input", saveDraft);
 
 form.addEventListener("submit", async (event) => {
@@ -300,6 +370,17 @@ for (const input of presentationInputs) {
     if (input.checked) applyPresentationMode(input.value, { persist: true });
   });
 }
+
+searchInput.addEventListener("input", refreshFromFilterControl);
+filterColorInput.addEventListener("change", refreshFromFilterControl);
+filterLabelInput.addEventListener("change", refreshFromFilterControl);
+clearFiltersButton.addEventListener("click", () => {
+  searchInput.value = "";
+  filterColorInput.value = ALL_COLORS;
+  filterLabelInput.value = "all";
+  refreshFromFilterControl();
+  searchInput.focus();
+});
 
 listElement.addEventListener("input", (event) => {
   const editor = event.target.closest(".memo-editor");
@@ -362,6 +443,7 @@ listElement.addEventListener("click", async (event) => {
 });
 
 applyPresentationMode(currentPresentation);
+updateFilterStatus();
 restoreDraft();
 refresh().catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load local memos");
