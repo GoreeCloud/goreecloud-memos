@@ -1,0 +1,15 @@
+{
+  "name": "@goreecloud/memos",
+  "version": "0.0.1-dev.0",
+  "private": true,
+  "description": "GoreeCloud Memos development workspace",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node --check src/domain/memo.mjs && node --check src/app/memo-service.mjs && node --check src/storage/indexeddb-memo-store.mjs && node --check web/app.mjs",
+    "test": "node --test"
+  }
+}

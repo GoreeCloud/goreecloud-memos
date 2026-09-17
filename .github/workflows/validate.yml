@@ -1,0 +1,68 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-checks:
+    name: Source checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run check
+
+  tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+
+  repository-baseline:
+    name: Repository baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required repository files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            README.md
+            SPECIFICATIONS.md
+            FEATURES.md
+            FEATURE-ROADMAP.md
+            BENEFITS.md
+            COMPETITIVE-OBJECTIVES.md
+            BRANDING.md
+            USER-MANUAL.md
+            'PRIVACY POLICY.md'
+            NOTES.md
+            SECURITY.md
+            .gitignore
+            .editorconfig
+            goreecloud.platform.yaml
+            LICENSE
+          )
+          for path in "${required[@]}"; do
+            test -s "$path" || { echo "Missing or empty required file: $path"; exit 1; }
+          done
