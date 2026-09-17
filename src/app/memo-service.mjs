@@ -4,9 +4,12 @@ import {
   createMemo,
   editMemo,
   MEMO_STATES,
+  pinMemo,
   restoreArchivedMemo,
   restoreTrashedMemo,
-  trashMemo
+  setPinnedOrder,
+  trashMemo,
+  unpinMemo
 } from "../domain/memo.mjs";
 
 function defaultIdFactory() {
@@ -43,8 +46,8 @@ export class MemoService {
     this.#idFactory = idFactory;
   }
 
-  async capture({ title = "", content }) {
-    const memo = createMemo({ id: this.#idFactory(), title, content, createdAt: this.#clock() });
+  async capture({ title = "", content, color = null, labels = [] }) {
+    const memo = createMemo({ id: this.#idFactory(), title, content, color, labels, createdAt: this.#clock() });
     await this.#store.put(memo);
     return memo;
   }
@@ -68,6 +71,48 @@ export class MemoService {
     const updated = editMemo(memo, { ...changes, updatedAt: this.#clock() });
     await this.#store.put(updated);
     return updated;
+  }
+
+  async pin(id) {
+    const memo = await this.get(id);
+    if (memo.pinned) return memo;
+    const activeMemos = await this.list({ state: "active" });
+    const pinned = activeMemos.filter((candidate) => candidate.pinned);
+    const nextOrder = pinned.length === 0
+      ? 0
+      : Math.max(...pinned.map((candidate) => candidate.pinOrder ?? 0)) + 1;
+    const updated = pinMemo(memo, nextOrder, this.#clock());
+    await this.#store.put(updated);
+    return updated;
+  }
+
+  async unpin(id) {
+    const memo = await this.get(id);
+    const updated = unpinMemo(memo, this.#clock());
+    await this.#store.put(updated);
+    return updated;
+  }
+
+  async movePin(id, direction) {
+    if (direction !== "up" && direction !== "down") {
+      throw new TypeError("direction must be up or down");
+    }
+    const memoId = validateId(id);
+    const pinned = (await this.list({ state: "active" })).filter((memo) => memo.pinned);
+    const index = pinned.findIndex((memo) => memo.id === memoId);
+    if (index === -1) throw new Error("only active pinned memos can be reordered");
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= pinned.length) return pinned[index];
+
+    [pinned[index], pinned[targetIndex]] = [pinned[targetIndex], pinned[index]];
+    const changedAt = this.#clock();
+    let moved;
+    for (let order = 0; order < pinned.length; order += 1) {
+      const updated = setPinnedOrder(pinned[order], order, changedAt);
+      await this.#store.put(updated);
+      if (updated.id === memoId) moved = updated;
+    }
+    return moved;
   }
 
   async archive(id) {
