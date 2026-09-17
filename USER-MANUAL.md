@@ -36,7 +36,22 @@ The **Manage labels** panel works only with managed labels already created by me
 
 Merge and Delete require confirmation. Successful management operations reload the Development page so memo cards, search/filter options, and the management panel all reflect the committed transaction.
 
-Bulk label operations, ownership, authorization, and synchronization are not implemented yet.
+Ownership, authorization, and synchronization are not implemented yet.
+
+## Apply or remove a label from multiple memos
+
+The bulk-label controls work with managed labels that already exist in the browser.
+
+1. In the current **Memos**, **Archive**, or **Trash** view, select the **Select** checkbox on each memo you want to change.
+2. Choose a managed label from **Bulk label**.
+3. Select **Apply label** to add that label to every selected memo that does not already have it, or **Remove label** to remove it from every selected memo that currently has it.
+4. The page reloads after a successful bulk action and shows the resulting label state.
+
+Bulk selection is intentionally temporary. It is cleared whenever the memo list rerenders, including when search/filter results or lifecycle location change, and it is not stored across reloads.
+
+Each bulk label action validates the selected memo set before writing and then updates Memo–Label relationships plus memo label-name/ID projections in one IndexedDB transaction. Changed memos receive the same organization-change timestamp. Applying a label still respects the current 20-label-per-memo limit; if any selected memo would exceed that limit, the bulk apply is rejected before any selected memo is changed.
+
+Bulk actions other than label application/removal are not implemented in this slice.
 
 ## Edit a memo
 
@@ -97,11 +112,11 @@ When the application opens older databases:
 - **v2 → v4:** existing pin state is preserved with deterministic initial pin order; labels and label IDs begin empty.
 - **v3 → v4:** existing memo-local label names are deduplicated case-insensitively across the local library, assigned stable Label UUIDs, related to memos through Memo–Label rows, and written back with aligned `labelIds` plus canonical label-name projections. Existing memo content, timestamps, color, pin state/order, and lifecycle state are preserved.
 
-Managed Label records are currently schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, and Merge operate inside the existing IndexedDB v4 stores and do not require another database-version migration.
+Managed Label records are currently schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, Merge, and bulk label Apply/Remove operate inside the existing IndexedDB v4 stores and do not require another database-version migration.
 
 ## Data boundary
 
-This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, drafts, and the presentation preference. Search terms and filter selections are not persisted. Operational backup and restore are not implemented.
+This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, drafts, and the presentation preference. Search terms, filter selections, and bulk memo selection are not persisted. Operational backup and restore are not implemented.
 
 ## Validation commands
 
@@ -120,4 +135,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk label operations, label ownership/authorization/synchronization metadata, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, label-metadata search/filter dimensions, memo-card label metadata rendering, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
