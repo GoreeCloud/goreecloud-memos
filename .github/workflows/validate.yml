@@ -36,6 +36,22 @@ jobs:
           node-version: '22'
       - run: npm test
 
+  browser-acceptance:
+    name: Browser acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser-test dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+      - name: Run Chromium end-to-end tests
+        run: npm run test:e2e
+
   repository-baseline:
     name: Repository baseline
     runs-on: ubuntu-latest

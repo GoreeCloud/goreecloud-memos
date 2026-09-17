@@ -1,5 +1,7 @@
-const DATABASE_NAME = "goreecloud-memos-local";
-const DATABASE_VERSION = 1;
+import { migrateMemoRecord } from "../domain/memo.mjs";
+
+export const DATABASE_NAME = "goreecloud-memos-local";
+export const DATABASE_VERSION = 2;
 const MEMO_STORE_NAME = "memos";
 
 function requestResult(request) {
@@ -17,6 +19,16 @@ function transactionComplete(transaction) {
   });
 }
 
+function migrateStoreRecords(store) {
+  const cursorRequest = store.openCursor();
+  cursorRequest.addEventListener("success", () => {
+    const cursor = cursorRequest.result;
+    if (!cursor) return;
+    cursor.update(migrateMemoRecord(cursor.value));
+    cursor.continue();
+  });
+}
+
 function openDatabase() {
   if (!globalThis.indexedDB) {
     throw new Error("IndexedDB is not available in this environment");
@@ -24,11 +36,23 @@ function openDatabase() {
 
   const request = globalThis.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
 
-  request.addEventListener("upgradeneeded", () => {
+  request.addEventListener("upgradeneeded", (event) => {
     const database = request.result;
+    let store;
+
     if (!database.objectStoreNames.contains(MEMO_STORE_NAME)) {
-      const store = database.createObjectStore(MEMO_STORE_NAME, { keyPath: "id" });
+      store = database.createObjectStore(MEMO_STORE_NAME, { keyPath: "id" });
       store.createIndex("updatedAt", "updatedAt", { unique: false });
+    } else {
+      store = request.transaction.objectStore(MEMO_STORE_NAME);
+    }
+
+    if (!store.indexNames.contains("state")) {
+      store.createIndex("state", "state", { unique: false });
+    }
+
+    if (event.oldVersion > 0 && event.oldVersion < 2) {
+      migrateStoreRecords(store);
     }
   });
 
@@ -45,8 +69,17 @@ export class IndexedDbMemoStore {
   async put(memo) {
     const database = await this.#databasePromise;
     const transaction = database.transaction(MEMO_STORE_NAME, "readwrite");
-    transaction.objectStore(MEMO_STORE_NAME).put(memo);
+    transaction.objectStore(MEMO_STORE_NAME).put(migrateMemoRecord(memo));
     await transactionComplete(transaction);
+  }
+
+  async get(id) {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(MEMO_STORE_NAME, "readonly");
+    const request = transaction.objectStore(MEMO_STORE_NAME).get(id);
+    const memo = await requestResult(request);
+    await transactionComplete(transaction);
+    return memo ? migrateMemoRecord(memo) : undefined;
   }
 
   async list() {
@@ -55,7 +88,7 @@ export class IndexedDbMemoStore {
     const request = transaction.objectStore(MEMO_STORE_NAME).getAll();
     const memos = await requestResult(request);
     await transactionComplete(transaction);
-    return memos;
+    return memos.map(migrateMemoRecord);
   }
 
   async remove(id) {
