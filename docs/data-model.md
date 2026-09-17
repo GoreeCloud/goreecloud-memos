@@ -11,10 +11,10 @@
 | `title` | string | Optional title, currently limited to 240 characters. |
 | `content` | string | Required memo body, currently limited to 100,000 characters. |
 | `color` | palette token or `null` | Optional memo color metadata. |
-| `labels` | string array | Synchronized local display/search projection of the memo's managed Label relationships. It is retained during this migration stage so current UI/search behavior remains compatible; it is not the identity authority. |
+| `labels` | string array | Synchronized local display/search projection of the memo's managed Label relationships. It remains for current UI/search compatibility; it is not the identity authority. |
 | `labelIds` | string array | Stable managed Label identifiers associated with the memo, in the same display order as the `labels` projection. |
 | `createdAt` | ISO-8601 UTC string | Creation timestamp. |
-| `updatedAt` | ISO-8601 UTC string | Last persisted content, organization, pinning, or lifecycle update timestamp. |
+| `updatedAt` | ISO-8601 UTC string | Last persisted memo content, organization, pinning, or lifecycle update timestamp. Managed-label rename/delete/merge projection maintenance does not rewrite this memo timestamp. |
 | `state` | `active` \| `archived` \| `trashed` | Current local lifecycle location. |
 | `pinned` | boolean | Whether the memo participates in the pinned section/order. |
 | `pinOrder` | non-negative safe integer or `null` | Persisted manual ordering key for pinned memos. |
@@ -51,17 +51,17 @@ The managed Label entity plus the Memo Label relation are the identity layer. Th
 - A memo can currently reference at most 20 labels.
 - Memo input order is preserved for the local display projection and `labelIds` array.
 - Creating or editing a memo reconciles requested names against existing managed Labels; missing names create new managed Label UUIDs.
-- Deleting a memo removes its Memo Label relations. Unreferenced managed Labels are intentionally retained in this increment because automatic garbage collection would make later label management/history semantics ambiguous.
+- Deleting a memo removes its Memo Label relations. Unreferenced managed Labels are retained unless the user explicitly deletes or merges the managed Label.
 
-## Defined future rename/delete/merge semantics
+## Implemented browser-local rename/delete/merge semantics
 
-These semantics are defined before user-facing management controls are added:
+These operations use one IndexedDB read-write transaction across `memos`, `labels`, and `memoLabels` so identity, relationships, and compatibility projections change together.
 
-- **Rename:** update one Label's `name`, `nameKey`, and `updatedAt`, then update every related memo projection in the same IndexedDB transaction. A rename that collides with another Label's `nameKey` must fail and direct the caller to explicit merge semantics.
-- **Delete:** remove the Label and all Memo Label relations, and remove the matching `labelId`/display-name projection from every related memo in one transaction. Memo content/lifecycle state is not deleted.
-- **Merge:** transfer all source Label relations to the target Label with composite-key deduplication, update affected memo projections to the target identity/name, then delete the source Label, all in one transaction. Merge is the explicit collision-resolution operation.
+- **Rename:** preserves the Label `id` and `createdAt`, updates `name`, `nameKey`, and Label `updatedAt`, and changes the corresponding label-name projection on every related memo. A normalized-name collision with a different Label is rejected and requires explicit Merge. Memo `updatedAt` is intentionally preserved so a library-wide label rename does not reorder otherwise unchanged memos.
+- **Delete:** removes the managed Label identity and every Memo Label relation for it, and removes the corresponding `labelId`/display-name projection from every related memo. Memo content and lifecycle state are not deleted. The UI requires explicit confirmation.
+- **Merge:** transfers every source Label relationship to an existing target Label, deduplicates the target relation/projection when a memo already had both labels, deletes the source relationships, updates affected memo projections to the target identity/name, then removes the source Label in the same transaction. The target Label identity is preserved. The UI requires explicit confirmation.
 
-These operations are architectural contracts in this increment; user-facing rename/delete/merge controls are not implemented yet.
+These are browser-local Development operations. They do not establish ownership, authorization, synchronization, cross-device conflict behavior, label colors/icons/descriptions, or bulk label workflows.
 
 ## IndexedDB database version 4
 
@@ -72,6 +72,8 @@ Version 4 adds:
 - `memoLabels` object store keyed by `[memoId, labelId]`, with `memoId` and `labelId` indexes.
 - `labelIds` on memo records while retaining `labels` as a synchronized compatibility projection.
 
+Rename, Delete, and Merge operate within version 4 and therefore do not require another schema-version increment.
+
 ### v3 → v4
 
 During the upgrade transaction, v3 memo-local label names are normalized and deduplicated case-insensitively across the local library. The first canonical display spelling is chosen deterministically from the earliest-created memo carrying that normalized name (with memo ID as a tie-breaker). One stable Label UUID is generated for each distinct normalized name, Memo Label relation rows are created, and every memo receives aligned `labelIds` plus canonical display-name projections. Memo content, timestamps, color, pin state/order, and lifecycle fields are preserved.
@@ -80,11 +82,11 @@ During the upgrade transaction, v3 memo-local label names are normalized and ded
 
 Opening a version 1 or version 2 database directly with the current application first normalizes the legacy memo record into the current memo shape, then establishes the managed-label stores. Because those legacy schemas did not contain label names, their migrated `labels` and `labelIds` arrays are empty. Existing v2 pin state continues to receive deterministic pin ordering.
 
-Chromium acceptance covers v1 → v4, v2 → v4, and v3 → v4 managed-label migration.
+Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, plus transactional managed-label rename/collision/delete/merge behavior on v4.
 
 ## Remaining roadmap expansion
 
-User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, synchronization, colors/icons/descriptions, bulk operations, and user-facing management remain open.
+User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, synchronization, colors/icons/descriptions, and bulk operations remain open.
 
 ## Migration rule
 

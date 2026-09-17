@@ -51,6 +51,13 @@
         </form>
       </section>
 
+      <section class="composer-card" aria-labelledby="label-admin-heading">
+        <h2 id="label-admin-heading">Manage labels</h2>
+        <p class="muted">Rename, merge, or explicitly delete managed labels stored in this browser. These operations update label relationships and memo label displays together.</p>
+        <div id="label-admin-list"></div>
+        <output id="label-admin-status" class="muted" aria-live="polite">Label changes stay on this device.</output>
+      </section>
+
       <section aria-labelledby="memos-heading">
         <div class="section-heading">
           <div>
@@ -153,5 +160,6 @@
     </template>
 
     <script type="module" src="./app.mjs"></script>
+    <script type="module" src="./label-admin.mjs"></script>
   </body>
 </html>

@@ -112,6 +112,17 @@ export function migrateLabelRecord(record) {
   };
 }
 
+export function renameLabel(label, name, updatedAt = new Date()) {
+  const normalized = migrateLabelRecord(label);
+  const nextName = normalizeLabelName(name);
+  return {
+    ...normalized,
+    name: nextName,
+    nameKey: labelNameKey(nextName),
+    updatedAt: normalizeTimestamp(updatedAt, "updatedAt")
+  };
+}
+
 export function reconcileManagedLabels(existingLabels, requestedNames, { idFactory, createdAt = new Date() } = {}) {
   if (!Array.isArray(existingLabels)) {
     throw new TypeError("existingLabels must be an array");
