@@ -4,7 +4,8 @@ import {
   labelNameKey,
   migrateLabelRecord,
   reconcileManagedLabels,
-  renameLabel
+  renameLabel,
+  updateLabelMetadata as applyLabelMetadata
 } from "../domain/label.mjs";
 
 export const DATABASE_NAME = "goreecloud-memos-local";
@@ -224,6 +225,18 @@ export class IndexedDbMemoStore {
     labelStore.put(renamed);
     await transactionComplete(transaction);
     return renamed;
+  }
+
+  async updateLabelMetadata(id, metadata, changedAt = this.#clock()) {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(LABEL_STORE_NAME, "readwrite");
+    const labelStore = transaction.objectStore(LABEL_STORE_NAME);
+    const current = await requestResult(labelStore.get(id));
+    if (!current) throw new Error("label not found");
+    const updated = applyLabelMetadata(current, metadata, changedAt);
+    labelStore.put(updated);
+    await transactionComplete(transaction);
+    return updated;
   }
 
   async deleteLabel(id) {
