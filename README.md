@@ -16,6 +16,7 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Per-memo label-name metadata with trimming, case-insensitive deduplication, and local persistence.
 - Pin/unpin controls with persisted manual ordering for active pinned memos.
 - Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
+- Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
 - Versioned local data schema v3 with tested v1 → v3 and v2 → v3 migration paths.
 - Framework-independent memo domain and service modules.
 - Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
