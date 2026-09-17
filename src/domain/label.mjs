@@ -1,6 +1,9 @@
-export const LABEL_SCHEMA_VERSION = 1;
+export const LABEL_SCHEMA_VERSION = 2;
 export const MAX_LABELS_PER_MEMO = 20;
 export const MAX_LABEL_NAME_LENGTH = 60;
+export const MAX_LABEL_ICON_LENGTH = 32;
+export const MAX_LABEL_DESCRIPTION_LENGTH = 280;
+export const LABEL_COLORS = Object.freeze(["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "gray"]);
 
 function requireNonEmptyString(value, fieldName) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -14,6 +17,17 @@ function normalizeTimestamp(value, fieldName = "timestamp") {
     throw new TypeError(`${fieldName} must be a valid date`);
   }
   return date.toISOString();
+}
+
+function normalizeOptionalText(value, fieldName, maxLength) {
+  if (value == null) return null;
+  if (typeof value !== "string") throw new TypeError(`${fieldName} must be a string or null`);
+  const normalized = value.trim();
+  if (!normalized) return null;
+  if (normalized.length > maxLength) {
+    throw new RangeError(`${fieldName} must be ${maxLength} characters or fewer`);
+  }
+  return normalized;
 }
 
 export function normalizeLabelName(value) {
@@ -32,6 +46,23 @@ export function normalizeLabelName(value) {
 
 export function labelNameKey(value) {
   return normalizeLabelName(value).toLowerCase();
+}
+
+export function normalizeLabelColor(value) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string") throw new TypeError("label color must be a string or null");
+  const color = value.trim().toLowerCase();
+  if (!color) return null;
+  if (!LABEL_COLORS.includes(color)) throw new RangeError("label color must be a supported palette token");
+  return color;
+}
+
+export function normalizeLabelIcon(value) {
+  return normalizeOptionalText(value, "label icon", MAX_LABEL_ICON_LENGTH);
+}
+
+export function normalizeLabelDescription(value) {
+  return normalizeOptionalText(value, "label description", MAX_LABEL_DESCRIPTION_LENGTH);
 }
 
 export function normalizeLabelNames(value) {
@@ -81,7 +112,7 @@ export function normalizeLabelIds(value) {
   return ids;
 }
 
-export function createLabel({ id, name, createdAt = new Date() }) {
+export function createLabel({ id, name, color = null, icon = null, description = null, createdAt = new Date() }) {
   requireNonEmptyString(id, "id");
   const normalizedName = normalizeLabelName(name);
   const timestamp = normalizeTimestamp(createdAt, "createdAt");
@@ -90,6 +121,9 @@ export function createLabel({ id, name, createdAt = new Date() }) {
     id: id.trim(),
     name: normalizedName,
     nameKey: labelNameKey(normalizedName),
+    color: normalizeLabelColor(color),
+    icon: normalizeLabelIcon(icon),
+    description: normalizeLabelDescription(description),
     createdAt: timestamp,
     updatedAt: timestamp
   };
@@ -107,6 +141,9 @@ export function migrateLabelRecord(record) {
     id: record.id.trim(),
     name,
     nameKey: labelNameKey(name),
+    color: normalizeLabelColor(record.color),
+    icon: normalizeLabelIcon(record.icon),
+    description: normalizeLabelDescription(record.description),
     createdAt,
     updatedAt: normalizeTimestamp(record.updatedAt ?? createdAt, "updatedAt")
   };
@@ -119,6 +156,17 @@ export function renameLabel(label, name, updatedAt = new Date()) {
     ...normalized,
     name: nextName,
     nameKey: labelNameKey(nextName),
+    updatedAt: normalizeTimestamp(updatedAt, "updatedAt")
+  };
+}
+
+export function updateLabelMetadata(label, { color = null, icon = null, description = null } = {}, updatedAt = new Date()) {
+  const normalized = migrateLabelRecord(label);
+  return {
+    ...normalized,
+    color: normalizeLabelColor(color),
+    icon: normalizeLabelIcon(icon),
+    description: normalizeLabelDescription(description),
     updatedAt: normalizeTimestamp(updatedAt, "updatedAt")
   };
 }
