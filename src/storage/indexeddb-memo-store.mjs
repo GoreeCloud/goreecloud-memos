@@ -280,6 +280,7 @@ export class IndexedDbMemoStore {
       memoLabelStore.delete([relation.memoId, sourceId]);
     }
 
+    labelStore.put(normalizedTarget);
     labelStore.delete(sourceId);
     await transactionComplete(transaction);
     return {
