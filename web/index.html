@@ -63,7 +63,17 @@
           </div>
           <output id="status" aria-live="polite"></output>
         </div>
-        <div id="memo-list" class="memo-list" aria-live="polite"></div>
+        <fieldset class="presentation-picker">
+          <legend>Presentation</legend>
+          <div class="presentation-options">
+            <label class="presentation-option"><input type="radio" name="presentation" value="comfortable" checked /> <span>Comfortable</span></label>
+            <label class="presentation-option"><input type="radio" name="presentation" value="compact" /> <span>Compact</span></label>
+            <label class="presentation-option"><input type="radio" name="presentation" value="list" /> <span>List</span></label>
+            <label class="presentation-option"><input type="radio" name="presentation" value="dense" /> <span>Dense</span></label>
+          </div>
+          <output id="presentation-status" class="muted" aria-live="polite">Presentation: Comfortable.</output>
+        </fieldset>
+        <div id="memo-list" class="memo-list" data-presentation="comfortable" aria-live="polite"></div>
       </section>
     </main>
 

@@ -48,6 +48,17 @@ The current local palette includes Red, Orange, Yellow, Green, Teal, Blue, Purpl
 
 Color is stored as memo metadata. The card shows both a visual color treatment and visible `Color: …` text so color is not the sole carrier of meaning.
 
+## Presentation modes
+
+The memo collection supports four browser-local presentation modes:
+
+- **Comfortable** — the default card spacing.
+- **Compact** — reduced card spacing and padding.
+- **List** — a tighter list-like presentation.
+- **Dense** — the most compact local presentation while retaining full-size interactive controls.
+
+Choose a presentation mode with the radio controls above the memo collection. The controls use native radio-button keyboard behavior, so arrow keys move between options when the group has focus. The selected mode is stored only in the current browser profile and survives reloads. It does not change memo records or synchronize to another browser or device.
+
 ## Archive and restore
 
 Select **Archive** on an active memo to remove it from the main Memos view without deleting it. Open **Archive** to view archived memos. Select **Restore** to return an archived memo to **Memos**.
@@ -68,7 +79,7 @@ When this Development slice opens a version 1 or version 2 `goreecloud-memos-loc
 
 ## Data boundary
 
-This development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos and drafts. Operational backup and restore are not implemented.
+This development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, drafts, and the presentation preference. Operational backup and restore are not implemented.
 
 ## Validation commands
 
