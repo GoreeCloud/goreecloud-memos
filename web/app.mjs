@@ -6,6 +6,8 @@ const AUTOSAVE_DELAY_MS = 450;
 
 const form = document.querySelector("#memo-form");
 const titleInput = document.querySelector("#memo-title");
+const colorInput = document.querySelector("#memo-color");
+const labelsInput = document.querySelector("#memo-labels");
 const contentInput = document.querySelector("#memo-content");
 const saveButton = document.querySelector("#save-button");
 const listElement = document.querySelector("#memo-list");
@@ -22,6 +24,14 @@ function setStatus(message) {
   status.textContent = message;
 }
 
+function parseLabelsInput(value) {
+  return value.split(",").map((label) => label.trim()).filter(Boolean);
+}
+
+function labelsToInput(labels) {
+  return labels.join(", ");
+}
+
 function readDraft() {
   try {
     return JSON.parse(localStorage.getItem(DRAFT_KEY) ?? "null");
@@ -31,7 +41,12 @@ function readDraft() {
 }
 
 function saveDraft() {
-  const draft = { title: titleInput.value, content: contentInput.value };
+  const draft = {
+    title: titleInput.value,
+    content: contentInput.value,
+    color: colorInput.value,
+    labels: labelsInput.value
+  };
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   draftState.textContent = "Draft saved on this device.";
 }
@@ -46,23 +61,35 @@ function restoreDraft() {
   if (!draft) return;
   titleInput.value = typeof draft.title === "string" ? draft.title : "";
   contentInput.value = typeof draft.content === "string" ? draft.content : "";
-  if (titleInput.value || contentInput.value) {
+  colorInput.value = typeof draft.color === "string" ? draft.color : "";
+  labelsInput.value = typeof draft.labels === "string" ? draft.labels : "";
+  if (titleInput.value || contentInput.value || colorInput.value || labelsInput.value) {
     draftState.textContent = "Recovered a local draft.";
   }
 }
 
-function createAction(label, action, memoId, { danger = false } = {}) {
+function createAction(label, action, memoId, { danger = false, disabled = false } = {}) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = danger ? "danger" : "secondary";
   button.dataset.action = action;
   button.dataset.memoId = memoId;
   button.textContent = label;
+  button.disabled = disabled;
   return button;
 }
 
-function renderActions(container, memo) {
+function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = {}) {
   if (currentView === "active") {
+    if (memo.pinned) {
+      container.append(
+        createAction("Unpin", "unpin", memo.id),
+        createAction("Move pin up", "pin-up", memo.id, { disabled: pinnedIndex <= 0 }),
+        createAction("Move pin down", "pin-down", memo.id, { disabled: pinnedIndex < 0 || pinnedIndex >= pinnedCount - 1 })
+      );
+    } else {
+      container.append(createAction("Pin", "pin", memo.id));
+    }
     container.append(
       createAction("Edit", "edit", memo.id),
       createAction("Archive", "archive", memo.id),
@@ -85,6 +112,43 @@ function renderActions(container, memo) {
   );
 }
 
+function renderMemoMetadata(container, memo) {
+  container.replaceChildren();
+
+  if (memo.pinned) {
+    const pinned = document.createElement("span");
+    pinned.className = "memo-badge memo-badge--pin";
+    pinned.textContent = "Pinned";
+    container.append(pinned);
+  }
+
+  if (memo.color) {
+    const color = document.createElement("span");
+    color.className = "memo-badge memo-badge--color";
+    color.textContent = `Color: ${memo.color[0].toUpperCase()}${memo.color.slice(1)}`;
+    container.append(color);
+  }
+
+  for (const labelName of memo.labels) {
+    const label = document.createElement("span");
+    label.className = "memo-badge memo-badge--label";
+    label.textContent = labelName;
+    container.append(label);
+  }
+
+  container.hidden = container.childElementCount === 0;
+}
+
+function applyMemoToCard(card, memo) {
+  card.dataset.color = memo.color ?? "none";
+  card.querySelector(".memo-card__title").textContent = memo.title || "Untitled memo";
+  card.querySelector(".memo-card__content").textContent = memo.content;
+  const time = card.querySelector(".memo-card__time");
+  time.dateTime = memo.updatedAt;
+  time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(memo.updatedAt));
+  renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
+}
+
 function renderMemos(memos) {
   listElement.replaceChildren();
 
@@ -100,26 +164,30 @@ function renderMemos(memos) {
     return;
   }
 
+  const pinnedMemos = memos.filter((memo) => memo.pinned);
+  const pinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
+
   for (const memo of memos) {
     const fragment = template.content.cloneNode(true);
     const card = fragment.querySelector(".memo-card");
-    const title = fragment.querySelector(".memo-card__title");
-    const time = fragment.querySelector(".memo-card__time");
-    const content = fragment.querySelector(".memo-card__content");
     const actions = fragment.querySelector(".memo-card__actions");
     const editor = fragment.querySelector(".memo-editor");
     const editTitle = fragment.querySelector("[data-edit-field='title']");
     const editContent = fragment.querySelector("[data-edit-field='content']");
+    const editColor = fragment.querySelector("[data-edit-field='color']");
+    const editLabels = fragment.querySelector("[data-edit-field='labels']");
 
     card.dataset.memoId = memo.id;
-    title.textContent = memo.title || "Untitled memo";
-    time.dateTime = memo.updatedAt;
-    time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(memo.updatedAt));
-    content.textContent = memo.content;
     editor.dataset.memoId = memo.id;
     editTitle.value = memo.title;
     editContent.value = memo.content;
-    renderActions(actions, memo);
+    editColor.value = memo.color ?? "";
+    editLabels.value = labelsToInput(memo.labels);
+    applyMemoToCard(card, memo);
+    renderActions(actions, memo, {
+      pinnedIndex: pinnedIndexes.get(memo.id) ?? -1,
+      pinnedCount: pinnedMemos.length
+    });
 
     listElement.append(fragment);
   }
@@ -165,14 +233,11 @@ function scheduleEditSave(editor) {
     try {
       const updated = await service.edit(memoId, {
         title: editor.querySelector("[data-edit-field='title']").value,
-        content: editor.querySelector("[data-edit-field='content']").value
+        content: editor.querySelector("[data-edit-field='content']").value,
+        color: editor.querySelector("[data-edit-field='color']").value,
+        labels: parseLabelsInput(editor.querySelector("[data-edit-field='labels']").value)
       });
-      const card = editor.closest(".memo-card");
-      card.querySelector(".memo-card__title").textContent = updated.title || "Untitled memo";
-      card.querySelector(".memo-card__content").textContent = updated.content;
-      const time = card.querySelector(".memo-card__time");
-      time.dateTime = updated.updatedAt;
-      time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(updated.updatedAt));
+      applyMemoToCard(editor.closest(".memo-card"), updated);
       editorStatus.textContent = "Saved.";
     } catch (error) {
       editorStatus.textContent = error instanceof Error ? error.message : "Could not save changes";
@@ -189,7 +254,12 @@ form.addEventListener("submit", async (event) => {
   saveButton.disabled = true;
 
   try {
-    await service.capture({ title: titleInput.value, content: contentInput.value });
+    await service.capture({
+      title: titleInput.value,
+      content: contentInput.value,
+      color: colorInput.value,
+      labels: parseLabelsInput(labelsInput.value)
+    });
     form.reset();
     clearDraft();
     await setView("active");
@@ -228,6 +298,18 @@ listElement.addEventListener("click", async (event) => {
 
   try {
     switch (button.dataset.action) {
+      case "pin":
+        await service.pin(memoId);
+        break;
+      case "unpin":
+        await service.unpin(memoId);
+        break;
+      case "pin-up":
+        await service.movePin(memoId, "up");
+        break;
+      case "pin-down":
+        await service.movePin(memoId, "down");
+        break;
       case "archive":
         await service.archive(memoId);
         break;
