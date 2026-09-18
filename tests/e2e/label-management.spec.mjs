@@ -109,6 +109,15 @@ test("managed label color, icon, and description persist without changing memo r
   await expect(refreshedRow.getByLabel("Icon for Ideas")).toHaveValue("💡");
   await expect(refreshedRow.getByLabel("Description for Ideas")).toHaveValue("Things to explore");
 
+  const card = page.locator(".memo-card", { hasText: "Metadata memo" });
+  const badge = card.locator(".memo-badge--label").filter({ hasText: "Ideas" });
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveAttribute("data-label-color", "purple");
+  await expect(badge).toHaveAttribute("aria-label", "Label: Ideas");
+  await expect(badge.locator(".memo-label__icon")).toHaveText("💡");
+  await expect(badge.locator(".memo-label__name")).toHaveText("Ideas");
+  await expect(card.getByText("Things to explore", { exact: true })).toHaveCount(0);
+
   const snapshot = await readManagedSnapshot(page);
   expect(snapshot.labels).toHaveLength(1);
   expect(snapshot.labels[0].schemaVersion).toBe(2);

@@ -86,6 +86,18 @@ For each bulk action:
 
 These semantics apply equally to selected memos currently rendered from Memos, Archive, or Trash. They do not add cross-device synchronization, authorization, ownership, or server-side bulk processing.
 
+## Memo-card Label presentation
+
+Memo-card presentation is a read-time projection over the existing Memo v4 and managed Label v2 records; it does not add persisted fields or change IndexedDB database version 4.
+
+- The renderer preserves memo label order from the memo `labels` / `labelIds` projection.
+- When a stable `labelId` resolves to a current managed Label, the Label record's canonical `name`, optional `color`, and optional `icon` drive the badge presentation.
+- If managed metadata cannot be resolved, the existing memo label-name projection remains visible rather than hiding the label.
+- Optional icon text is supplementary and hidden from the accessibility tree; the canonical label name remains visible and supplies the badge's accessible identity.
+- Optional label color is a supplementary identity accent rather than the sole carrier of meaning. Forced Colors presentation falls back to system colors while retaining the visible canonical label name.
+- Label `description` remains a management/detail field and is not rendered on memo cards.
+- Search and filtering remain based on the existing label-name projection; this presentation layer does not add metadata-aware query dimensions.
+
 ## IndexedDB database version 4
 
 The browser database remains `goreecloud-memos-local`.
@@ -105,7 +117,7 @@ During the upgrade transaction, v3 memo-local label names are normalized and ded
 
 Opening a version 1 or version 2 database directly with the current application first normalizes the legacy memo record into the current memo shape, then establishes the managed-label stores. Because those legacy memo schemas did not contain label names, their migrated `labels` and `labelIds` arrays are empty. Existing v2 pin state continues to receive deterministic pin ordering.
 
-Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, transactional managed-label rename/collision/delete/merge behavior, browser-local Label v2 metadata persistence, ephemeral bulk selection, successful bulk Apply/Remove, and atomic pre-write rejection when a selected memo would exceed the label limit.
+Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, transactional managed-label rename/collision/delete/merge behavior, browser-local Label v2 metadata persistence plus memo-card icon/color/name presentation, ephemeral bulk selection, successful bulk Apply/Remove, and atomic pre-write rejection when a selected memo would exceed the label limit.
 
 ## Remaining roadmap expansion
 

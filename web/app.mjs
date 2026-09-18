@@ -1,4 +1,6 @@
 import { MemoService } from "../src/app/memo-service.mjs";
+import { LabelService } from "../src/app/label-service.mjs";
+import { buildLabelPresentations } from "../src/app/label-presentation.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
 import { ALL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
@@ -25,11 +27,14 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const filterStatus = document.querySelector("#filter-status");
 
-const service = new MemoService(new IndexedDbMemoStore());
+const store = new IndexedDbMemoStore();
+const service = new MemoService(store);
+const labelService = new LabelService(store);
 const editTimers = new Map();
 let currentView = "active";
 let currentPresentation = loadPresentationMode(localStorage);
 let refreshGeneration = 0;
+let managedLabels = [];
 
 function setStatus(message) {
   status.textContent = message;
@@ -152,10 +157,24 @@ function renderMemoMetadata(container, memo) {
     container.append(color);
   }
 
-  for (const labelName of memo.labels) {
+  for (const presentation of buildLabelPresentations(memo, managedLabels)) {
     const label = document.createElement("span");
     label.className = "memo-badge memo-badge--label";
-    label.textContent = labelName;
+    label.dataset.labelColor = presentation.color ?? "none";
+    label.setAttribute("aria-label", `Label: ${presentation.name}`);
+
+    if (presentation.icon) {
+      const icon = document.createElement("span");
+      icon.className = "memo-label__icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = presentation.icon;
+      label.append(icon);
+    }
+
+    const name = document.createElement("span");
+    name.className = "memo-label__name";
+    name.textContent = presentation.name;
+    label.append(name);
     container.append(label);
   }
 
@@ -263,9 +282,13 @@ function renderMemos(memos, { filtered = false } = {}) {
 async function refresh() {
   const generation = ++refreshGeneration;
   const requestedView = currentView;
-  const memos = await service.list({ state: requestedView });
+  const [memos, labels] = await Promise.all([
+    service.list({ state: requestedView }),
+    labelService.list()
+  ]);
   if (generation !== refreshGeneration || requestedView !== currentView) return;
 
+  managedLabels = labels;
   updateLabelFilterOptions(memos);
   const filtered = hasActiveFilters();
   const visibleMemos = filterMemos(memos, readFilterState());

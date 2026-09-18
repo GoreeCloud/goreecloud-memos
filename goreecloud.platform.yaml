@@ -7,7 +7,7 @@ component:
   repository: GoreeCloud/goreecloud-memos
 
 lifecycle: development
-version: '0.0.1-dev.0'
+version: '0.0.10-dev.0'
 
 supported_platforms:
   - web
@@ -41,7 +41,7 @@ platform_systems:
     result: applicable-migration-required
     version: null
     evidence: [BRANDING.md, web/styles.css]
-    notes: The development UI is a scaffold; Glaze UI 1.3.0 conformance and visual acceptance remain required.
+    notes: The development UI is an evolving scaffold; current Stable Glaze UI 1.5.1 consumer conformance and visual acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -102,10 +102,10 @@ external_dependencies:
 
 compatibility:
   platform_contract: '0.3'
-  glaze_ui_required: '1.3.0'
+  glaze_ui_required: '1.5.1'
   requires:
     - goreecloud-platform-contract==0.3
-    - glaze-ui==1.3.0
+    - glaze-ui==1.5.1
   provides:
     - goreecloud-memos-local-capture-dev-v1
 
@@ -113,6 +113,9 @@ evidence:
   acceptance_tests:
     - tests/memo.test.mjs
     - tests/memo-service.test.mjs
+    - tests/label.test.mjs
+    - tests/label-presentation.test.mjs
+    - tests/e2e/label-management.spec.mjs
   release: []
 
 conformance:
@@ -127,6 +130,6 @@ conformance:
   blockers:
     - No production server, account, synchronization, backup/recovery, or administration implementation exists.
     - Integral Platform System runtime integrations and acceptance are not established.
-    - Glaze UI 1.3.0 conformance and visual acceptance are not established.
+    - Current Stable Glaze UI 1.5.1 consumer conformance and visual acceptance are not established.
     - Native desktop and mobile clients are not implemented.
     - Production security, privacy, observability, recovery, and Stable qualification evidence do not exist.
