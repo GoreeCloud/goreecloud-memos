@@ -5,6 +5,7 @@ import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
 import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 import { parseSearchExpression } from "../src/app/search-expression.mjs";
+import { SavedViewService } from "../src/app/saved-view-service.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -28,15 +29,23 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const filterLabelColorInput = document.querySelector("#memo-filter-label-color");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const filterStatus = document.querySelector("#filter-status");
+const savedViewNameInput = document.querySelector("#saved-view-name");
+const savedViewSaveButton = document.querySelector("#saved-view-save");
+const savedViewSelect = document.querySelector("#saved-view-select");
+const savedViewApplyButton = document.querySelector("#saved-view-apply");
+const savedViewDeleteButton = document.querySelector("#saved-view-delete");
+const savedViewStatus = document.querySelector("#saved-view-status");
 
 const store = new IndexedDbMemoStore();
 const service = new MemoService(store);
 const labelService = new LabelService(store);
+const savedViewService = new SavedViewService(store);
 const editTimers = new Map();
 let currentView = "active";
 let currentPresentation = loadPresentationMode(localStorage);
 let refreshGeneration = 0;
 let managedLabels = [];
+let savedViews = [];
 
 function setStatus(message) {
   status.textContent = message;
@@ -245,6 +254,70 @@ function updateFilterStatus(error = null) {
     : "Search and filters are not saved.";
 }
 
+function readSavedViewFilters() {
+  parseSearchExpression(searchInput.value);
+  return {
+    query: searchInput.value,
+    color: filterColorInput.value,
+    label: filterLabelInput.value,
+    labelColor: filterLabelColorInput.value
+  };
+}
+
+function selectedSavedView() {
+  return savedViews.find((view) => view.id === savedViewSelect.value) ?? null;
+}
+
+function updateSavedViewActions() {
+  const selected = selectedSavedView();
+  savedViewApplyButton.disabled = !selected;
+  savedViewDeleteButton.disabled = !selected;
+}
+
+function renderSavedViewOptions({ selectedId = savedViewSelect.value } = {}) {
+  savedViewSelect.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Choose saved view…";
+  savedViewSelect.append(placeholder);
+
+  for (const view of savedViews) {
+    const option = document.createElement("option");
+    option.value = view.id;
+    option.textContent = view.name;
+    savedViewSelect.append(option);
+  }
+
+  savedViewSelect.value = savedViews.some((view) => view.id === selectedId) ? selectedId : "";
+  updateSavedViewActions();
+}
+
+async function refreshSavedViews({ selectedId = savedViewSelect.value } = {}) {
+  savedViews = await savedViewService.list();
+  renderSavedViewOptions({ selectedId });
+}
+
+function ensureSavedLabelAvailable(view) {
+  const label = view.filters.label;
+  if (!label || label === "all") return;
+  const available = [...filterLabelInput.options].some((option) =>
+    option.value.toLocaleLowerCase() === label.toLocaleLowerCase()
+  );
+  if (!available) {
+    throw new Error(`Saved label "${label}" is not available in the current memo location`);
+  }
+}
+
+async function applySavedView(view) {
+  ensureSavedLabelAvailable(view);
+  searchInput.value = view.filters.query;
+  filterColorInput.value = view.filters.color;
+  filterLabelInput.value = view.filters.label;
+  filterLabelColorInput.value = view.filters.labelColor;
+  await refresh();
+  savedViewStatus.textContent = `Applied saved view "${view.name}" in the current memo location.`;
+}
+
 function renderMemos(memos, { filtered = false } = {}) {
   listElement.replaceChildren();
 
@@ -434,6 +507,53 @@ clearFiltersButton.addEventListener("click", () => {
   searchInput.focus();
 });
 
+savedViewSaveButton.addEventListener("click", async () => {
+  savedViewSaveButton.disabled = true;
+  try {
+    const filters = readSavedViewFilters();
+    const created = await savedViewService.create(savedViewNameInput.value, filters);
+    savedViewNameInput.value = "";
+    await refreshSavedViews({ selectedId: created.id });
+    savedViewStatus.textContent = `Saved view "${created.name}" in this browser.`;
+  } catch (error) {
+    savedViewStatus.textContent = error instanceof Error ? error.message : "Could not save view";
+  } finally {
+    savedViewSaveButton.disabled = false;
+  }
+});
+
+savedViewSelect.addEventListener("change", updateSavedViewActions);
+
+savedViewApplyButton.addEventListener("click", async () => {
+  const view = selectedSavedView();
+  if (!view) return;
+  savedViewApplyButton.disabled = true;
+  try {
+    await applySavedView(view);
+  } catch (error) {
+    savedViewStatus.textContent = error instanceof Error ? error.message : "Could not apply saved view";
+  } finally {
+    updateSavedViewActions();
+  }
+});
+
+savedViewDeleteButton.addEventListener("click", async () => {
+  const view = selectedSavedView();
+  if (!view) return;
+  if (!window.confirm(`Delete saved view "${view.name}"? This does not delete memos.`)) return;
+
+  savedViewDeleteButton.disabled = true;
+  try {
+    await savedViewService.delete(view.id);
+    await refreshSavedViews({ selectedId: "" });
+    savedViewStatus.textContent = `Deleted saved view "${view.name}".`;
+  } catch (error) {
+    savedViewStatus.textContent = error instanceof Error ? error.message : "Could not delete saved view";
+  } finally {
+    updateSavedViewActions();
+  }
+});
+
 listElement.addEventListener("input", (event) => {
   const editor = event.target.closest(".memo-editor");
   if (editor) scheduleEditSave(editor);
@@ -497,6 +617,7 @@ listElement.addEventListener("click", async (event) => {
 applyPresentationMode(currentPresentation);
 updateFilterStatus();
 restoreDraft();
-refresh().catch((error) => {
+Promise.all([refresh(), refreshSavedViews()]).catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load local memos");
+  savedViewStatus.textContent = error instanceof Error ? error.message : "Could not load saved views";
 });
