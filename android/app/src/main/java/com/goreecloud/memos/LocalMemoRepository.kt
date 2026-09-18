@@ -7,7 +7,12 @@ class LocalMemoRepository(root: File) {
     private val storage = RecoverableTextFile(root, MEMO_FILE)
 
     fun load(): MemoLoadResult {
-        val primary = storage.readPrimary()
+        val primary = try {
+            storage.readPrimary()
+        } catch (primaryFailure: Exception) {
+            return recoverFromBackup(primaryFailure)
+        }
+
         if (primary == null) {
             val backup = storage.readBackup()
             return if (backup == null) {
@@ -19,9 +24,27 @@ class LocalMemoRepository(root: File) {
 
         return try {
             MemoLoadResult(MemoCodec.decode(primary), recoveredFromBackup = false)
-        } catch (primaryFailure: RuntimeException) {
-            val backup = storage.readBackup() ?: throw primaryFailure
+        } catch (primaryFailure: Exception) {
+            recoverFromBackup(primaryFailure)
+        }
+    }
+
+    private fun recoverFromBackup(primaryFailure: Exception): MemoLoadResult {
+        val backup = try {
+            storage.readBackup()
+        } catch (backupFailure: Exception) {
+            primaryFailure.addSuppressed(backupFailure)
+            throw IllegalStateException("Primary and backup memo data could not be read.", primaryFailure)
+        } ?: throw IllegalStateException(
+            "Primary memo data could not be read and no previous generation is available.",
+            primaryFailure,
+        )
+
+        return try {
             MemoLoadResult(MemoCodec.decode(backup), recoveredFromBackup = true)
+        } catch (backupFailure: Exception) {
+            primaryFailure.addSuppressed(backupFailure)
+            throw IllegalStateException("Primary and backup memo data are unreadable.", primaryFailure)
         }
     }
 
