@@ -181,6 +181,11 @@ test("named saved views persist locally and restore the current query and direct
   await expect(page.locator("#saved-view-status")).toHaveText('Saved view "Blue project" in this browser.');
   await expect(page.locator("#saved-view-select")).toHaveValue(/.+/);
 
+  await page.locator("#saved-view-name").fill("blue PROJECT");
+  await page.getByRole("button", { name: "Save current view" }).click();
+  await expect(page.locator("#saved-view-status")).toHaveText("a saved view with that name already exists");
+  await expect(page.locator("#saved-view-select").locator("option", { hasText: "Blue project" })).toHaveCount(1);
+
   await page.getByRole("button", { name: "Clear search and filters" }).click();
   await expect(page.locator(".memo-card")).toHaveCount(2);
 
