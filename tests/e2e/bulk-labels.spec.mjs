@@ -18,7 +18,7 @@ async function selectMemo(page, title) {
 
 async function readSnapshot(page) {
   return page.evaluate(async () => new Promise((resolve, reject) => {
-    const request = indexedDB.open("goreecloud-memos-local", 4);
+    const request = indexedDB.open("goreecloud-memos-local", 5);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
