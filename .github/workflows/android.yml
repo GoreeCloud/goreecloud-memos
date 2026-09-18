@@ -51,12 +51,6 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
-
-      - name: Install Android 36 SDK
-        shell: bash
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.11.1"
@@ -71,10 +65,12 @@ jobs:
           set -euo pipefail
           APK="$(find android/app/build/outputs/apk/debug -type f -name '*.apk' -print -quit)"
           test -n "$APK"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
+          test -n "$AAPT"
           BADGING="$(mktemp)"
           PERMISSIONS="$(mktemp)"
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | tee "$BADGING"
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump permissions "$APK" | tee "$PERMISSIONS"
+          "$AAPT" dump badging "$APK" | tee "$BADGING"
+          "$AAPT" dump permissions "$APK" | tee "$PERMISSIONS"
           grep -F "package: name='com.goreecloud.memos.development'" "$BADGING"
           grep -F "versionCode='1'" "$BADGING"
           grep -F "versionName='0.1.0-dev.1+android.1'" "$BADGING"
