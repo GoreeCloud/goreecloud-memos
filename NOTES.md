@@ -33,3 +33,10 @@
 The current candidate adds managed Android 16 runtime acceptance for the local-only Development foundation. It verifies launch visibility, absence of INTERNET permission, local-only/synchronization-unavailable presentation, draft survival across Activity recreation, and locally saved memo survival across Activity recreation. The workflow also compiles instrumentation tests and pins third-party CI actions to immutable commit SHAs on Ubuntu 24.04.
 
 This evidence remains Development-only. It does not establish representative physical-device acceptance, synchronization, Identity/account authority, attachments, reminders, sharing, widgets, biometric lock, backup/recovery, production signing, Release Candidate, or Stable acceptance.
+
+
+## Android accessibility stabilization candidate — September 18, 2026
+
+- The local-only Android Development workspace title and saved-memos section are being exposed as Android accessibility headings.
+- Android 16 runtime acceptance verifies those heading semantics alongside the existing no-network/local-only and recreation checks.
+- This does not establish full screen-reader certification, representative-device accessibility, Glaze UI visual acceptance, or production/release status.
