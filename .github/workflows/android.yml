@@ -1,0 +1,124 @@
+name: Android Development Foundation
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "README.md"
+      - "FEATURES.md"
+      - "NOTES.md"
+      - "goreecloud.platform.yaml"
+      - ".github/workflows/android.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "android/**"
+      - "README.md"
+      - "FEATURES.md"
+      - "NOTES.md"
+      - "goreecloud.platform.yaml"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EVALUATED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  android:
+    name: Build and validate native Android foundation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact candidate revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EVALUATED_REVISION }}
+          persist-credentials: false
+
+      - name: Verify exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EVALUATED_REVISION"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Run Android unit tests
+        shell: bash
+        run: gradle -p android --no-daemon testDebugUnitTest --stacktrace
+
+      - name: Run Android lint
+        if: always()
+        shell: bash
+        run: gradle -p android --no-daemon lintDebug --stacktrace
+
+      - name: Assemble Android Development APK
+        if: always()
+        shell: bash
+        run: gradle -p android --no-daemon assembleDebug --stacktrace
+
+      - name: Verify Development identity and fail-closed network boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find android/app/build/outputs/apk/debug -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt -print | sort -V | tail -n 1)"
+          test -n "$AAPT"
+          BADGING="$(mktemp)"
+          PERMISSIONS="$(mktemp)"
+          "$AAPT" dump badging "$APK" | tee "$BADGING"
+          "$AAPT" dump permissions "$APK" | tee "$PERMISSIONS"
+          grep -F "package: name='com.goreecloud.memos.development'" "$BADGING"
+          grep -F "versionCode='1'" "$BADGING"
+          grep -F "versionName='0.1.0-dev.1+android.1'" "$BADGING"
+          grep -F "application-label:'GoreeCloud Memos Development'" "$BADGING"
+          if grep -Fq "android.permission.INTERNET" "$PERMISSIONS"; then
+            echo "Android Development foundation unexpectedly requests INTERNET."
+            exit 1
+          fi
+
+      - name: Stage exact-source Development artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find android/app/build/outputs/apk/debug -type f -name '*.apk' -print -quit)"
+          ARTIFACT_ROOT="artifact-memos-android"
+          rm -rf "$ARTIFACT_ROOT"
+          mkdir -p "$ARTIFACT_ROOT"
+          cp "$APK" "$ARTIFACT_ROOT/"
+          cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
+          repository=GoreeCloud/goreecloud-memos
+          source_sha=$EVALUATED_REVISION
+          application_id=com.goreecloud.memos.development
+          version_name=0.1.0-dev.1+android.1
+          artifact_role=android-local-capture-development
+          network_authority=none
+          signing_role=ci-debug-installability-only
+          stable_release_authority=none
+          EOF
+          (
+            cd "$ARTIFACT_ROOT"
+            sha256sum ./*.apk > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+
+      - name: Upload Android Development APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: goreecloud-memos-android-dev-${{ env.EVALUATED_REVISION }}
+          if-no-files-found: error
+          retention-days: 30
+          path: artifact-memos-android/*

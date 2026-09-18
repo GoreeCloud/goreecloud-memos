@@ -5,6 +5,10 @@
 
 ## Implemented
 
+- Native Android Development foundation with a launcher activity, native quick-capture title/body editors, explicit local-only/sync-unavailable presentation, adaptive/round/monochrome application identity, and no WebView wrapper.
+- Android local memo persistence uses a versioned v1 record format and previous-generation fallback; Android draft persistence uses a separate versioned v1 draft record with the same bounded recovery model.
+- Android Development source requests no Internet permission. No network, account, Identity, Sync, remote backup, or server authority is implied by the client shell.
+- Android host-side tests cover persistence/recreation, Unicode/newline codec round-trip, blank-memo rejection without clearing prior data, draft clear/reload, and corruption fallback to the previous readable generation.
 - Quick-capture form with optional title and required memo content.
 - Local composer draft recovery using browser local storage, including draft color and label input state.
 - Saved memo persistence using browser IndexedDB.
@@ -42,4 +46,4 @@
 
 ## Not implemented
 
-Server hosting, accounts, authentication, synchronization, offline mutation queues, conflicts, bulk actions beyond label application/removal, ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond memo color/label name/managed Label color, attachment/checklist/date/metadata search, smart filters, persisted recent searches, saved-view synchronization/order/pin/icon/color/default-view features beyond the current named local filter snapshots, attachments, checklists, reminders, revision history, full roadmap search coverage, native desktop/mobile clients, synchronized presentation preferences, import/export, operational backup/recovery, administration beyond the local label-management slice, production observability, and Stable Glaze UI acceptance are not established by this repository state.
+Server hosting, accounts, authentication, synchronization, offline mutation queues, conflicts, bulk actions beyond label application/removal, ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond memo color/label name/managed Label color, attachment/checklist/date/metadata search, smart filters, persisted recent searches, saved-view synchronization/order/pin/icon/color/default-view features beyond the current named local filter snapshots, attachments, checklists, reminders, revision history, full roadmap search coverage, native desktop clients, connected/synchronized Android behavior beyond the current local Development foundation, synchronized presentation preferences, import/export, operational backup/recovery, administration beyond the local label-management slice, production observability, and Stable Glaze UI acceptance are not established by this repository state.

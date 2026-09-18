@@ -4,10 +4,15 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open â†’ type â†
 
 ## Status
 
-**Development.** The current repository implements a browser-local Memos Core slice. It is not a Stable release and does not yet provide a server, synchronization, account system, desktop client, mobile client, backup/recovery system, import/export pipeline, or accepted Glaze UI conformance.
+**Development.** The current repository implements a browser-local Memos Core slice plus a first native Android local-capture foundation. It is not a Stable release and does not yet provide a production server, synchronization, account system, desktop client, accepted mobile synchronization, backup/recovery system, import/export pipeline, or accepted Glaze UI conformance.
 
 ### Implemented in this slice
 
+- Native Android Development application foundation under `android/` with GoreeCloud Memos identity, adaptive/round/monochrome launcher resources, native quick capture, and no WebView wrapper.
+- Android local-only memo and draft persistence using explicit v1 text formats, fsync-backed replacement, and a retained previous generation for readable corruption fallback.
+- Android UI explicitly reports that synchronization is not configured; the Development APK requests no `INTERNET` permission and does not invent Identity, Sync, server, Privacy Shield, Wardveil, Everkeep, or production authority.
+- Android host-side unit tests cover codec round-trip, saved-memo persistence, draft persistence/clear, blank-memo rejection, and fallback to the previous readable local generation.
+- Exact-source Android CI lints, unit-tests, assembles the debug APK, verifies Development package/version/label, rejects unexpected Internet permission, and retains APK provenance plus SHA-256 evidence.
 - Browser quick-capture composer with optional title.
 - Local draft preservation in browser storage, including draft color and label fields.
 - Local saved-memo persistence through IndexedDB.
@@ -52,6 +57,14 @@ npm install --ignore-scripts
 npx playwright install chromium
 npm run test:e2e
 ```
+
+Build and test the native Android Development foundation with Java 17, Gradle 8.11.1, and Android API 36 available:
+
+```bash
+gradle -p android --no-daemon lintDebug testDebugUnitTest assembleDebug
+```
+
+The Android artifact is local-only Development evidence. It is not production signed and does not establish synchronization, platform-system acceptance, representative-device acceptance, or Stable qualification.
 
 ## Repository documentation
 

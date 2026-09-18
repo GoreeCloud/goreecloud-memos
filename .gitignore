@@ -28,3 +28,9 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+
+# Android/Gradle local state
+.gradle/
+android/local.properties
+*.apk
+*.aab
