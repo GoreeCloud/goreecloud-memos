@@ -1,3 +1,5 @@
+import { parseSearchExpression } from "./search-expression.mjs";
+
 export class SavedViewService {
   #store;
 
@@ -13,6 +15,10 @@ export class SavedViewService {
   }
 
   create(name, filters) {
+    if (!filters || typeof filters !== "object" || Array.isArray(filters)) {
+      throw new TypeError("saved view filters must be an object");
+    }
+    parseSearchExpression(filters.query ?? "");
     return this.#store.createSavedView(name, filters);
   }
 
