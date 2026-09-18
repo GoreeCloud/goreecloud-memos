@@ -96,7 +96,18 @@ Memo-card presentation is a read-time projection over the existing Memo v4 and m
 - Optional icon text is supplementary and hidden from the accessibility tree; the canonical label name remains visible and supplies the badge's accessible identity.
 - Optional label color is a supplementary identity accent rather than the sole carrier of meaning. Forced Colors presentation falls back to system colors while retaining the visible canonical label name.
 - Label `description` remains a management/detail field and is not rendered on memo cards.
-- Search and filtering remain based on the existing label-name projection; this presentation layer does not add metadata-aware query dimensions.
+- Label-name search/filtering remains based on the existing memo projection. A separate bounded managed Label-color filter resolves current Label v2 metadata by stable `labelId`; this does not make card presentation fields themselves authoritative search storage.
+
+## Managed Label-color filter projection
+
+The browser-local **Label color** filter is a read-time metadata join over existing Memo v4 `labelIds` and current managed Label v2 records. It does not add persisted fields, indexes, or a new IndexedDB database version.
+
+- The filter matches a memo when any stable `labelId` resolves to a managed Label whose current `color` equals the selected palette token.
+- The match is based on Label identity rather than label-name text, so renaming a Label does not break color filtering.
+- A missing or unresolved Label identity does not match a selected Label color; unknown metadata is not treated as a color.
+- The Label-color filter combines with the existing substring query, memo-color filter, and exact label-name filter within the current lifecycle view.
+- Filter state remains ephemeral and resets on reload; it is not a saved view, synchronized preference, recent search, or smart-filter definition.
+- Label `icon` and `description` remain outside this bounded search/filter increment.
 
 ## IndexedDB database version 4
 
@@ -121,7 +132,7 @@ Chromium acceptance covers v1 → v4, v2 → v4, v3 → v4, transactional manage
 
 ## Remaining roadmap expansion
 
-User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, authorization, synchronization, metadata-aware search/filter dimensions, and broader multi-selection bulk actions remain open.
+User, Memo Revision, Attachment, Reminder, Saved View, Device, Sync Event, Session, Import Job, Export Job, and Backup Record schemas remain unimplemented. Managed Label ownership, authorization, synchronization, icon/description search/filter dimensions, and broader multi-selection bulk actions remain open.
 
 ## Migration rule
 
