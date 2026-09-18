@@ -6,7 +6,12 @@ class LocalDraftRepository(root: File) {
     private val storage = RecoverableTextFile(root, DRAFT_FILE)
 
     fun load(): DraftLoadResult {
-        val primary = storage.readPrimary()
+        val primary = try {
+            storage.readPrimary()
+        } catch (primaryFailure: Exception) {
+            return recoverFromBackup(primaryFailure)
+        }
+
         if (primary == null) {
             val backup = storage.readBackup()
             return if (backup == null) {
@@ -18,9 +23,27 @@ class LocalDraftRepository(root: File) {
 
         return try {
             DraftLoadResult(DraftCodec.decode(primary), recoveredFromBackup = false)
-        } catch (primaryFailure: RuntimeException) {
-            val backup = storage.readBackup() ?: throw primaryFailure
+        } catch (primaryFailure: Exception) {
+            recoverFromBackup(primaryFailure)
+        }
+    }
+
+    private fun recoverFromBackup(primaryFailure: Exception): DraftLoadResult {
+        val backup = try {
+            storage.readBackup()
+        } catch (backupFailure: Exception) {
+            primaryFailure.addSuppressed(backupFailure)
+            throw IllegalStateException("Primary and backup draft data could not be read.", primaryFailure)
+        } ?: throw IllegalStateException(
+            "Primary draft data could not be read and no previous generation is available.",
+            primaryFailure,
+        )
+
+        return try {
             DraftLoadResult(DraftCodec.decode(backup), recoveredFromBackup = true)
+        } catch (backupFailure: Exception) {
+            primaryFailure.addSuppressed(backupFailure)
+            throw IllegalStateException("Primary and backup draft data are unreadable.", primaryFailure)
         }
     }
 
