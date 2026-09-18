@@ -48,6 +48,14 @@ class MemosAndroidRuntimeAcceptanceTest {
                 assertTrue(visibleText.any { it.contains("Sync not configured") })
                 assertTrue(visibleText.any { it.contains("No locally saved memos yet.") })
                 assertTrue(visibleText.any { it.contains("Save locally") })
+
+                val headings = collectViews(activity.window.decorView)
+                    .filterIsInstance<TextView>()
+                    .filter { it.isAccessibilityHeading }
+                    .map { it.text?.toString().orEmpty() }
+                    .toSet()
+                assertTrue(headings.contains("Memos"))
+                assertTrue(headings.contains("Saved locally"))
             }
         }
     }
