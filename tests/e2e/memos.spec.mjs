@@ -225,18 +225,75 @@ async function seedSchemaV3Labels(page) {
   });
 }
 
+async function seedSchemaV4ManagedState(page) {
+  await page.goto("/README.md");
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.open("goreecloud-memos-local", 4);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        const memoStore = database.createObjectStore("memos", { keyPath: "id" });
+        memoStore.createIndex("updatedAt", "updatedAt", { unique: false });
+        memoStore.createIndex("state", "state", { unique: false });
+        const labelStore = database.createObjectStore("labels", { keyPath: "id" });
+        labelStore.createIndex("nameKey", "nameKey", { unique: true });
+        const relationStore = database.createObjectStore("memoLabels", { keyPath: ["memoId", "labelId"] });
+        relationStore.createIndex("memoId", "memoId", { unique: false });
+        relationStore.createIndex("labelId", "labelId", { unique: false });
+      };
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction(["memos", "labels", "memoLabels"], "readwrite");
+        tx.objectStore("memos").put({
+          schemaVersion: 4,
+          id: "v4-memo",
+          title: "V4 managed memo",
+          content: "Preserve managed identity through v5",
+          color: "blue",
+          labels: ["Work"],
+          labelIds: ["label-work"],
+          createdAt: "2026-09-18T12:00:00.000Z",
+          updatedAt: "2026-09-18T12:00:00.000Z",
+          state: "active",
+          pinned: false,
+          pinOrder: null,
+          archivedAt: null,
+          trashedAt: null,
+          restoreState: null
+        });
+        tx.objectStore("labels").put({
+          schemaVersion: 2,
+          id: "label-work",
+          name: "Work",
+          nameKey: "work",
+          color: "purple",
+          icon: "💼",
+          description: "Preserve me",
+          createdAt: "2026-09-18T12:00:00.000Z",
+          updatedAt: "2026-09-18T12:00:00.000Z"
+        });
+        tx.objectStore("memoLabels").put({ memoId: "v4-memo", labelId: "label-work" });
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+  });
+}
+
 async function readManagedSnapshot(page) {
   return page.evaluate(async () => new Promise((resolve, reject) => {
-    const request = indexedDB.open("goreecloud-memos-local", 4);
+    const request = indexedDB.open("goreecloud-memos-local", 5);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
-      const tx = db.transaction(["memos", "labels", "memoLabels"], "readonly");
+      const tx = db.transaction(["memos", "labels", "memoLabels", "savedViews"], "readonly");
       const result = {};
       const reads = [
         ["memos", tx.objectStore("memos").getAll()],
         ["labels", tx.objectStore("labels").getAll()],
-        ["memoLabels", tx.objectStore("memoLabels").getAll()]
+        ["memoLabels", tx.objectStore("memoLabels").getAll()],
+        ["savedViews", tx.objectStore("savedViews").getAll()]
       ];
       let remaining = reads.length;
       for (const [key, read] of reads) {
@@ -255,18 +312,18 @@ async function readManagedSnapshot(page) {
   }));
 }
 
-test("opening schema v4 migrates an existing schema v1 memo", async ({ page }) => {
+test("opening database v5 migrates an existing schema v1 memo", async ({ page }) => {
   await seedLegacyMemo(page, 1);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserved through v1 migration" })).toBeVisible();
   const snapshot = await readManagedSnapshot(page);
   const record = snapshot.memos.find((memo) => memo.id === "legacy-1");
-  expect(snapshot.version).toBe(4);
+  expect(snapshot.version).toBe(5);
   expect(record.schemaVersion).toBe(4);
   expect(record.labelIds).toEqual([]);
 });
 
-test("opening schema v4 migrates an existing schema v2 memo and preserves pin state", async ({ page }) => {
+test("opening database v5 migrates an existing schema v2 memo and preserves pin state", async ({ page }) => {
   await seedLegacyMemo(page, 2);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserved through v2 migration" })).toBeVisible();
@@ -278,14 +335,37 @@ test("opening schema v4 migrates an existing schema v2 memo and preserves pin st
   expect(record.labelIds).toEqual([]);
 });
 
-test("opening schema v4 migrates v3 label names into stable managed labels and memo-label relations", async ({ page }) => {
+test("opening database v5 preserves existing v4 managed identities and adds an empty saved view store", async ({ page }) => {
+  await seedSchemaV4ManagedState(page);
+  await page.goto("/web/");
+  await expect(page.locator(".memo-card", { hasText: "Preserve managed identity through v5" })).toBeVisible();
+
+  const snapshot = await readManagedSnapshot(page);
+  expect(snapshot.version).toBe(5);
+  expect(snapshot.memos).toHaveLength(1);
+  expect(snapshot.labels).toHaveLength(1);
+  expect(snapshot.memoLabels).toEqual([{ memoId: "v4-memo", labelId: "label-work" }]);
+  expect(snapshot.savedViews).toEqual([]);
+
+  const memo = snapshot.memos[0];
+  const label = snapshot.labels[0];
+  expect(memo.labelIds).toEqual(["label-work"]);
+  expect(memo.labels).toEqual(["Work"]);
+  expect(label.id).toBe("label-work");
+  expect(label.name).toBe("Work");
+  expect(label.color).toBe("purple");
+  expect(label.icon).toBe("💼");
+  expect(label.description).toBe("Preserve me");
+});
+
+test("opening database v5 migrates v3 label names into stable managed labels and memo-label relations", async ({ page }) => {
   await seedSchemaV3Labels(page);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "First v3" }).getByText("Work", { exact: true })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Second v3" }).getByText("Work", { exact: true })).toBeVisible();
 
   const snapshot = await readManagedSnapshot(page);
-  expect(snapshot.version).toBe(4);
+  expect(snapshot.version).toBe(5);
   expect(snapshot.labels).toHaveLength(3);
   expect(snapshot.memoLabels).toHaveLength(4);
 
