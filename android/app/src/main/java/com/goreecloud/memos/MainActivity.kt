@@ -68,6 +68,7 @@ class MainActivity : Activity() {
         val heading = TextView(this).apply {
             text = "Memos"
             contentDescription = "GoreeCloud Memos"
+            isAccessibilityHeading = true
         }
         glaze.styleHeading(heading)
         root.addView(heading)
@@ -130,6 +131,7 @@ class MainActivity : Activity() {
 
         val savedHeading = TextView(this).apply {
             text = "Saved locally"
+            isAccessibilityHeading = true
         }
         glaze.styleSubheading(savedHeading)
         root.addView(savedHeading, matchWrap(top = 24))
