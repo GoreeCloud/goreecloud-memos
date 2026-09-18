@@ -26,3 +26,10 @@
 - Keep local-only, synchronized, backed-up, exported, and recovered state boundaries explicit as the implementation expands.
 - Do not claim Android production acceptance, synchronization, operational recovery, platform-system, Release Candidate, production, or Stable acceptance until evidence is tied to the exact candidate revision.
 - Before merging this Android foundation to authoritative `main`, reconcile the existing canonical `GoreeCloud/Tasks Management/GoreeCloud Memos — Implementation Task List.md` so it no longer states that native mobile is wholly unimplemented.
+
+
+## Android runtime stabilization candidate — September 18, 2026
+
+The current candidate adds managed Android 16 runtime acceptance for the local-only Development foundation. It verifies launch visibility, absence of INTERNET permission, local-only/synchronization-unavailable presentation, draft survival across Activity recreation, and locally saved memo survival across Activity recreation. The workflow also compiles instrumentation tests and pins third-party CI actions to immutable commit SHAs on Ubuntu 24.04.
+
+This evidence remains Development-only. It does not establish representative physical-device acceptance, synchronization, Identity/account authority, attachments, reminders, sharing, widgets, biometric lock, backup/recovery, production signing, Release Candidate, or Stable acceptance.
