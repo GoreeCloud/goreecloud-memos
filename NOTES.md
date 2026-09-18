@@ -40,3 +40,10 @@ This evidence remains Development-only. It does not establish representative phy
 - The local-only Android Development workspace title and saved-memos section are being exposed as Android accessibility headings.
 - Android 16 runtime acceptance verifies those heading semantics alongside the existing no-network/local-only and recreation checks.
 - This does not establish full screen-reader certification, representative-device accessibility, Glaze UI visual acceptance, or production/release status.
+
+
+## Browser validation CI supply-chain candidate — September 18, 2026
+
+- The browser validation workflow is being moved from mutable Ubuntu/action tags to Ubuntu 24.04 plus immutable checkout v4 and setup-node v4 commit SHAs while preserving the existing action major versions.
+- Source checks, unit tests, browser acceptance, and repository-baseline jobs now check out the exact pull-request head or pushed main SHA with persisted checkout credentials disabled and verify the revision before executing repository code.
+- This changes CI provenance only; it does not expand Memos application, synchronization, account, recovery, signing, Release Candidate, or Stable authority.
