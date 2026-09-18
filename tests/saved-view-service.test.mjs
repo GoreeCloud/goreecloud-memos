@@ -29,4 +29,6 @@ test("SavedViewService validates its adapter and delete identity", () => {
     deleteSavedView() {}
   });
   assert.throws(() => service.delete(""), /non-empty string/);
+  assert.throws(() => service.create("Broken", { query: "color:cyan" }), /color must be one of/);
+  assert.throws(() => service.create("Broken", null), /filters must be an object/);
 });
