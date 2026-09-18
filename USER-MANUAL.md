@@ -85,10 +85,11 @@ The current Development slice supports browser-local filtering within the select
 - **Search memos** performs a case-insensitive substring match across the memo title, memo body, and current label-name projection.
 - **Color** can show all colors, memos with no color, or one exact memo color.
 - **Label** can show all labels or one exact current label name. Label matching is case-insensitive.
-- Search, color, and label constraints can be combined.
+- **Label color** can show memos linked to at least one managed Label with the selected Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, or Gray Label v2 color. The control uses text labels; users never need to identify a color swatch.
+- Search, memo color, label name, and managed Label color constraints can be combined.
 - **Clear search and filters** returns the current lifecycle view to its unfiltered state.
 
-Label color/icon/description metadata does not currently add new search/filter dimensions; the existing Label filter remains name-based. Label color/icon may appear on memo cards as supplementary presentation, while descriptions remain management-only.
+Managed Label color now provides one bounded metadata-aware filter dimension through stable Label identity. Label icon and description do not add search/filter dimensions. The existing Label filter remains name-based, Label color/icon may appear on memo cards as supplementary presentation, and descriptions remain management-only.
 
 Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, and saved views are not implemented yet.
 
@@ -137,4 +138,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, label-metadata search/filter dimensions, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
