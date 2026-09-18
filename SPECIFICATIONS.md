@@ -1,8 +1,8 @@
 # GoreeCloud Memos — Repository Specifications
 
 **Status:** Development  
-**Repository specification version:** v0.1  
-**Last updated:** 2026-09-17
+**Repository specification version:** v0.2  
+**Last updated:** 2026-09-18
 
 ## Authority
 
@@ -14,9 +14,11 @@ GoreeCloud Memos is for fast, lightweight capture. GoreeCloud Notes remains the 
 
 ## Current implementation boundary
 
-The repository currently implements a local browser-only quick-capture slice. A user can capture a memo, preserve an in-progress draft locally, store completed memos in IndexedDB, list them, and delete them. No network service is required by this slice.
+The repository currently implements a local browser-only quick-capture and organization slice. Verified local behavior includes draft recovery, IndexedDB persistence, editing/autosave, Archive/Trash recovery, memo colors, managed Label v2 identities and metadata, Label rename/delete/merge administration, memo-card Label presentation, pinning/manual pin order, four presentation modes, ephemeral bulk Label Apply/Remove, lifecycle-scoped substring search, direct memo-color/label-name/managed Label-color filters, and bounded advanced search expressions over those already verified local dimensions. No network service is required by this slice.
 
-The following remain outside the verified implementation boundary: server APIs, authentication, multi-user isolation, synchronization, conflict handling, native desktop/mobile clients, reminders, attachments, import/export, backup/recovery, administration, GoreeCloud platform-system integrations, production deployment, and Stable qualification.
+The bounded expression syntax is `color:<memo-color>`, `label:<exact-name>`, and `label-color:<managed-label-color>`; quoted values support label names containing spaces. Recognized invalid expressions produce explicit errors. This does not establish a general-purpose query language, smart filters, server-side indexing, saved views, or full roadmap search.
+
+The following remain outside the verified implementation boundary: server APIs, authentication, multi-user isolation, synchronization, conflict handling, native desktop/mobile clients, reminders, attachments, checklists, advanced expression dimensions beyond the current three local fields, full metadata/date/attachment search, smart filters, saved views, import/export, backup/recovery, broad administration, accepted GoreeCloud platform-system integrations, production deployment, and Stable qualification.
 
 ## Initial implementation constraints
 

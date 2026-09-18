@@ -1,13 +1,13 @@
 {
   "name": "@goreecloud/memos",
-  "version": "0.0.11-dev.0",
+  "version": "0.0.12-dev.0",
   "private": true,
   "description": "GoreeCloud Memos development workspace",
   "type": "module",
   "license": "AGPL-3.0-or-later",
   "engines": { "node": ">=22" },
   "scripts": {
-    "check": "node --check src/domain/label.mjs && node --check src/domain/memo.mjs && node --check src/app/memo-service.mjs && node --check src/app/label-service.mjs && node --check src/app/label-presentation.mjs && node --check src/app/presentation-preference.mjs && node --check src/app/memo-query.mjs && node --check src/storage/indexeddb-memo-store.mjs && node --check web/app.mjs && node --check web/label-admin.mjs && node --check web/bulk-labels.mjs && node --check playwright.config.mjs && node --check tests/e2e/memos.spec.mjs && node --check tests/e2e/search.spec.mjs && node --check tests/e2e/label-management.spec.mjs && node --check tests/e2e/bulk-labels.spec.mjs",
+    "check": "node --check src/domain/label.mjs && node --check src/domain/memo.mjs && node --check src/app/memo-service.mjs && node --check src/app/label-service.mjs && node --check src/app/label-presentation.mjs && node --check src/app/presentation-preference.mjs && node --check src/app/memo-query.mjs && node --check src/app/search-expression.mjs && node --check src/storage/indexeddb-memo-store.mjs && node --check web/app.mjs && node --check web/label-admin.mjs && node --check web/bulk-labels.mjs && node --check playwright.config.mjs && node --check tests/e2e/memos.spec.mjs && node --check tests/e2e/search.spec.mjs && node --check tests/e2e/label-management.spec.mjs && node --check tests/e2e/bulk-labels.spec.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test"
   },

@@ -4,6 +4,7 @@ import { buildLabelPresentations } from "../src/app/label-presentation.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
 import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
+import { parseSearchExpression } from "../src/app/search-expression.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -200,11 +201,13 @@ function hasActiveFilters() {
 }
 
 function readFilterState() {
+  const expression = parseSearchExpression(searchInput.value);
   return {
-    query: searchInput.value,
+    query: expression.query,
     color: filterColorInput.value,
     label: filterLabelInput.value,
-    labelColor: filterLabelColorInput.value
+    labelColor: filterLabelColorInput.value,
+    expression
   };
 }
 
@@ -230,9 +233,13 @@ function updateLabelFilterOptions(memos) {
   filterLabelInput.value = retained ?? "all";
 }
 
-function updateFilterStatus() {
+function updateFilterStatus(error = null) {
   const active = hasActiveFilters();
   clearFiltersButton.disabled = !active;
+  if (error) {
+    filterStatus.textContent = `Search expression error: ${error.message}`;
+    return;
+  }
   filterStatus.textContent = active
     ? "Search and filters apply only to the current memo location and are not saved."
     : "Search and filters are not saved.";
@@ -296,7 +303,22 @@ async function refresh() {
   managedLabels = labels;
   updateLabelFilterOptions(memos);
   const filtered = hasActiveFilters();
-  const visibleMemos = filterMemos(memos, readFilterState(), { managedLabels });
+  let filterState;
+  try {
+    filterState = readFilterState();
+  } catch (error) {
+    const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
+    listElement.replaceChildren();
+    const message = document.createElement("p");
+    message.className = "empty-state";
+    message.textContent = `Search expression error: ${expressionError.message}`;
+    listElement.append(message);
+    updateFilterStatus(expressionError);
+    setStatus("Search expression needs correction.");
+    return;
+  }
+
+  const visibleMemos = filterMemos(memos, filterState, { managedLabels });
   renderMemos(visibleMemos, { filtered });
   updateFilterStatus();
 

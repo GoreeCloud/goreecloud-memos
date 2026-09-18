@@ -75,7 +75,8 @@
         <div class="filter-panel" role="search" aria-label="Search and filter memos">
           <div class="filter-grid memo-filter-grid">
             <label for="memo-search">Search memos
-              <input id="memo-search" type="search" autocomplete="off" placeholder="Search title, text, or labels" />
+              <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Text or color:blue label:Work" />
+              <span id="memo-search-help">Expressions: color:, label:, label-color:. Quote values containing spaces.</span>
             </label>
             <label for="memo-filter-color">Color
               <select id="memo-filter-color">

@@ -82,16 +82,16 @@ Color is stored as memo metadata. The card shows both a visual color treatment a
 
 The current Development slice supports browser-local filtering within the selected lifecycle location: **Memos**, **Archive**, or **Trash**.
 
-- **Search memos** performs a case-insensitive substring match across the memo title, memo body, and current label-name projection.
+- **Search memos** performs a case-insensitive substring match across the memo title, memo body, and current label-name projection. The same box also recognizes bounded field expressions: `color:<memo-color>`, `label:<exact-name>`, and `label-color:<managed-label-color>`. Use quotes for label names containing spaces, for example `label:"Project Work"`.
 - **Color** can show all colors, memos with no color, or one exact memo color.
 - **Label** can show all labels or one exact current label name. Label matching is case-insensitive.
 - **Label color** can show memos linked to at least one managed Label with the selected Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, or Gray Label v2 color. The control uses text labels; users never need to identify a color swatch.
-- Search, memo color, label name, and managed Label color constraints can be combined.
+- Plain text, expression fields, memo color, label name, and managed Label color constraints can be combined. All active constraints use AND semantics.
 - **Clear search and filters** returns the current lifecycle view to its unfiltered state.
 
-Managed Label color now provides one bounded metadata-aware filter dimension through stable Label identity. Label icon and description do not add search/filter dimensions. The existing Label filter remains name-based, Label color/icon may appear on memo cards as supplementary presentation, and descriptions remain management-only.
+Managed Label color now provides one bounded metadata-aware filter dimension through stable Label identity. The advanced-expression slice exposes only already verified local dimensions: memo color, exact label name, and managed Label color. Supported memo colors are Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, Gray, plus `color:none`; managed Label color expressions use the nine palette colors. A recognized field with no value, an unsupported color, a duplicate recognized field, or an unterminated quote produces an explicit search-expression error instead of silently changing meaning. Unknown colon-containing text such as a URL remains ordinary text search. Label icon and description do not add search/filter dimensions. Label color/icon may appear on memo cards as supplementary presentation, and descriptions remain management-only.
 
-Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, and saved views are not implemented yet.
+Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, and saved views are not implemented yet.
 
 ## Presentation modes
 
@@ -138,4 +138,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.

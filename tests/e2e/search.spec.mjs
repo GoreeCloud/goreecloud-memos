@@ -97,3 +97,47 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Garden" })).toBeVisible();
 });
+
+
+test("advanced search expressions combine verified local dimensions and surface deterministic errors", async ({ page }) => {
+  await page.goto("/web/");
+
+  await captureMemo(page, {
+    title: "Expression Alpha",
+    content: "Advanced query target",
+    color: "blue",
+    labels: "Project Work, Launch"
+  });
+  await captureMemo(page, {
+    title: "Expression Garden",
+    content: "Secondary memo",
+    labels: "Home"
+  });
+
+  const projectRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Project Work") });
+  await projectRow.getByLabel("Color for Project Work").selectOption("purple");
+  await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
+  await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+
+  const search = page.getByRole("searchbox", { name: "Search memos" });
+  const memoColor = page.locator("#memo-filter-color");
+
+  await search.fill('advanced color:blue label:"Project Work" label-color:purple');
+  await expect(page.locator(".memo-card", { hasText: "Expression Alpha" })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Expression Garden" })).toHaveCount(0);
+  await expect(page.getByText("1 of 2 memos shown")).toBeVisible();
+
+  await memoColor.selectOption("green");
+  await expect(page.locator(".memo-card")).toHaveCount(0);
+
+  await memoColor.selectOption("all");
+  await search.fill("color:cyan");
+  await expect(page.locator("#filter-status")).toContainText("Search expression error: color must be one of");
+  await expect(page.getByText("Search expression needs correction.")).toBeVisible();
+  await expect(page.locator(".memo-card")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Clear search and filters" }).click();
+  await expect(search).toHaveValue("");
+  await expect(page.locator(".memo-card")).toHaveCount(2);
+  await expect(page.locator("#filter-status")).toHaveText("Search and filters are not saved.");
+});

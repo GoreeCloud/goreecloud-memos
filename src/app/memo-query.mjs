@@ -60,16 +60,29 @@ export function memoMatchesLabelColor(memo, labelColor, managedLabels = []) {
 
 export function filterMemos(
   memos,
-  { query = "", color = ALL_COLORS, label = "all", labelColor = ALL_LABEL_COLORS } = {},
+  {
+    query = "",
+    color = ALL_COLORS,
+    label = "all",
+    labelColor = ALL_LABEL_COLORS,
+    expression = null
+  } = {},
   { managedLabels = [] } = {}
 ) {
   if (!Array.isArray(memos)) throw new TypeError("memos must be an array");
+  if (expression != null && (typeof expression !== "object" || Array.isArray(expression))) {
+    throw new TypeError("expression must be an object or null");
+  }
+
   const colorsById = managedLabelColorsById(managedLabels);
   return memos.filter((memo) =>
     memoMatchesQuery(memo, query) &&
     memoMatchesColor(memo, color) &&
     memoMatchesLabel(memo, label) &&
-    memoMatchesLabelColorIndex(memo, labelColor, colorsById)
+    memoMatchesLabelColorIndex(memo, labelColor, colorsById) &&
+    (!expression || memoMatchesColor(memo, expression.color)) &&
+    (!expression || memoMatchesLabel(memo, expression.label)) &&
+    (!expression || memoMatchesLabelColorIndex(memo, expression.labelColor, colorsById))
   );
 }
 

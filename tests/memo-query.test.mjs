@@ -99,6 +99,30 @@ test("filters combine query, memo color, label name, and managed label color con
   ).map((memo) => memo.id), []);
 });
 
+test("parsed expression constraints combine with existing direct filters", () => {
+  assert.deepEqual(filterMemos(
+    memos,
+    {
+      query: "alpha",
+      color: ALL_COLORS,
+      label: "all",
+      labelColor: ALL_LABEL_COLORS,
+      expression: { color: "green", label: "work", labelColor: "green" }
+    },
+    { managedLabels }
+  ).map((memo) => memo.id), ["c"]);
+
+  assert.deepEqual(filterMemos(
+    memos,
+    {
+      query: "",
+      color: "blue",
+      expression: { color: "green", label: null, labelColor: null }
+    },
+    { managedLabels }
+  ).map((memo) => memo.id), []);
+});
+
 test("label options deduplicate case-insensitively and sort for controls", () => {
   assert.deepEqual(collectLabelOptions(memos), ["Home", "Ideas", "Launch", "Research", "Work"]);
 });
