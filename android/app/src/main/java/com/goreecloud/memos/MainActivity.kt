@@ -156,7 +156,7 @@ class MainActivity : Activity() {
                     isError = false,
                 )
             }
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             suppressDraftWrites = false
             showStatus(
                 "Local draft recovery failed. Existing files were left unchanged.",
@@ -186,7 +186,7 @@ class MainActivity : Activity() {
                 body = bodyEditor.text.toString(),
             )
             showStatus("Draft preserved locally • Sync not configured", isError = false)
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             showStatus("Draft could not be written. Existing local data was not cleared.", isError = true)
         }
     }
@@ -210,7 +210,7 @@ class MainActivity : Activity() {
 
             showStatus("Saved locally • Sync not configured", isError = false)
             renderMemos()
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             suppressDraftWrites = false
             showStatus("Memo could not be saved. The current draft remains available.", isError = true)
         }
@@ -221,7 +221,7 @@ class MainActivity : Activity() {
 
         val loaded = try {
             memoRepository.load()
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             showEmptyOrError(
                 "Saved local memos could not be read. Existing files were left unchanged.",
                 isError = true,
