@@ -36,6 +36,8 @@ The **Manage labels** panel works only with managed labels already created by me
 
 Merge and Delete require confirmation. Successful management operations reload the Development page so memo cards, search/filter options, and the management panel all reflect the committed transaction.
 
+Memo cards use the managed Label identity to show the current canonical label name. When a label has an icon or color, the card also shows the icon and a restrained color accent as supplementary cues. The label name remains visible and is the accessible label identity, so color is never required to understand which label is present. Label descriptions remain in **Manage labels** and are not shown on memo cards.
+
 Ownership, authorization, and synchronization are not implemented yet.
 
 ## Apply or remove a label from multiple memos
@@ -86,7 +88,7 @@ The current Development slice supports browser-local filtering within the select
 - Search, color, and label constraints can be combined.
 - **Clear search and filters** returns the current lifecycle view to its unfiltered state.
 
-Label color/icon/description metadata does not currently add new search/filter dimensions; the existing Label filter remains name-based.
+Label color/icon/description metadata does not currently add new search/filter dimensions; the existing Label filter remains name-based. Label color/icon may appear on memo cards as supplementary presentation, while descriptions remain management-only.
 
 Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced search expressions, date/attachment/checklist/metadata search, smart filters, and saved views are not implemented yet.
 
@@ -135,4 +137,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, label-metadata search/filter dimensions, memo-card label metadata rendering, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, label-metadata search/filter dimensions, advanced/full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
