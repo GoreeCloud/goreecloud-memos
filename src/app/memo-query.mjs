@@ -1,5 +1,6 @@
 export const ALL_COLORS = "all";
 export const NO_COLOR = "none";
+export const ALL_LABEL_COLORS = "all";
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim().toLocaleLowerCase() : "";
@@ -34,12 +35,41 @@ export function memoMatchesLabel(memo, label) {
   return Array.isArray(memo?.labels) && memo.labels.some((item) => normalizeText(item) === normalizedLabel);
 }
 
-export function filterMemos(memos, { query = "", color = ALL_COLORS, label = "all" } = {}) {
+function managedLabelColorsById(managedLabels) {
+  if (!Array.isArray(managedLabels)) throw new TypeError("managedLabels must be an array");
+  const colors = new Map();
+  for (const label of managedLabels) {
+    if (!label || typeof label !== "object" || typeof label.id !== "string") continue;
+    const id = label.id.trim();
+    if (!id) continue;
+    colors.set(id, normalizeText(label.color));
+  }
+  return colors;
+}
+
+function memoMatchesLabelColorIndex(memo, labelColor, colorsById) {
+  const normalizedColor = normalizeText(labelColor);
+  if (!normalizedColor || normalizedColor === ALL_LABEL_COLORS) return true;
+  if (!Array.isArray(memo?.labelIds)) return false;
+  return memo.labelIds.some((id) => typeof id === "string" && colorsById.get(id.trim()) === normalizedColor);
+}
+
+export function memoMatchesLabelColor(memo, labelColor, managedLabels = []) {
+  return memoMatchesLabelColorIndex(memo, labelColor, managedLabelColorsById(managedLabels));
+}
+
+export function filterMemos(
+  memos,
+  { query = "", color = ALL_COLORS, label = "all", labelColor = ALL_LABEL_COLORS } = {},
+  { managedLabels = [] } = {}
+) {
   if (!Array.isArray(memos)) throw new TypeError("memos must be an array");
+  const colorsById = managedLabelColorsById(managedLabels);
   return memos.filter((memo) =>
     memoMatchesQuery(memo, query) &&
     memoMatchesColor(memo, color) &&
-    memoMatchesLabel(memo, label)
+    memoMatchesLabel(memo, label) &&
+    memoMatchesLabelColorIndex(memo, labelColor, colorsById)
   );
 }
 

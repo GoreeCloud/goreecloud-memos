@@ -3,7 +3,7 @@ import { LabelService } from "../src/app/label-service.mjs";
 import { buildLabelPresentations } from "../src/app/label-presentation.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 import { loadPresentationMode, savePresentationMode } from "../src/app/presentation-preference.mjs";
-import { ALL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
+import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -24,6 +24,7 @@ const presentationStatus = document.querySelector("#presentation-status");
 const searchInput = document.querySelector("#memo-search");
 const filterColorInput = document.querySelector("#memo-filter-color");
 const filterLabelInput = document.querySelector("#memo-filter-label");
+const filterLabelColorInput = document.querySelector("#memo-filter-label-color");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const filterStatus = document.querySelector("#filter-status");
 
@@ -192,14 +193,18 @@ function applyMemoToCard(card, memo) {
 }
 
 function hasActiveFilters() {
-  return searchInput.value.trim().length > 0 || filterColorInput.value !== ALL_COLORS || filterLabelInput.value !== "all";
+  return searchInput.value.trim().length > 0 ||
+    filterColorInput.value !== ALL_COLORS ||
+    filterLabelInput.value !== "all" ||
+    filterLabelColorInput.value !== ALL_LABEL_COLORS;
 }
 
 function readFilterState() {
   return {
     query: searchInput.value,
     color: filterColorInput.value,
-    label: filterLabelInput.value
+    label: filterLabelInput.value,
+    labelColor: filterLabelColorInput.value
   };
 }
 
@@ -291,7 +296,7 @@ async function refresh() {
   managedLabels = labels;
   updateLabelFilterOptions(memos);
   const filtered = hasActiveFilters();
-  const visibleMemos = filterMemos(memos, readFilterState());
+  const visibleMemos = filterMemos(memos, readFilterState(), { managedLabels });
   renderMemos(visibleMemos, { filtered });
   updateFilterStatus();
 
@@ -397,10 +402,12 @@ for (const input of presentationInputs) {
 searchInput.addEventListener("input", refreshFromFilterControl);
 filterColorInput.addEventListener("change", refreshFromFilterControl);
 filterLabelInput.addEventListener("change", refreshFromFilterControl);
+filterLabelColorInput.addEventListener("change", refreshFromFilterControl);
 clearFiltersButton.addEventListener("click", () => {
   searchInput.value = "";
   filterColorInput.value = ALL_COLORS;
   filterLabelInput.value = "all";
+  filterLabelColorInput.value = ALL_LABEL_COLORS;
   refreshFromFilterControl();
   searchInput.focus();
 });

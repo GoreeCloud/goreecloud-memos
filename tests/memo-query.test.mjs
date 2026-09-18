@@ -2,11 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ALL_COLORS,
+  ALL_LABEL_COLORS,
   NO_COLOR,
   collectLabelOptions,
   filterMemos,
   memoMatchesColor,
   memoMatchesLabel,
+  memoMatchesLabelColor,
   memoMatchesQuery
 } from "../src/app/memo-query.mjs";
 
@@ -17,6 +19,7 @@ const memos = [
     content: "Launch checklist and notes",
     color: "blue",
     labels: ["Work", "Launch"],
+    labelIds: ["label-work", "label-launch"],
     state: "active"
   },
   {
@@ -25,6 +28,7 @@ const memos = [
     content: "Buy basil and tomatoes",
     color: null,
     labels: ["Home", "Ideas"],
+    labelIds: ["label-home", "label-ideas"],
     state: "active"
   },
   {
@@ -33,8 +37,17 @@ const memos = [
     content: "Alpha background material",
     color: "green",
     labels: ["Research", "work"],
+    labelIds: ["label-research", "label-work"],
     state: "archived"
   }
+];
+
+const managedLabels = [
+  { id: "label-work", name: "Work", color: "blue" },
+  { id: "label-launch", name: "Launch", color: "purple" },
+  { id: "label-home", name: "Home", color: null },
+  { id: "label-ideas", name: "Ideas", color: "purple" },
+  { id: "label-research", name: "Research", color: "green" }
 ];
 
 test("query matches title, content, and memo-local labels case-insensitively", () => {
@@ -59,10 +72,31 @@ test("label filter uses exact case-insensitive memo-local label names", () => {
   assert.equal(memoMatchesLabel(memos[1], "all"), true);
 });
 
-test("filters combine query, color, and label constraints", () => {
-  assert.deepEqual(filterMemos(memos, { query: "alpha", color: "blue", label: "work" }).map((memo) => memo.id), ["a"]);
-  assert.deepEqual(filterMemos(memos, { query: "alpha", color: "green", label: "work" }).map((memo) => memo.id), ["c"]);
-  assert.deepEqual(filterMemos(memos, { query: "alpha", color: NO_COLOR }).map((memo) => memo.id), []);
+test("managed label color filter matches any linked managed label by stable identity", () => {
+  assert.equal(memoMatchesLabelColor(memos[0], ALL_LABEL_COLORS, managedLabels), true);
+  assert.equal(memoMatchesLabelColor(memos[0], "purple", managedLabels), true);
+  assert.equal(memoMatchesLabelColor(memos[1], "purple", managedLabels), true);
+  assert.equal(memoMatchesLabelColor(memos[2], "green", managedLabels), true);
+  assert.equal(memoMatchesLabelColor(memos[2], "purple", managedLabels), false);
+  assert.equal(memoMatchesLabelColor({ labels: ["Legacy"] }, "blue", managedLabels), false);
+});
+
+test("filters combine query, memo color, label name, and managed label color constraints", () => {
+  assert.deepEqual(filterMemos(
+    memos,
+    { query: "alpha", color: "blue", label: "work", labelColor: "purple" },
+    { managedLabels }
+  ).map((memo) => memo.id), ["a"]);
+  assert.deepEqual(filterMemos(
+    memos,
+    { query: "alpha", color: "green", label: "work", labelColor: "green" },
+    { managedLabels }
+  ).map((memo) => memo.id), ["c"]);
+  assert.deepEqual(filterMemos(
+    memos,
+    { query: "alpha", color: NO_COLOR, labelColor: "purple" },
+    { managedLabels }
+  ).map((memo) => memo.id), []);
 });
 
 test("label options deduplicate case-insensitively and sort for controls", () => {
