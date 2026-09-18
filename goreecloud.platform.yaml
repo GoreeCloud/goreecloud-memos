@@ -7,7 +7,7 @@ component:
   repository: GoreeCloud/goreecloud-memos
 
 lifecycle: development
-version: '0.0.10-dev.0'
+version: '0.0.11-dev.0'
 
 supported_platforms:
   - web
@@ -116,6 +116,8 @@ evidence:
     - tests/label.test.mjs
     - tests/label-presentation.test.mjs
     - tests/e2e/label-management.spec.mjs
+    - tests/memo-query.test.mjs
+    - tests/e2e/search.spec.mjs
   release: []
 
 conformance:
