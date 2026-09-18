@@ -64,7 +64,7 @@ internal object DraftCodec {
     fun decode(raw: String): MemoDraft {
         if (raw.isBlank()) return MemoDraft()
 
-        val fields = raw.trimEnd().split("\t")
+        val fields = raw.split("\t")
         require(fields.size == 4) { "Invalid draft record." }
         require(fields[0] == VERSION) { "Unsupported draft version." }
 
