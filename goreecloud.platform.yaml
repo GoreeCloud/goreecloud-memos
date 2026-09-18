@@ -11,6 +11,7 @@ version: '0.0.13-dev.0'
 
 supported_platforms:
   - web
+  - android
 
 api:
   versions: []
@@ -40,8 +41,8 @@ platform_systems:
   glaze_ui:
     result: applicable-migration-required
     version: null
-    evidence: [BRANDING.md, web/styles.css]
-    notes: The development UI is an evolving scaffold; current Stable Glaze UI 1.5.1 consumer conformance and visual acceptance remain required.
+    evidence: [BRANDING.md, web/styles.css, android/app/src/main/java/com/goreecloud/memos/MemosGlazeStyle.kt]
+    notes: Web and Android Development presentation scaffolds target current Stable Glaze UI 1.5.1 semantics, but repository-local rendered, accessibility, representative-device/form-factor, performance, and production visual acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -108,6 +109,7 @@ compatibility:
     - glaze-ui==1.5.1
   provides:
     - goreecloud-memos-local-capture-dev-v1
+    - goreecloud-memos-android-local-capture-dev-v1
 
 evidence:
   acceptance_tests:
@@ -122,6 +124,9 @@ evidence:
     - tests/saved-view-service.test.mjs
     - tests/e2e/search.spec.mjs
     - tests/e2e/memos.spec.mjs
+    - android/app/src/test/java/com/goreecloud/memos/MemoCodecTest.kt
+    - android/app/src/test/java/com/goreecloud/memos/LocalMemoRepositoryTest.kt
+    - android/app/src/test/java/com/goreecloud/memos/LocalDraftRepositoryTest.kt
   release: []
 
 conformance:
@@ -133,9 +138,11 @@ conformance:
     - SECURITY.md
     - 'PRIVACY POLICY.md'
     - goreecloud.platform.yaml
+    - android/app/src/main/AndroidManifest.xml
+    - android/app/src/main/java/com/goreecloud/memos/MainActivity.kt
   blockers:
     - No production server, account, synchronization, backup/recovery, or administration implementation exists.
     - Integral Platform System runtime integrations and acceptance are not established.
     - Current Stable Glaze UI 1.5.1 consumer conformance and visual acceptance are not established.
-    - Native desktop and mobile clients are not implemented.
+    - Native desktop is not implemented; the Android client is only a local Development foundation and lacks synchronization, account/Identity, attachment, reminder, share/widget, biometric-lock, platform-system acceptance, representative-device acceptance, production signing, and release qualification.
     - Production security, privacy, observability, recovery, and Stable qualification evidence do not exist.
