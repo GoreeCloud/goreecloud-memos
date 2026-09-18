@@ -1,5 +1,9 @@
 import { migrateMemoRecord } from "../domain/memo.mjs";
 import {
+  createSavedView as buildSavedView,
+  migrateSavedViewRecord
+} from "../domain/saved-view.mjs";
+import {
   createLabel,
   labelNameKey,
   MAX_LABELS_PER_MEMO,
@@ -10,14 +14,15 @@ import {
 } from "../domain/label.mjs";
 
 export const DATABASE_NAME = "goreecloud-memos-local";
-export const DATABASE_VERSION = 4;
+export const DATABASE_VERSION = 5;
 const MEMO_STORE_NAME = "memos";
 const LABEL_STORE_NAME = "labels";
 const MEMO_LABEL_STORE_NAME = "memoLabels";
+const SAVED_VIEW_STORE_NAME = "savedViews";
 
 function defaultIdFactory() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  throw new Error("A cryptographically strong UUID generator is required for managed labels");
+  throw new Error("A cryptographically strong UUID generator is required for local managed identities");
 }
 
 function requestResult(request) {
@@ -79,7 +84,14 @@ function createStores(database, transaction) {
     memoLabelStore.createIndex("memoId", "memoId", { unique: false });
     memoLabelStore.createIndex("labelId", "labelId", { unique: false });
   } else memoLabelStore = transaction.objectStore(MEMO_LABEL_STORE_NAME);
-  return { memoStore, labelStore, memoLabelStore };
+
+  let savedViewStore;
+  if (!database.objectStoreNames.contains(SAVED_VIEW_STORE_NAME)) {
+    savedViewStore = database.createObjectStore(SAVED_VIEW_STORE_NAME, { keyPath: "id" });
+    savedViewStore.createIndex("nameKey", "nameKey", { unique: true });
+  } else savedViewStore = transaction.objectStore(SAVED_VIEW_STORE_NAME);
+
+  return { memoStore, labelStore, memoLabelStore, savedViewStore };
 }
 
 function migrateToManagedLabels(memoStore, labelStore, memoLabelStore, { idFactory, clock }) {
@@ -116,7 +128,7 @@ function openDatabase({ idFactory, clock }) {
   const request = globalThis.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
   request.addEventListener("upgradeneeded", (event) => {
     const stores = createStores(request.result, request.transaction);
-    if (event.oldVersion > 0 && event.oldVersion < DATABASE_VERSION) {
+    if (event.oldVersion > 0 && event.oldVersion < 4) {
       migrateToManagedLabels(stores.memoStore, stores.labelStore, stores.memoLabelStore, { idFactory, clock });
     }
   });
@@ -256,6 +268,47 @@ export class IndexedDbMemoStore {
     const relations = await requestResult(transaction.objectStore(MEMO_LABEL_STORE_NAME).index("memoId").getAll(id));
     await transactionComplete(transaction);
     return relations.map((relation) => relation.labelId);
+  }
+
+  async listSavedViews() {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(SAVED_VIEW_STORE_NAME, "readonly");
+    const records = await requestResult(transaction.objectStore(SAVED_VIEW_STORE_NAME).getAll());
+    await transactionComplete(transaction);
+    return records
+      .map(migrateSavedViewRecord)
+      .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+  }
+
+  async createSavedView(name, filters, createdAt = this.#clock()) {
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(SAVED_VIEW_STORE_NAME, "readwrite");
+    const store = transaction.objectStore(SAVED_VIEW_STORE_NAME);
+    const view = buildSavedView({
+      id: this.#idFactory(),
+      name,
+      filters,
+      createdAt
+    });
+    const collision = await requestResult(store.index("nameKey").get(view.nameKey));
+    if (collision) throw new Error("a saved view with that name already exists");
+    store.put(view);
+    await transactionComplete(transaction);
+    return view;
+  }
+
+  async deleteSavedView(id) {
+    if (typeof id !== "string" || id.trim().length === 0) {
+      throw new TypeError("saved view id must be a non-empty string");
+    }
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(SAVED_VIEW_STORE_NAME, "readwrite");
+    const store = transaction.objectStore(SAVED_VIEW_STORE_NAME);
+    const current = await requestResult(store.get(id.trim()));
+    if (!current) throw new Error("saved view not found");
+    store.delete(id.trim());
+    await transactionComplete(transaction);
+    return migrateSavedViewRecord(current);
   }
 
   async bulkUpdateLabel(memoIds, labelId, mode, changedAt = this.#clock()) {
