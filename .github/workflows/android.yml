@@ -55,9 +55,19 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Lint, test, and build exact candidate
+      - name: Run Android unit tests
         shell: bash
-        run: gradle -p android --no-daemon lintDebug testDebugUnitTest assembleDebug
+        run: gradle -p android --no-daemon testDebugUnitTest --stacktrace
+
+      - name: Run Android lint
+        if: always()
+        shell: bash
+        run: gradle -p android --no-daemon lintDebug --stacktrace
+
+      - name: Assemble Android Development APK
+        if: always()
+        shell: bash
+        run: gradle -p android --no-daemon assembleDebug --stacktrace
 
       - name: Verify Development identity and fail-closed network boundary
         shell: bash
