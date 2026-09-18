@@ -119,6 +119,29 @@
           </div>
         </div>
 
+        <div class="filter-panel" aria-labelledby="saved-view-heading">
+          <h3 id="saved-view-heading">Saved views</h3>
+          <p class="muted">Save or restore the current search and direct filter controls in this browser. Saved views do not change the current Memos, Archive, or Trash location.</p>
+          <div class="filter-grid saved-view-grid">
+            <label for="saved-view-name">New view name
+              <input id="saved-view-name" maxlength="80" autocomplete="off" placeholder="Work focus" />
+            </label>
+            <button id="saved-view-save" type="button">Save current view</button>
+            <label for="saved-view-select">Saved view
+              <select id="saved-view-select">
+                <option value="">Choose saved view…</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-actions">
+            <output id="saved-view-status" class="muted" aria-live="polite">Saved views stay only in this browser.</output>
+            <div class="saved-view-actions">
+              <button id="saved-view-apply" type="button" disabled>Apply saved view</button>
+              <button id="saved-view-delete" type="button" class="danger" disabled>Delete saved view</button>
+            </div>
+          </div>
+        </div>
+
         <div class="filter-panel" aria-labelledby="bulk-label-heading">
           <h3 id="bulk-label-heading">Bulk labels</h3>
           <p class="muted">Select currently visible memos, then apply or remove one existing managed label. Selection is temporary and clears when this memo list rerenders.</p>

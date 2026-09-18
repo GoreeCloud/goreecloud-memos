@@ -91,7 +91,21 @@ The current Development slice supports browser-local filtering within the select
 
 Managed Label color now provides one bounded metadata-aware filter dimension through stable Label identity. The advanced-expression slice exposes only already verified local dimensions: memo color, exact label name, and managed Label color. Supported memo colors are Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, Gray, plus `color:none`; managed Label color expressions use the nine palette colors. A recognized field with no value, an unsupported color, a duplicate recognized field, or an unterminated quote produces an explicit search-expression error instead of silently changing meaning. Unknown colon-containing text such as a URL remains ordinary text search. Label icon and description do not add search/filter dimensions. Label color/icon may appear on memo cards as supplementary presentation, and descriptions remain management-only.
 
-Search terms and filter selections are intentionally not saved, synchronized, or added to recent-search history in this slice. Reloading the page returns the controls to their defaults. Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, and saved views are not implemented yet.
+Search terms and active filter selections are intentionally not persisted automatically or added to recent-search history. Reloading the page returns the active controls to their defaults unless you explicitly apply a Saved View.
+
+## Saved views
+
+Saved views let you explicitly preserve the current search/filter state in this browser.
+
+1. Set **Search memos**, **Color**, **Label**, and **Label color** to the combination you want.
+2. Enter a unique **New view name**.
+3. Select **Save current view**.
+4. After a reload, choose that name from **Saved view** and select **Apply saved view** to restore the saved search/direct-filter controls in the current Memos, Archive, or Trash location.
+5. Select **Delete saved view** and confirm to remove only that Saved View. Memos are not deleted.
+
+Saved View names are unique case-insensitively. A Saved View stores the raw Search memos value plus the direct memo-color, label-name, and managed Label-color selections. The search expression must be valid before it can be saved. Saved Views do **not** store the current lifecycle location, presentation mode, ordering, pinning, icon/color decoration, or a default-view setting, and they do not synchronize to another browser or device. If a Saved View requires an exact label that is not available in the current lifecycle location, applying it fails explicitly rather than silently removing that filter.
+
+Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, synchronized Saved Views, saved-view ordering/pinning/styling/default behavior, and recent-search history are not implemented yet.
 
 ## Presentation modes
 
@@ -107,19 +121,20 @@ Select **Move to Trash** from Memos or Archive. Open **Trash** to view trashed m
 
 ## Data migration
 
-The local memo record format and IndexedDB database are currently version 4. Version 4 introduces managed local Label identity records and a Memo–Label relation store while retaining the current label-name projection for UI/search compatibility.
+The local Memo record format remains schema version 4, managed Label records remain schema version 2, Saved Views use schema version 1, and the browser IndexedDB database is version 5. Database v5 adds the `savedViews` store while preserving the existing Memo/Label stores and relationships.
 
 When the application opens older databases:
 
-- **v1 → v4:** memo content/lifecycle data is normalized; labels and label IDs begin empty.
-- **v2 → v4:** existing pin state is preserved with deterministic initial pin order; labels and label IDs begin empty.
-- **v3 → v4:** existing memo-local label names are deduplicated case-insensitively across the local library, assigned stable Label UUIDs, related to memos through Memo–Label rows, and written back with aligned `labelIds` plus canonical label-name projections. Existing memo content, timestamps, color, pin state/order, and lifecycle state are preserved.
+- **v1 → v5:** memo content/lifecycle data is normalized; labels and label IDs begin empty; managed-label and Saved View stores are established.
+- **v2 → v5:** existing pin state is preserved with deterministic initial pin order; labels and label IDs begin empty; managed-label and Saved View stores are established.
+- **v3 → v5:** existing memo-local label names are deduplicated case-insensitively across the local library, assigned stable Label UUIDs, related to memos through Memo–Label rows, and written back with aligned `labelIds` plus canonical label-name projections. Existing memo content, timestamps, color, pin state/order, and lifecycle state are preserved; the Saved View store begins empty.
+- **v4 → v5:** existing Memo v4 records, Label v2 identities/metadata, and Memo–Label relations are preserved as-is; only the new empty `savedViews` store and its unique case-insensitive name index are added.
 
-Managed Label records are currently schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, Merge, and bulk label Apply/Remove operate inside the existing IndexedDB v4 stores and do not require another database-version migration.
+Managed Label records remain schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, Merge, and bulk label Apply/Remove continue to use the existing Memo/Label stores. Saved View records use schema version 1 in the v5 `savedViews` store.
 
 ## Data boundary
 
-This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, drafts, and the presentation preference. Search terms, filter selections, and bulk memo selection are not persisted. Operational backup and restore are not implemented.
+This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, Saved Views, drafts, and the presentation preference. Active search terms, active filter selections, and bulk memo selection are not persisted automatically; only explicitly created Saved Views preserve filter-state snapshots. Operational backup and restore are not implemented.
 
 ## Validation commands
 
@@ -138,4 +153,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, saved views, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, Saved View synchronization/order/pin/icon/color/default-view behavior beyond named local filter snapshots, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.

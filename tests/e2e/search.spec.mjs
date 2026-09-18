@@ -141,3 +141,76 @@ test("advanced search expressions combine verified local dimensions and surface 
   await expect(page.locator(".memo-card")).toHaveCount(2);
   await expect(page.locator("#filter-status")).toHaveText("Search and filters are not saved.");
 });
+
+
+test("named saved views persist locally and restore the current query and direct filters", async ({ page }) => {
+  await page.goto("/web/");
+
+  await captureMemo(page, {
+    title: "Saved Alpha",
+    content: "Saved view target",
+    color: "blue",
+    labels: "Project Work"
+  });
+  await captureMemo(page, {
+    title: "Saved Garden",
+    content: "Other memo",
+    color: "green",
+    labels: "Home"
+  });
+
+  const projectRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Project Work") });
+  await projectRow.getByLabel("Color for Project Work").selectOption("purple");
+  await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
+  await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+
+  const search = page.getByRole("searchbox", { name: "Search memos" });
+  const memoColor = page.locator("#memo-filter-color");
+  const label = page.locator("#memo-filter-label");
+  const labelColor = page.locator("#memo-filter-label-color");
+
+  await search.fill('saved color:blue');
+  await memoColor.selectOption("blue");
+  await label.selectOption("Project Work");
+  await labelColor.selectOption("purple");
+  await expect(page.locator(".memo-card", { hasText: "Saved Alpha" })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Saved Garden" })).toHaveCount(0);
+
+  await page.locator("#saved-view-name").fill("Blue project");
+  await page.getByRole("button", { name: "Save current view" }).click();
+  await expect(page.locator("#saved-view-status")).toHaveText('Saved view "Blue project" in this browser.');
+  await expect(page.locator("#saved-view-select")).toHaveValue(/.+/);
+
+  await page.locator("#saved-view-name").fill("blue PROJECT");
+  await page.getByRole("button", { name: "Save current view" }).click();
+  await expect(page.locator("#saved-view-status")).toHaveText("a saved view with that name already exists");
+  await expect(page.locator("#saved-view-select").locator("option", { hasText: "Blue project" })).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Clear search and filters" }).click();
+  await expect(page.locator(".memo-card")).toHaveCount(2);
+
+  await page.reload();
+  await expect(search).toHaveValue("");
+  await expect(memoColor).toHaveValue("all");
+  await expect(label).toHaveValue("all");
+  await expect(labelColor).toHaveValue("all");
+  await expect(page.locator("#saved-view-select").locator("option", { hasText: "Blue project" })).toHaveCount(1);
+
+  await page.locator("#saved-view-select").selectOption({ label: "Blue project" });
+  await page.getByRole("button", { name: "Apply saved view" }).click();
+  await expect(search).toHaveValue('saved color:blue');
+  await expect(memoColor).toHaveValue("blue");
+  await expect(label).toHaveValue("Project Work");
+  await expect(labelColor).toHaveValue("purple");
+  await expect(page.locator(".memo-card", { hasText: "Saved Alpha" })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Saved Garden" })).toHaveCount(0);
+  await expect(page.locator("#saved-view-status")).toHaveText('Applied saved view "Blue project" in the current memo location.');
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Delete saved view" }).click();
+  await expect(page.locator("#saved-view-status")).toHaveText('Deleted saved view "Blue project".');
+  await expect(page.locator("#saved-view-select").locator("option", { hasText: "Blue project" })).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.locator("#saved-view-select").locator("option", { hasText: "Blue project" })).toHaveCount(0);
+});

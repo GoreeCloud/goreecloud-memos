@@ -15,7 +15,7 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Optional memo color metadata using a curated local palette.
 - Managed local Label identities with stable UUIDs and a Memo–Label relation layer, while retaining the current label-name projection for UI/search compatibility.
 - Browser-local managed-label administration for transactional rename, explicit delete, and merge. These operations update affected Memo–Label relations and memo label-name/ID projections atomically; deleting a label does not delete its memos.
-- Browser-local managed-label metadata editing for an optional curated color, optional icon text, and optional description. Existing Label v1 records normalize to Label schema v2 without changing IndexedDB database version 4.
+- Browser-local managed-label metadata editing for an optional curated color, optional icon text, and optional description. Existing Label v1 records normalize to Label schema v2 without a Label-specific database-version migration.
 - Memo cards join stable Label identities to current Label v2 metadata and present optional icon/color as supplementary cues while always keeping the canonical label name visible; descriptions remain in Manage labels.
 - Ephemeral memo multi-selection with browser-local bulk Apply label / Remove label actions for existing managed Labels. Each bulk action validates the full selection before one atomic IndexedDB transaction and updates changed memo organization timestamps together.
 - Per-memo label input with trimming, case-insensitive deduplication, and identity reuse by normalized name.
@@ -23,8 +23,9 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
 - Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
 - Ephemeral browser-local substring search across memo title, body, and label-name projection, plus combinable exact memo-color, label-name, and managed Label-color filters within the current lifecycle view. The same search box also supports bounded advanced expressions for `color:`, `label:`, and `label-color:`, including quoted label values, with explicit validation errors for malformed recognized expressions.
-- Versioned local memo schema v4 / IndexedDB database v4 with tested v1 → v4, v2 → v4, and v3 → v4 migration paths.
-- Framework-independent memo/label domain and application-service modules.
+- User-named browser-local Saved View v1 records that persist and restore the current raw search text plus direct memo-color, label-name, and managed Label-color controls. Saved views are unique by case-insensitive name, do not change lifecycle location, and can be explicitly deleted.
+- Versioned local Memo schema v4 / Label schema v2 / Saved View schema v1 on IndexedDB database v5, with tested v1/v2/v3 → v5 migration and a dedicated v4 → v5 preservation path.
+- Framework-independent memo/label/saved-view domain and application-service modules.
 - Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
 
 ## Run locally
