@@ -48,7 +48,7 @@ class MainActivity : Activity() {
 
     private fun buildSurface() {
         val scroll = ScrollView(this).apply {
-            fillViewport = true
+            isFillViewport = true
             contentDescription = "GoreeCloud Memos local Development workspace"
         }
         glaze.styleCanvas(scroll)
@@ -59,9 +59,9 @@ class MainActivity : Activity() {
         }
         scroll.addView(
             root,
-            ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.WRAP_CONTENT,
+            android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
             ),
         )
 
