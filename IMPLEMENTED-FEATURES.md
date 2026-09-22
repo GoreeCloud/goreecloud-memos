@@ -3,13 +3,13 @@
 **Record type:** Repository implemented-feature inventory  
 **Repository:** `GoreeCloud/goreecloud-memos`  
 **Lifecycle:** Development / nonconformant  
-**Migration state:** Candidate on `migration/repository-feature-records-20260922`; authoritative only after accepted merge to `main`.  
-**Evidence baseline:** authoritative `main` at `d86dfb981830dc9941ab7b009fbbe18d818c3a63`.  
+**Migration state:** Complete and authoritative on `main`; PR #20 merged as `7985fed0bad91b5a04e8a586aefda6089086a120`, exact-head and exact-main validation passed, root `FEATURE-ROADMAP.md` is absent, and the mapped legacy Drive roadmap was permanently retired and verified absent on September 22, 2026.  
+**Runtime evidence baseline:** `d86dfb981830dc9941ab7b009fbbe18d818c3a63`; PR #20 and this reconciliation change governance/documentation only and do not promote runtime state.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Interpretation
 
-This record contains capabilities verified in accepted repository state. The retired Drive roadmap is a planning source and is not implementation evidence. Memos remains Development; browser/Android source, CI, and emulator evidence do not establish a production server, synchronization, production signing, Release Candidate, production acceptance, or Stable qualification.
+This record contains capabilities verified in accepted repository state. The retired Drive roadmap is historical migration provenance only and is not implementation evidence or current authority. Memos remains Development; browser/Android source, CI, and emulator evidence do not establish a production server, synchronization, production signing, Release Candidate, production acceptance, or Stable qualification.
 
 ## Implemented Development capabilities
 
@@ -57,8 +57,8 @@ Authoritative `main` does not establish:
 - complete smart-filter/search coverage or synchronized Saved Views;
 - import/export, round-trip portability, operational backup, or tested recovery;
 - multi-user self-hosting, optional sharing, Notes handoff, or server administration;
-- accepted Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, or Identity runtime integration;
-- accepted whole-application Glaze UI conformance, representative-device accessibility/performance acceptance, production signing/provenance, Release Candidate, production, or Stable qualification.
+- accepted Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability runtime integration;
+- accepted whole-application GLAZE UI V1.6 conformance, representative-device accessibility/performance acceptance, production signing/provenance, Release Candidate, production, or Stable qualification.
 
 ## Maintenance rule
 

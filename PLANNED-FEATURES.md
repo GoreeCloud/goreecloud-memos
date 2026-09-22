@@ -3,14 +3,14 @@
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/goreecloud-memos`  
 **Lifecycle:** Development / nonconformant  
-**Migration state:** Candidate on `migration/repository-feature-records-20260922`; authoritative only after accepted merge to `main`.  
-**Evidence baseline:** authoritative `main` at `d86dfb981830dc9941ab7b009fbbe18d818c3a63`.  
-**Migration source:** `GoreeCloud/Feature Roadmap/GoreeCloud Memos/goreecloud-memos.md` (Drive file ID `1l-A6Hp88v7Tuv1llWUN3KwgKaHB6-Huv`, roadmap v0.5).  
+**Migration state:** Complete and authoritative on `main`; PR #20 merged as `7985fed0bad91b5a04e8a586aefda6089086a120`, exact-head and exact-main validation passed, root `FEATURE-ROADMAP.md` is absent, and the mapped legacy Drive roadmap was permanently retired and verified absent on September 22, 2026.  
+**Runtime evidence baseline:** `d86dfb981830dc9941ab7b009fbbe18d818c3a63`; repository feature/changelog migration and retirement reconciliation do not promote runtime state.  
+**Migration provenance:** Former Drive roadmap v0.5, `GoreeCloud/Feature Roadmap/GoreeCloud Memos/goreecloud-memos.md`, former file ID `1l-A6Hp88v7Tuv1llWUN3KwgKaHB6-Huv`; permanently retired after successful repository migration and retained only as historical provenance in Git/changelog evidence.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Interpretation
 
-The Drive roadmap is a planning record whose own metadata states that implementation status is not established by the specification. This file preserves all 52 numbered roadmap capability areas while classifying them against accepted repository evidence. `IMPLEMENTED-FEATURES.md` controls implemented state. A roadmap item remains here when any material part is planned, partial, blocked, deferred, or acceptance-gated.
+The retired Drive roadmap was a planning migration source whose metadata explicitly stated that implementation status was not established by the specification. This repository-native file preserves and dispositions all 52 numbered roadmap capability areas against accepted repository evidence. `IMPLEMENTED-FEATURES.md` controls implemented state. A roadmap item remains here when any material part is planned, partial, blocked, deferred, or acceptance-gated.
 
 The product boundary remains **Open → type → done.** Memos is quick capture; GoreeCloud Notes remains the deeper knowledge-management product.
 
@@ -55,7 +55,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 35. Multi-User Self-Hosting | Planned | No accepted multi-user server/account isolation runtime is established. |
 | 36. Optional Sharing | Planned | No user-to-user/public sharing runtime is established. |
 | 37. GoreeCloud Notes Integration | Planned | No accepted Send to GoreeCloud Notes workflow is established. |
-| 38. Glaze UI | Partial | Repository design targets Glaze semantics, but accepted whole-application rendered/accessibility/visual conformance is not established. |
+| 38. GLAZE UI | Partial | Repository design targets GLAZE semantics, but accepted whole-application V1.6 rendered/accessibility/visual conformance is not established. |
 | 39. Accessibility | Partial | Browser accessibility foundations and Android heading semantics exist. Full screen-reader, large-text/reflow, forced-colors, reduced-effects, RTL/localization, representative-device, and human acceptance remain open. |
 | 40. Keyboard-First Experience | Partial | Native keyboard controls exist for current browser interactions/presentation modes. Full shortcut system and configuration remain open. |
 | 41. Command Interface | Planned | No command palette/interface is established. |
@@ -68,7 +68,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 48. Reliability Requirements | Partial | Local migration/corruption fallback and regression coverage exist. Server/sync/import/export/attachment/storage-exhaustion reliability remains open. |
 | 49. Feature Boundary | Ongoing product constraint | Keep Memos focused on quick capture rather than duplicating GoreeCloud Notes. |
 | 50. Development Roadmap | In progress | Phase 0 audit and portions of Phase 1/Web/Mobile local foundations are implemented; synchronization, full web, desktop, mobile, portability/recovery, and expanded productivity phases remain open. |
-| 51. Initial Stable Cross-Platform Release Criteria | Planned release gate | All listed cross-platform synchronization, portability, recovery, isolation, accessibility, performance, and Glaze acceptance criteria remain open. |
+| 51. Initial Stable Cross-Platform Release Criteria | Planned release gate | All listed cross-platform synchronization, portability, recovery, isolation, accessibility, performance, and GLAZE acceptance criteria remain open. |
 | 52. Final Product Direction | Ongoing product direction | Preserve Open → type → done while advancing only evidence-backed capabilities. |
 
 ## Priority open work
@@ -84,18 +84,18 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 
 ### P0 — Privacy, security, and multi-user self-hosting
 - Implement server authentication/session/device management, secure recovery, rate limiting, attachment authorization, per-user isolation, administrative role separation, security logging, registration policy, and applicable local locks.
-- Independently validate applicable GoreeCloud platform-system relationships; source-local safeguards do not manufacture external authority.
+- Independently validate all applicable GoreeCloud Integral Platform System relationships; source-local safeguards do not manufacture external authority.
 
 ### P0 — Cross-platform application acceptance
 - Complete the web experience, native desktop client, and connected/synchronized mobile client against common documented server interfaces.
-- Complete application-specific Glaze UI, accessibility, large-text/reflow, reduced-effects, representative-device/form-factor, performance, and human visual acceptance.
+- Complete application-specific GLAZE UI V1.6, accessibility, large-text/reflow, reduced-effects, representative-device/form-factor, performance, and human visual acceptance.
 
 ### P1 — Remaining product capabilities
 - Add checklists, attachments, link handling, reminders, broader quick actions, version history, command interface, expanded preferences, optional sharing/locked memos, Notes handoff, and server administration only through bounded, evidence-backed increments.
 
 ## Repository-governance obligations
 - Do not recreate root `FEATURE-ROADMAP.md` after verified migration retirement.
-- After the migration and deletion gates pass, do not recreate, synchronize, mirror, or retain a Memos feature-roadmap or changelog master in Google Drive.
+- Do not recreate, synchronize, mirror, or retain a Memos feature-roadmap or changelog master in Google Drive.
 - Keep `IMPLEMENTED-FEATURES.md`, this file, and `CHANGELOGS.md` synchronized with accepted `main` truth.
 - Preserve historical/candidate evidence without promoting it into implemented state.
 
