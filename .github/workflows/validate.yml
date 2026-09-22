@@ -105,7 +105,9 @@ jobs:
             README.md
             SPECIFICATIONS.md
             FEATURES.md
-            FEATURE-ROADMAP.md
+            IMPLEMENTED-FEATURES.md
+            PLANNED-FEATURES.md
+            CHANGELOGS.md
             BENEFITS.md
             COMPETITIVE-OBJECTIVES.md
             BRANDING.md
@@ -121,3 +123,4 @@ jobs:
           for path in "${required[@]}"; do
             test -s "$path" || { echo "Missing or empty required file: $path"; exit 1; }
           done
+          test ! -e FEATURE-ROADMAP.md || { echo "Retired file must be absent: FEATURE-ROADMAP.md"; exit 1; }

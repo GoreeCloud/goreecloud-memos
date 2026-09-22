@@ -70,12 +70,14 @@ The Android artifact is local-only Development evidence. It is not production si
 
 - [Specifications](SPECIFICATIONS.md)
 - [Current features](FEATURES.md)
-- [Feature roadmap](FEATURE-ROADMAP.md)
+- [Implemented feature inventory](IMPLEMENTED-FEATURES.md)
+- [Planned features](PLANNED-FEATURES.md)
+- [Changelogs](CHANGELOGS.md)
 - [Architecture](docs/architecture.md)
 - [Data model](docs/data-model.md)
 - [Phase 0 audit](docs/phase-0-audit.md)
 
-The governing product roadmap is maintained in GoreeCloud Drive at `GoreeCloud/Feature Roadmap/GoreeCloud Memos/goreecloud-memos.md`. Repository roadmap material must remain synchronized with that authority.
+`IMPLEMENTED-FEATURES.md`, `PLANNED-FEATURES.md`, and `CHANGELOGS.md` are the repository-native feature-state and change-history authorities. Historical Drive roadmap material is migration-source provenance only and must not be used as a parallel or synchronized authority after verified retirement.
 
 ## License
 
