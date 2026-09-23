@@ -5,6 +5,7 @@ import java.nio.file.Files
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class LocalDraftRepositoryTest {
@@ -33,6 +34,48 @@ class LocalDraftRepositoryTest {
         val recovered = LocalDraftRepository(root).load()
         assertTrue(recovered.recoveredFromBackup)
         assertEquals(MemoDraft("First", "draft", 1L), recovered.draft)
+    }
+
+    @Test
+    fun recoveredDraftSavePreservesReadableBackupInsteadOfCopyingCorruption() {
+        val root = newRoot()
+        val repository = LocalDraftRepository(root)
+        repository.save("Earlier", "safe", now = 1L)
+        repository.save("Later", "primary", now = 2L)
+        File(root, LocalDraftRepository.DRAFT_FILE).writeText("corrupted-primary")
+
+        val recovered = repository.load()
+        assertTrue(recovered.recoveredFromBackup)
+        assertEquals("Earlier", recovered.draft.title)
+
+        repository.save("Fresh", "after recovery", now = 3L)
+        val reloaded = LocalDraftRepository(root).load()
+        assertFalse(reloaded.recoveredFromBackup)
+        assertEquals(MemoDraft("Fresh", "after recovery", 3L), reloaded.draft)
+
+        File(root, LocalDraftRepository.DRAFT_FILE).writeText("corrupted-again")
+        val secondRecovery = LocalDraftRepository(root).load()
+        assertTrue(secondRecovery.recoveredFromBackup)
+        assertEquals(MemoDraft("Earlier", "safe", 1L), secondRecovery.draft)
+    }
+
+    @Test
+    fun unreadablePrimaryAndBackupRejectLoadAndSaveWithoutOverwritingEither() {
+        val root = newRoot()
+        val repository = LocalDraftRepository(root)
+        repository.save("Earlier", "safe", now = 1L)
+        repository.save("Later", "primary", now = 2L)
+        val primary = File(root, LocalDraftRepository.DRAFT_FILE)
+        val backup = File(root, "${LocalDraftRepository.DRAFT_FILE}.bak")
+        primary.writeText("broken-primary")
+        backup.writeText("broken-backup")
+
+        assertThrows(IllegalStateException::class.java) { repository.load() }
+        assertThrows(IllegalStateException::class.java) {
+            repository.save("Must not save", "unsafe", now = 3L)
+        }
+        assertEquals("broken-primary", primary.readText())
+        assertEquals("broken-backup", backup.readText())
     }
 
     private fun newRoot(): File =
