@@ -50,12 +50,17 @@ def find_text(nodes: list[ET.Element], value: str) -> bool:
     return any(n.get("text") == value for n in nodes)
 
 
-def wait_for(description: str, timeout_seconds: float = 35.0) -> ET.Element:
+def wait_for(
+    description: str, timeout_seconds: float = 35.0, *, scroll: bool = False
+) -> ET.Element:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
         node = find_by_description(ui_nodes(), description)
         if node is not None:
             return node
+        if scroll:
+            # Only scroll the app's workspace; do not press Back on a fresh launch.
+            scroll_toward_saved()
         time.sleep(1)
     raise AssertionError(f"Expected control not visible: {description}")
 
@@ -182,8 +187,9 @@ def main() -> None:
     wait_for_editors(TITLE, BODY)
     print("PASS: local draft and local-only status survived force-stop/relaunch")
 
-    adb("shell", "input", "keyevent", "KEYCODE_BACK")
-    tap(wait_for("Save memo locally"))
+    # The IME may already be closed after a fresh launch; an unconditional Back
+    # can leave the app instead of revealing the Save control.
+    tap(wait_for("Save memo locally", scroll=True))
     wait_for_draft_cleared()
     wait_for_saved_card()
     force_stop(restored_pid)
