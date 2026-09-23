@@ -18,8 +18,13 @@ class LocalMemoRepository(root: File) {
             return if (backup == null) {
                 MemoLoadResult(emptyList(), recoveredFromBackup = false)
             } else {
+                check(backup.isNotBlank()) { "Previous memo generation is empty; refusing unsafe recovery." }
                 MemoLoadResult(MemoCodec.decode(backup), recoveredFromBackup = true)
             }
+        }
+
+        if (primary.isBlank()) {
+            return recoverFromBackup(IllegalStateException("Primary memo generation is empty."))
         }
 
         return try {
@@ -41,6 +46,7 @@ class LocalMemoRepository(root: File) {
         )
 
         return try {
+            check(backup.isNotBlank()) { "Previous memo generation is empty." }
             MemoLoadResult(MemoCodec.decode(backup), recoveredFromBackup = true)
         } catch (backupFailure: Exception) {
             primaryFailure.addSuppressed(backupFailure)

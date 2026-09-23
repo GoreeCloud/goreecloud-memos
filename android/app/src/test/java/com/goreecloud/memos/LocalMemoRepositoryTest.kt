@@ -94,6 +94,44 @@ class LocalMemoRepositoryTest {
         assertEquals("broken-backup", backup.readText())
     }
 
+    @Test
+    fun emptyTruncatedPrimaryRecoversBackupWithoutCopyingDataLoss() {
+        val root = newRoot()
+        val repository = LocalMemoRepository(root)
+        repository.create("Earlier", "safe", now = 1L, id = "memo-1")
+        repository.create("Later", "primary", now = 2L, id = "memo-2")
+        val primary = File(root, LocalMemoRepository.MEMO_FILE)
+        primary.writeText("")
+
+        val recovered = repository.load()
+        assertTrue(recovered.recoveredFromBackup)
+        assertEquals(listOf("memo-1"), recovered.records.map { it.id })
+
+        repository.create("Fresh", "safe", now = 3L, id = "memo-3")
+        assertEquals(listOf("memo-1", "memo-3"), LocalMemoRepository(root).load().records.map { it.id })
+        primary.writeText("")
+        assertEquals(listOf("memo-1"), LocalMemoRepository(root).load().records.map { it.id })
+    }
+
+    @Test
+    fun emptyPrimaryAndBackupRejectMutationWithoutOverwritingEither() {
+        val root = newRoot()
+        val repository = LocalMemoRepository(root)
+        repository.create("Earlier", "safe", now = 1L, id = "memo-1")
+        repository.create("Later", "primary", now = 2L, id = "memo-2")
+        val primary = File(root, LocalMemoRepository.MEMO_FILE)
+        val backup = File(root, "${LocalMemoRepository.MEMO_FILE}.bak")
+        primary.writeText("")
+        backup.writeText("\n")
+
+        assertThrows(IllegalStateException::class.java) { repository.load() }
+        assertThrows(IllegalStateException::class.java) {
+            repository.create("Unsafe", "must fail", now = 3L, id = "memo-3")
+        }
+        assertEquals("", primary.readText())
+        assertEquals("\n", backup.readText())
+    }
+
     private fun newRoot(): File =
         Files.createTempDirectory("goreecloud-memos-test").toFile().apply {
             deleteOnExit()
