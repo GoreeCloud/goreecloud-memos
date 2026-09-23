@@ -18,7 +18,7 @@
 - Android work should reuse documented Memos domain/data contracts where practical while preserving offline-first capture, local draft/data preservation, truthful synchronization state, and portable user-owned data.
 - Mobile persistence and future synchronization must not create a second undocumented authoritative data model.
 - Server, accounts, synchronization, backup/recovery, import/export, administration, and accepted Integral Platform System runtime integrations remain incomplete.
-- Current Glaze UI consumer target is 1.5.1; application-specific rendered, accessibility, representative-device, performance, and release acceptance remain required.
+- Current Official Stable Glaze UI target is 1.6.0. Existing Memos Web/Android presentation remains 1.5.1-era scaffolding; product-local migration plus rendered, accessibility, representative-device, performance and release acceptance are still required.
 
 ## Governance and infrastructure follow-up
 
@@ -47,3 +47,10 @@ This evidence remains Development-only. It does not establish representative phy
 - The browser validation workflow is being moved from mutable Ubuntu/action tags to Ubuntu 24.04 plus immutable checkout v4 and setup-node v4 commit SHAs while preserving the existing action major versions.
 - Source checks, unit tests, browser acceptance, and repository-baseline jobs now check out the exact pull-request head or pushed main SHA with persisted checkout credentials disabled and verify the revision before executing repository code.
 - This changes CI provenance only; it does not expand Memos application, synchronization, account, recovery, signing, Release Candidate, or Stable authority.
+
+
+## Android force-stop persistence acceptance candidate — September 23, 2026
+
+This branch adds a disposable Android 16 emulator-only acceptance script after the existing connected instrumentation suite. It clears only the Development app sandbox, enters a synthetic local draft through the actual native UI, force-stops and relaunches the app, verifies restored title/body and local-only status, saves a synthetic memo through the UI, force-stops/relaunches again, and verifies the saved memo and cleared composer. The job remains bound to the exact PR head and continues to prohibit INTERNET permission.
+
+This is a **candidate** until exact-head Android Foundation CI passes. Force-stop persistence does not establish an unclean crash during a write, primary-file corruption recovery, real-device/process-lifecycle acceptance, backup/restore, identity, synchronization, Glaze UI 1.6 migration, production signing or Stable status. Maintain Memos issue #15 and its canonical Tasks Management record for the remaining gates.
