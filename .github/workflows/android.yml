@@ -171,4 +171,6 @@ jobs:
           target: default
           arch: x86_64
           disable-animations: true
-          script: gradle -p android --no-daemon connectedDebugAndroidTest --stacktrace
+          script: |
+            gradle -p android --no-daemon connectedDebugAndroidTest --stacktrace
+            python3 android/scripts/verify_process_restart.py
