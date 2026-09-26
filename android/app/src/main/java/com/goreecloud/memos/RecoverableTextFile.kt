@@ -3,6 +3,9 @@ package com.goreecloud.memos
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 internal class RecoverableTextFile(
     private val root: File,
@@ -11,6 +14,7 @@ internal class RecoverableTextFile(
     private val primary = File(root, baseName)
     private val backup = File(root, "$baseName.bak")
     private val temporary = File(root, "$baseName.tmp")
+    private val backupTemporary = File(root, "$baseName.bak.tmp")
 
     fun readPrimary(): String? =
         primary.takeIf { it.isFile }?.readText(StandardCharsets.UTF_8)
@@ -20,31 +24,57 @@ internal class RecoverableTextFile(
 
     fun write(content: String, backupCurrentPrimary: Boolean = true) {
         ensureRoot()
-
-        FileOutputStream(temporary).use { output ->
-            output.write(content.toByteArray(StandardCharsets.UTF_8))
-            output.fd.sync()
-        }
+        writeSynced(temporary, content.toByteArray(StandardCharsets.UTF_8))
 
         if (backupCurrentPrimary && primary.isFile) {
-            primary.copyTo(backup, overwrite = true)
+            primary.inputStream().use { input ->
+                FileOutputStream(backupTemporary).use { output ->
+                    input.copyTo(output)
+                    output.fd.sync()
+                }
+            }
+            replaceStagedFile(backupTemporary, backup)
         }
 
-        if (primary.exists() && !primary.delete()) {
-            temporary.delete()
-            error("Unable to replace local Memos data file.")
-        }
-
-        if (!temporary.renameTo(primary)) {
-            temporary.copyTo(primary, overwrite = true)
-            temporary.delete()
-        }
+        replaceStagedFile(temporary, primary)
     }
 
     fun clear() {
         primary.delete()
         backup.delete()
         temporary.delete()
+        backupTemporary.delete()
+    }
+
+    private fun writeSynced(target: File, bytes: ByteArray) {
+        FileOutputStream(target).use { output ->
+            output.write(bytes)
+            output.fd.sync()
+        }
+    }
+
+    private fun replaceStagedFile(source: File, target: File) {
+        try {
+            Files.move(
+                source.toPath(),
+                target.toPath(),
+                StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING,
+            )
+        } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(
+                source.toPath(),
+                target.toPath(),
+                StandardCopyOption.REPLACE_EXISTING,
+            )
+        }
+
+        // Re-open and sync the promoted inode. The staged source was already
+        // synced before the move; this additionally reduces the window where
+        // a promoted generation exists only in dirty filesystem state.
+        FileOutputStream(target, true).use { output ->
+            output.fd.sync()
+        }
     }
 
     private fun ensureRoot() {
