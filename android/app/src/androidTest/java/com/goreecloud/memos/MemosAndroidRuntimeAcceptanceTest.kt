@@ -32,6 +32,108 @@ class MemosAndroidRuntimeAcceptanceTest {
     @Before
     fun clearLocalDevelopmentState() {
         context.filesDir.listFiles().orEmpty().forEach { it.deleteRecursively() }
+        context.deleteSharedPreferences(MemosOnboardingPreferences.NAME)
+        MemosOnboardingPreferences(context).markComplete()
+    }
+
+
+    @Test
+    fun cleanFirstUseResumesAndCompletesSetup() {
+        context.deleteSharedPreferences(MemosOnboardingPreferences.NAME)
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val visibleText = collectText(activity.window.decorView)
+                assertTrue(visibleText.any { it == "Set up Memos" })
+                assertTrue(visibleText.any { it == "Step 1 of 3" })
+                assertTrue(visibleText.any { it.contains("Quick capture, kept local") })
+                findButton(activity.window.decorView, "Continue Memos setup").performClick()
+            }
+
+            scenario.onActivity { activity ->
+                assertTrue(collectText(activity.window.decorView).any { it == "Step 2 of 3" })
+            }
+
+            scenario.recreate()
+
+            scenario.onActivity { activity ->
+                val visibleText = collectText(activity.window.decorView)
+                assertTrue(visibleText.any { it == "Step 2 of 3" })
+                assertTrue(visibleText.any { it.contains("no Internet permission") })
+                findButton(activity.window.decorView, "Continue Memos setup").performClick()
+            }
+
+            scenario.onActivity { activity ->
+                assertTrue(collectText(activity.window.decorView).any { it == "Step 3 of 3" })
+                findButton(activity.window.decorView, "Finish Memos setup").performClick()
+            }
+
+            scenario.onActivity { activity ->
+                val visibleText = collectText(activity.window.decorView)
+                assertTrue(visibleText.any { it.contains("Open → type → save locally.") })
+                assertTrue(MemosOnboardingPreferences(context).isComplete())
+            }
+
+            scenario.recreate()
+
+            scenario.onActivity { activity ->
+                val visibleText = collectText(activity.window.decorView)
+                assertTrue(visibleText.none { it == "Set up Memos" })
+                assertTrue(visibleText.any { it.contains("Open → type → save locally.") })
+            }
+        }
+    }
+
+    @Test
+    fun contextualHintsCanBeDisabledReenabledAndSetupReplayed() {
+        val preferences = MemosOnboardingPreferences(context).apply {
+            markComplete()
+            setHintsEnabled(true)
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                assertEquals(
+                    View.VISIBLE,
+                    findTextView(activity.window.decorView, "Contextual Memos hint").visibility,
+                )
+                findButton(activity.window.decorView, "Toggle contextual hints").performClick()
+                assertFalse(preferences.hintsEnabled())
+                assertEquals(
+                    View.GONE,
+                    findTextView(activity.window.decorView, "Contextual Memos hint").visibility,
+                )
+            }
+
+            scenario.recreate()
+
+            scenario.onActivity { activity ->
+                assertEquals(
+                    View.GONE,
+                    findTextView(activity.window.decorView, "Contextual Memos hint").visibility,
+                )
+                findButton(activity.window.decorView, "Toggle contextual hints").performClick()
+                assertTrue(preferences.hintsEnabled())
+                assertEquals(
+                    View.VISIBLE,
+                    findTextView(activity.window.decorView, "Contextual Memos hint").visibility,
+                )
+
+                findButton(activity.window.decorView, "Replay Memos setup").performClick()
+            }
+
+            scenario.onActivity { activity ->
+                val visibleText = collectText(activity.window.decorView)
+                assertTrue(visibleText.any { it == "Review Memos setup" })
+                assertTrue(visibleText.any { it == "Step 1 of 3" })
+                findButton(activity.window.decorView, "Return from Memos setup").performClick()
+            }
+
+            scenario.onActivity { activity ->
+                assertTrue(MemosOnboardingPreferences(context).isComplete())
+                assertTrue(collectText(activity.window.decorView).any { it == "Memos" })
+            }
+        }
     }
 
     @Test
@@ -113,6 +215,11 @@ class MemosAndroidRuntimeAcceptanceTest {
     private fun findButton(root: View, description: String): Button =
         collectViews(root)
             .filterIsInstance<Button>()
+            .first { it.contentDescription?.toString() == description }
+
+    private fun findTextView(root: View, description: String): TextView =
+        collectViews(root)
+            .filterIsInstance<TextView>()
             .first { it.contentDescription?.toString() == description }
 
     private fun collectViews(view: View): List<View> = when (view) {
