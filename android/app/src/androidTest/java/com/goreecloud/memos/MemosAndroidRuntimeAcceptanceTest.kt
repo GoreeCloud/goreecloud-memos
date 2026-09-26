@@ -39,7 +39,12 @@ class MemosAndroidRuntimeAcceptanceTest {
 
     @Test
     fun cleanFirstUseResumesAndCompletesSetup() {
-        context.deleteSharedPreferences(MemosOnboardingPreferences.NAME)
+        val reset = context
+            .getSharedPreferences(MemosOnboardingPreferences.NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
+        assertTrue(reset)
 
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
