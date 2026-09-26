@@ -65,6 +65,30 @@ def wait_for(
     raise AssertionError(f"Expected control not visible: {description}")
 
 
+def ensure_workspace_ready(timeout_seconds: float = 35.0) -> None:
+    """Complete first-use setup when present, then require the memo workspace."""
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        nodes = ui_nodes()
+        if find_by_description(nodes, "Memo title") is not None:
+            return
+
+        action = (
+            find_by_description(nodes, "Finish Memos setup")
+            or find_by_description(nodes, "Continue Memos setup")
+        )
+        if action is not None:
+            tap(action)
+            time.sleep(0.5)
+            continue
+
+        time.sleep(1)
+
+    raise AssertionError(
+        "Memos did not reach the workspace or expose a usable first-use setup action"
+    )
+
+
 def center(node: ET.Element) -> tuple[int, int]:
     bounds = node.get("bounds") or ""
     match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", bounds)
@@ -139,7 +163,7 @@ def force_stop(old_pid: str) -> None:
 
 def launch() -> str:
     adb("shell", "am", "start", "-W", "-n", ACTIVITY)
-    wait_for("Memo title")
+    ensure_workspace_ready()
     return process_id()
 
 
