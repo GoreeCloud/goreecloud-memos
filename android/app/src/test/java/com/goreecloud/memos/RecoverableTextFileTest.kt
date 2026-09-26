@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecoverableTextFileTest {
@@ -82,9 +83,9 @@ class RecoverableTextFileTest {
         assertThrows(IllegalStateException::class.java) {
             storage.clear()
         }
-        assertFalse(
+        assertTrue(
             "Clear failure must not be reported as success while data remains.",
-            !blockedPrimary.exists(),
+            blockedPrimary.exists(),
         )
     }
 
