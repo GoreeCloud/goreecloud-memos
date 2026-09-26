@@ -40,10 +40,16 @@ internal class RecoverableTextFile(
     }
 
     fun clear() {
-        primary.delete()
-        backup.delete()
-        temporary.delete()
-        backupTemporary.delete()
+        deleteRequired(primary)
+        deleteRequired(backup)
+        deleteRequired(temporary)
+        deleteRequired(backupTemporary)
+    }
+
+    private fun deleteRequired(target: File) {
+        if (target.exists() && !target.delete()) {
+            error("Unable to clear local Memos data file: ${target.name}")
+        }
     }
 
     private fun writeSynced(target: File, bytes: ByteArray) {
