@@ -5,6 +5,7 @@ import java.nio.file.Files
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class RecoverableTextFileTest {
@@ -68,6 +69,23 @@ class RecoverableTextFileTest {
         assertNull(storage.readBackup())
         assertFalse(File(root, "state.txt.tmp").exists())
         assertFalse(File(root, "state.txt.bak.tmp").exists())
+    }
+
+
+    @Test
+    fun clearFailsClosedWhenAStoredGenerationCannotBeDeleted() {
+        val root = newRoot()
+        val blockedPrimary = File(root, "state.txt").apply { mkdirs() }
+        File(blockedPrimary, "child").writeText("prevents directory deletion")
+        val storage = RecoverableTextFile(root, "state.txt")
+
+        assertThrows(IllegalStateException::class.java) {
+            storage.clear()
+        }
+        assertFalse(
+            "Clear failure must not be reported as success while data remains.",
+            !blockedPrimary.exists(),
+        )
     }
 
     private fun newRoot(): File =
