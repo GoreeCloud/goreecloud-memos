@@ -1518,8 +1518,8 @@ button.danger {
     display: grid;
     grid-template-columns: auto auto;
     width: auto;
-    min-height: 38px;
-    padding: 0.3rem 0.45rem;
+    min-height: 48px;
+    padding: 0.35rem 0.5rem;
   }
 
   .nav-icon {
@@ -1542,10 +1542,25 @@ button.danger {
 
   .manager-drawer .sidebar-link {
     grid-template-columns: 1.6rem;
-    width: 2.2rem;
-    min-height: 38px;
+    width: 48px;
+    min-height: 48px;
     margin: 0;
     padding-inline: 0.3rem;
+  }
+
+  .topbar-create,
+  .icon-button,
+  .search-shell {
+    min-height: 48px;
+  }
+
+  .icon-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .search-shell input {
+    height: 46px;
   }
 
   .manager-drawer .sidebar-link span:last-child {
