@@ -145,6 +145,39 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   expect(topbarBox.y).toBeGreaterThanOrEqual(compactNavBox.y + compactNavBox.height - 1);
 });
 
+test("Glaze accessibility media modes preserve the primary shell", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce", contrast: "more" });
+  await page.goto("/web/");
+
+  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+
+  const mediaState = await page.evaluate(() => ({
+    reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+    increasedContrast: matchMedia("(prefers-contrast: more)").matches,
+    heroBorderWidth: Number.parseFloat(getComputedStyle(document.querySelector(".hero-card")).borderTopWidth),
+    captureTransition: getComputedStyle(document.querySelector("#capture-panel")).transitionDuration,
+    hasReducedTransparencyFallback: [...document.styleSheets]
+      .flatMap((sheet) => {
+        try {
+          return [...sheet.cssRules];
+        } catch {
+          return [];
+        }
+      })
+      .some((rule) => rule.cssText.includes("prefers-reduced-transparency"))
+  }));
+
+  expect(mediaState.reducedMotion).toBe(true);
+  expect(mediaState.increasedContrast).toBe(true);
+  expect(mediaState.heroBorderWidth).toBeGreaterThanOrEqual(2);
+  expect(mediaState.hasReducedTransparencyFallback).toBe(true);
+
+  await page.emulateMedia({ forcedColors: "active" });
+  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  expect(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)).toBe(true);
+});
+
 test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
   await page.goto("/web/");
 
