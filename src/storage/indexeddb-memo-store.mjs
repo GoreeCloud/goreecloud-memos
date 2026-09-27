@@ -337,6 +337,22 @@ export class IndexedDbMemoStore {
     for (const id of ids) {
       const rawMemo = await requestResult(memoStore.get(id));
       if (!rawMemo) throw new Error(`memo not found: ${id}`);
+
+      if (mode === "apply") {
+        const normalizedMemo = migrateMemoRecord(rawMemo);
+        const relations = await requestResult(memoLabelStore.index("memoId").getAll(id));
+        const relationLabelIds = new Set(relations.map((relation) => relation.labelId));
+        const alreadyApplied = normalizedMemo.labelIds.includes(label.id) || relationLabelIds.has(label.id);
+        const currentLabelCount = Math.max(
+          normalizedMemo.labels.length,
+          normalizedMemo.labelIds.length,
+          relationLabelIds.size
+        );
+        if (!alreadyApplied && currentLabelCount >= MAX_LABELS_PER_MEMO) {
+          throw new RangeError(`a memo can have at most ${MAX_LABELS_PER_MEMO} labels`);
+        }
+      }
+
       const result = mode === "apply"
         ? applyLabelToMemo(rawMemo, label, timestamp)
         : removeLabelFromMemo(rawMemo, label.id, timestamp);
