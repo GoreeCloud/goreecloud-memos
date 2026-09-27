@@ -572,6 +572,9 @@ listElement.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
 
+  const actionMenu = button.closest("details.memo-card-menu");
+  if (actionMenu) actionMenu.open = false;
+
   if (button.dataset.action === "edit") {
     toggleEditor(button);
     return;
