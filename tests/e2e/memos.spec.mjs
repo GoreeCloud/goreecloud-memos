@@ -48,7 +48,7 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
-test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
+test("compact shell keeps primary controls reachable", async ({ page }) => {\n  await page.setViewportSize({ width: 390, height: 844 });\n  await page.goto("/web/");\n  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();\n  await expect(page.locator("#topbar-new-memo")).toBeVisible();\n  await expect(page.locator("details.utility-drawer > summary")).toBeVisible();\n});\n\ntest("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
   await page.goto("/web/");
 
   await page.keyboard.press("/");
