@@ -78,13 +78,17 @@
 
         <section class="sidebar-section sidebar-library" aria-labelledby="library-heading">
           <h2 id="library-heading" class="sidebar-heading">Library</h2>
-          <a class="sidebar-link" href="#capture-panel">
+          <button id="sidebar-new-memo" class="sidebar-link" type="button">
             <span aria-hidden="true">＋</span>
             <span>Quick capture</span>
-          </a>
-          <a class="sidebar-link" href="#memo-list">
-            <span aria-hidden="true">▦</span>
-            <span>Current view</span>
+          </button>
+          <button id="sidebar-settings" class="sidebar-link" type="button" aria-controls="view-settings-panel">
+            <span aria-hidden="true">⚙</span>
+            <span>Settings</span>
+          </button>
+          <a class="sidebar-link" href="#development-info">
+            <span aria-hidden="true">ⓘ</span>
+            <span>About</span>
           </a>
         </section>
 
@@ -113,18 +117,24 @@
             </label>
             <span id="memo-search-help" class="sr-only">Search text or use color:, label:, and label-color:. Quote values containing spaces.</span>
 
+            <button id="topbar-new-memo" class="topbar-create" type="button" aria-label="New memo" title="New memo">
+              <span aria-hidden="true">＋</span>
+              <span>New memo</span>
+            </button>
+
             <details class="utility-drawer">
               <summary class="icon-button" aria-label="Filters and view options" title="Filters and view options">
                 <span aria-hidden="true">☷</span>
               </summary>
-              <section class="utility-panel" aria-label="Filters and view options" data-glaze-semantic-surface="protected">
+              <section id="view-settings-panel" class="utility-panel" aria-label="Workspace settings and filters" data-glaze-semantic-surface="protected">
                 <div class="utility-panel__header">
                   <div>
-                    <p class="drawer-kicker">View controls</p>
-                    <h2>Refine this space</h2>
+                    <p class="drawer-kicker">Control</p>
+                    <h2>Workspace settings</h2>
                   </div>
-                  <span class="drawer-hint">Search stays in the top bar</span>
+                  <span class="drawer-hint">Native local controls</span>
                 </div>
+                <p class="settings-intro">Tune the way this local Memos workspace looks, filters, and presents information without changing the underlying memo data.</p>
 
                 <div class="filter-panel" role="search" aria-label="Filter memos">
                   <div class="filter-grid memo-filter-grid">
@@ -241,19 +251,24 @@
                   </div>
                   <output id="appearance-status" class="muted" aria-live="polite">Appearance: Follow system.</output>
                 </fieldset>
+
+                <div class="settings-boundary" role="note">
+                  <strong>Native local workspace</strong>
+                  <span>Only controls backed by the current native browser implementation are shown. Account, server, synchronization, and administrator settings remain absent until those capabilities have their own accepted native authority.</span>
+                </div>
               </section>
             </details>
           </div>
         </header>
 
         <div class="workspace-canvas">
-          <section class="hero-card" data-glaze-semantic-surface="protected">
+          <section id="view-hero" class="hero-card" data-view-surface="active" data-glaze-semantic-surface="protected">
             <div>
-              <p class="eyebrow">Quick notes</p>
-              <h1>Capture what matters.</h1>
-              <p>Fast local capture with labels, color, Archive, recoverable Trash, search, and saved views in your private GoreeCloud workspace.</p>
+              <p id="view-eyebrow" class="eyebrow">Quick notes</p>
+              <h1 id="view-title">Capture what matters.</h1>
+              <p id="view-description">Fast local capture with labels, color, Archive, recoverable Trash, search, and saved views in your private GoreeCloud workspace.</p>
             </div>
-            <span class="privacy-chip"><span aria-hidden="true">⌾</span> Local to this browser</span>
+            <span id="view-chip" class="privacy-chip"><span id="view-chip-icon" aria-hidden="true">⌾</span> <span id="view-chip-label">Local to this browser</span></span>
           </section>
 
           <details id="capture-panel" class="capture-card" data-glaze-semantic-surface="protected">
@@ -312,7 +327,7 @@
             <div id="memo-list" class="memo-list" data-presentation="comfortable" aria-live="polite"></div>
           </section>
 
-          <footer class="development-note">
+          <footer id="development-info" class="development-note">
             <strong>Development workspace</strong>
             <span>Memos remain local to this browser. Synchronization, accounts, server authority, and production acceptance are not established.</span>
           </footer>
