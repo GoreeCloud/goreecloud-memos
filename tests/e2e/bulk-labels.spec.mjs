@@ -20,6 +20,7 @@ async function captureMemo(page, { title, content, labels = "" }) {
   await page.getByRole("button", { name: "Save memo" }).click();
   await page.evaluate(() => window.__memosNextRender);
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".memo-card", { hasText: title })).toBeVisible();
 }
 
