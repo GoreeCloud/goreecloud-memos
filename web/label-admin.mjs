@@ -6,15 +6,13 @@ import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 const STATUS_KEY = "goreecloud-memos:label-admin-status:v1";
 const listElement = document.querySelector("#label-admin-list");
 const statusElement = document.querySelector("#label-admin-status");
-const memoListElement = document.querySelector("#memo-list");
 const sidebarLabelList = document.querySelector("#sidebar-label-list");
 const filterLabelInput = document.querySelector("#memo-filter-label");
 const managerDrawer = document.querySelector(".manager-drawer");
 const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
 const memoService = new MemoService(store);
-let refreshPending = false;
-let refreshChain = Promise.resolve();
+let sidebarRefreshGeneration = 0;
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -236,11 +234,14 @@ function currentSidebarView() {
 }
 
 async function refreshSidebar(labels) {
+  const generation = ++sidebarRefreshGeneration;
   const [active, archived, trashed] = await Promise.all([
     memoService.list({ state: "active" }),
     memoService.list({ state: "archived" }),
     memoService.list({ state: "trashed" })
   ]);
+
+  if (generation !== sidebarRefreshGeneration) return;
 
   setViewCount("active", active.length);
   setViewCount("archived", archived.length);
@@ -258,16 +259,28 @@ async function refreshLabels() {
   return labels;
 }
 
-function scheduleLabelRefresh() {
-  if (refreshPending) return;
-  refreshPending = true;
-  queueMicrotask(() => {
-    refreshPending = false;
-    refreshChain = refreshChain
-      .then(() => refreshLabels())
-      .catch((error) => {
-        setStatus(error instanceof Error ? error.message : "Could not refresh labels");
-      });
+function syncFromWorkspaceRender(event) {
+  const detail = event?.detail ?? {};
+  const labels = Array.isArray(detail.labels) ? detail.labels : null;
+  const memos = Array.isArray(detail.memos) ? detail.memos : null;
+
+  if (!labels || !memos) {
+    refreshLabels().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "Could not refresh labels");
+    });
+    return;
+  }
+
+  renderLabels(labels);
+
+  const view = typeof detail.view === "string" ? detail.view : currentSidebarView();
+  setViewCount(view, memos.length);
+  if (view === currentSidebarView()) {
+    renderSidebarLabels(labels, memos);
+  }
+
+  refreshSidebar(labels).catch((error) => {
+    setStatus(error instanceof Error ? error.message : "Could not refresh labels");
   });
 }
 
@@ -364,10 +377,8 @@ if (restoredStatus) {
   managerDrawer?.setAttribute("open", "");
 }
 
-if (memoListElement) {
-  new MutationObserver(scheduleLabelRefresh).observe(memoListElement, { childList: true, subtree: true });
-}
+document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
 
-refreshChain = refreshLabels().catch((error) => {
+refreshLabels().catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load labels");
 });

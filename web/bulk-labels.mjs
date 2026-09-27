@@ -16,7 +16,6 @@ const labelService = new LabelService(store);
 let selectedMemoIds = new Set();
 let actionMessage = sessionStorage.getItem(STATUS_KEY) ?? "";
 sessionStorage.removeItem(STATUS_KEY);
-let refreshScheduled = false;
 
 function memoCountText(count) {
   return `${count} ${count === 1 ? "memo" : "memos"}`;
@@ -71,9 +70,9 @@ function enhanceVisibleCards() {
   for (const card of listElement.querySelectorAll(".memo-card")) createSelector(card);
 }
 
-async function refreshLabelOptions() {
+async function refreshLabelOptions(labelsSnapshot = null) {
   const previous = labelSelect.value;
-  const labels = await labelService.list();
+  const labels = Array.isArray(labelsSnapshot) ? labelsSnapshot : await labelService.list();
   labelSelect.replaceChildren();
 
   const placeholder = document.createElement("option");
@@ -92,18 +91,13 @@ async function refreshLabelOptions() {
   updateControls();
 }
 
-function scheduleRefreshForRenderedList() {
-  if (refreshScheduled) return;
-  refreshScheduled = true;
-  queueMicrotask(() => {
-    refreshScheduled = false;
-    selectedMemoIds = new Set();
-    enhanceVisibleCards();
-    refreshLabelOptions().catch((error) => {
-      statusElement.textContent = error instanceof Error ? error.message : "Could not refresh bulk label controls";
-    });
-    updateControls();
+function syncFromWorkspaceRender(event) {
+  selectedMemoIds = new Set();
+  enhanceVisibleCards();
+  refreshLabelOptions(event?.detail?.labels).catch((error) => {
+    statusElement.textContent = error instanceof Error ? error.message : "Could not refresh bulk label controls";
   });
+  updateControls();
 }
 
 function reloadWithStatus(message) {
@@ -151,7 +145,7 @@ clearButton.addEventListener("click", () => {
   listElement.querySelector("[data-bulk-select]")?.focus();
 });
 
-new MutationObserver(scheduleRefreshForRenderedList).observe(listElement, { childList: true });
+document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
 enhanceVisibleCards();
 refreshLabelOptions().catch((error) => {
   statusElement.textContent = error instanceof Error ? error.message : "Could not load bulk label controls";

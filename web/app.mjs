@@ -214,6 +214,19 @@ function applyMemoToCard(card, memo) {
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
 }
 
+function notifyWorkspaceRendered({ view, memos, visibleMemos, labels, filtered, error = null }) {
+  document.dispatchEvent(new CustomEvent("goreecloud:memos-rendered", {
+    detail: {
+      view,
+      memos: [...memos],
+      visibleMemos: [...visibleMemos],
+      labels: [...labels],
+      filtered: Boolean(filtered),
+      error: error ? String(error.message ?? error) : null
+    }
+  }));
+}
+
 function hasActiveFilters() {
   return searchInput.value.trim().length > 0 ||
     filterColorInput.value !== ALL_COLORS ||
@@ -363,15 +376,6 @@ function renderMemos(memos, { filtered = false } = {}) {
     card.dataset.memoId = memo.id;
     editor.dataset.memoId = memo.id;
 
-    const bulkSelect = fragment.querySelector("[data-bulk-select]");
-    const bulkSelectLabel = bulkSelect?.closest(".memo-select");
-    const bulkSelectName = `Select ${memo.title || "Untitled memo"}`;
-    if (bulkSelect) {
-      bulkSelect.value = memo.id;
-      bulkSelect.setAttribute("aria-label", bulkSelectName);
-    }
-    bulkSelectLabel?.setAttribute("aria-label", bulkSelectName);
-
     editTitle.value = memo.title;
     editContent.value = memo.content;
     editColor.value = memo.color ?? "";
@@ -410,6 +414,14 @@ async function refresh() {
     listElement.append(message);
     updateFilterStatus(expressionError);
     setStatus("Search expression needs correction.");
+    notifyWorkspaceRendered({
+      view: requestedView,
+      memos,
+      visibleMemos: [],
+      labels,
+      filtered,
+      error: expressionError
+    });
     return;
   }
 
@@ -423,6 +435,14 @@ async function refresh() {
   } else {
     setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
   }
+
+  notifyWorkspaceRendered({
+    view: requestedView,
+    memos,
+    visibleMemos,
+    labels,
+    filtered
+  });
 }
 
 function setView(nextView) {
