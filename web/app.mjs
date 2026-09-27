@@ -9,6 +9,10 @@ import { SavedViewService } from "../src/app/saved-view-service.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
+const memoTimestampFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short"
+});
 
 const form = document.querySelector("#memo-form");
 const capturePanel = document.querySelector("#capture-panel");
@@ -210,7 +214,7 @@ function applyMemoToCard(card, memo) {
   card.querySelector(".memo-card__content").textContent = memo.content;
   const time = card.querySelector(".memo-card__time");
   time.dateTime = memo.updatedAt;
-  time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(memo.updatedAt));
+  time.textContent = memoTimestampFormatter.format(new Date(memo.updatedAt));
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
 }
 
@@ -362,6 +366,7 @@ function renderMemos(memos, { filtered = false } = {}) {
 
   const pinnedMemos = memos.filter((memo) => memo.pinned);
   const pinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
+  const renderedCards = document.createDocumentFragment();
 
   for (const memo of memos) {
     const fragment = template.content.cloneNode(true);
@@ -386,8 +391,10 @@ function renderMemos(memos, { filtered = false } = {}) {
       pinnedCount: pinnedMemos.length
     });
 
-    listElement.append(fragment);
+    renderedCards.append(fragment);
   }
+
+  listElement.append(renderedCards);
 }
 
 async function refresh() {
