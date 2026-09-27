@@ -137,6 +137,7 @@ test("advanced search expressions combine verified local dimensions and surface 
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
 
+  await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const memoColor = page.locator("#memo-filter-color");
 
@@ -177,11 +178,13 @@ test("named saved views persist locally and restore the current query and direct
     labels: "Home"
   });
 
+  await openLabelManager(page);
   const projectRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Project Work") });
   await projectRow.getByLabel("Color for Project Work").selectOption("purple");
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
 
+  await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const memoColor = page.locator("#memo-filter-color");
   const label = page.locator("#memo-filter-label");
