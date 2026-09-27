@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 const FIXTURE_COUNT = 200;
+const LARGE_FIXTURE_COUNT = 1000;
 const INTERACTION_SAMPLES = 30;
 const SEARCH_TERM = "needle-baseline-target";
 
@@ -20,7 +21,7 @@ function summarize(values) {
   };
 }
 
-async function seedPerformanceFixture(page) {
+async function seedPerformanceFixture(page, count = FIXTURE_COUNT) {
   await page.goto("/web/");
   await page.evaluate(async ({ count, searchTerm }) => {
     await new Promise((resolve, reject) => {
@@ -67,7 +68,7 @@ async function seedPerformanceFixture(page) {
         tx.onabort = () => reject(tx.error ?? new Error("performance fixture transaction aborted"));
       };
     });
-  }, { count: FIXTURE_COUNT, searchTerm: SEARCH_TERM });
+  }, { count, searchTerm: SEARCH_TERM });
 }
 
 test("browser-local performance baseline is reproducible", async ({ page }) => {
@@ -82,6 +83,47 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
   const initialRenderMs = await page.evaluate(
     () => performance.now() - window.__memosBaselineNavigationStart
   );
+
+  const composerOpenSamples = await page.evaluate(async (samples) => {
+    const panel = document.querySelector("#capture-panel");
+    const summary = panel?.querySelector(":scope > summary");
+    const content = document.querySelector("#memo-content");
+    if (!panel || !summary || !content) {
+      throw new Error("performance baseline composer controls are unavailable");
+    }
+
+    const waitFor = (predicate, errorMessage) => new Promise((resolve, reject) => {
+      const deadline = performance.now() + 10_000;
+      const check = () => {
+        if (predicate()) {
+          requestAnimationFrame(() => resolve());
+          return;
+        }
+        if (performance.now() > deadline) {
+          reject(new Error(errorMessage));
+          return;
+        }
+        requestAnimationFrame(check);
+      };
+      check();
+    });
+
+    const durations = [];
+    for (let index = 0; index < samples; index += 1) {
+      panel.open = false;
+      await waitFor(() => !panel.open, "composer close baseline did not settle");
+
+      const start = performance.now();
+      summary.click();
+      await waitFor(
+        () => panel.open && document.activeElement === content,
+        "composer open baseline did not settle"
+      );
+      durations.push(performance.now() - start);
+    }
+    panel.open = false;
+    return durations;
+  }, INTERACTION_SAMPLES);
 
   const searchSamples = await page.evaluate(async ({ searchTerm, samples }) => {
     const input = document.querySelector("#memo-search");
@@ -176,12 +218,22 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
     visibilityState: document.visibilityState
   }));
 
+  await seedPerformanceFixture(page, LARGE_FIXTURE_COUNT);
+  await page.reload();
+  await expect(page.locator(".memo-card")).toHaveCount(LARGE_FIXTURE_COUNT);
+  const largeLibraryInitialRenderMs = await page.evaluate(
+    () => performance.now() - window.__memosBaselineNavigationStart
+  );
+
   const metrics = {
     revision: process.env.EVALUATED_REVISION ?? "local-unbound",
     lifecycle: "Development",
     measuredAt: new Date().toISOString(),
     fixtureMemos: FIXTURE_COUNT,
+    largeFixtureMemos: LARGE_FIXTURE_COUNT,
     initialRenderMs: Number(initialRenderMs.toFixed(2)),
+    largeLibraryInitialRenderMs: Number(largeLibraryInitialRenderMs.toFixed(2)),
+    composerOpen: summarize(composerOpenSamples),
     search: summarize(searchSamples),
     savedViewApply: summarize(savedViewSamples),
     environment
@@ -189,6 +241,9 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
 
   expect(Number.isFinite(metrics.initialRenderMs)).toBe(true);
   expect(metrics.initialRenderMs).toBeGreaterThanOrEqual(0);
+  expect(Number.isFinite(metrics.largeLibraryInitialRenderMs)).toBe(true);
+  expect(metrics.largeLibraryInitialRenderMs).toBeGreaterThanOrEqual(0);
+  expect(metrics.composerOpen.samples).toBe(INTERACTION_SAMPLES);
   expect(metrics.search.samples).toBe(INTERACTION_SAMPLES);
   expect(metrics.savedViewApply.samples).toBe(INTERACTION_SAMPLES);
 
