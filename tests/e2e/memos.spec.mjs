@@ -215,6 +215,48 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   expect(topbarBox.y).toBeGreaterThanOrEqual(compactNavBox.y + compactNavBox.height - 1);
 });
 
+test("RTL layout direction preserves shell hierarchy and bounded overlays", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.addInitScript(() => {
+    document.documentElement.setAttribute("dir", "rtl");
+  });
+  await page.goto("/web/");
+
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+
+  const sidebarBox = await page.locator(".sidebar").boundingBox();
+  const canvasBox = await page.locator(".workspace-canvas").boundingBox();
+  expect(sidebarBox).not.toBeNull();
+  expect(canvasBox).not.toBeNull();
+  expect(sidebarBox.x).toBeGreaterThan(canvasBox.x);
+
+  await captureMemo(page, { title: "RTL memo", content: "RTL resilience check" });
+  const card = page.locator(".memo-card", { hasText: "RTL memo" });
+  const menu = card.locator("details.memo-card-menu");
+  await menu.locator(":scope > summary").click();
+  await expect(menu).toHaveJSProperty("open", true);
+
+  const actionsBox = await card.locator(".memo-card__actions").boundingBox();
+  expect(actionsBox).not.toBeNull();
+  expect(actionsBox.x).toBeGreaterThanOrEqual(0);
+  expect(actionsBox.x + actionsBox.width).toBeLessThanOrEqual(1280);
+
+  await page.keyboard.press("Escape");
+  await openViewControls(page);
+  const utilityBox = await page.locator(".utility-panel").boundingBox();
+  expect(utilityBox).not.toBeNull();
+  expect(utilityBox.x).toBeGreaterThanOrEqual(0);
+  expect(utilityBox.x + utilityBox.width).toBeLessThanOrEqual(1280);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth
+  )).toBe(true);
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+});
+
 test("Glaze accessibility media modes preserve the primary shell", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce", contrast: "more" });
   await page.goto("/web/");
