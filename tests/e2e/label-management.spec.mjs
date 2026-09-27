@@ -11,7 +11,13 @@ async function captureMemo(page, content, labels) {
   await openCapture(page);
   await page.locator("#memo-labels").fill(labels);
   await page.locator("#memo-content").fill(content);
+  await page.evaluate(() => {
+    window.__memosNextRender = new Promise((resolve) => {
+      document.addEventListener("goreecloud:memos-rendered", () => resolve(), { once: true });
+    });
+  });
   await page.getByRole("button", { name: "Save memo" }).click();
+  await page.evaluate(() => window.__memosNextRender);
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await expect(page.locator(".memo-card", { hasText: content })).toBeVisible();
 }
