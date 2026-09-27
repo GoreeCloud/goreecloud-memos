@@ -467,67 +467,76 @@ function renderMemos(memos, { filtered = false } = {}) {
 async function refresh() {
   const generation = ++refreshGeneration;
   const requestedView = currentView;
-  const [allMemos, labels] = await Promise.all([
-    service.listAll(),
-    labelService.list()
-  ]);
-  if (generation !== refreshGeneration || requestedView !== currentView) return;
+  listElement.setAttribute("aria-busy", "true");
 
-  const stateCounts = summarizeMemoStates(allMemos);
-  const memos = allMemos.filter((memo) => memo.state === requestedView);
-  managedLabels = labels;
-  updateLabelFilterOptions(memos);
-  const filtered = hasActiveFilters();
-  let filterState;
   try {
-    filterState = readFilterState();
-  } catch (error) {
-    const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
-    listElement.replaceChildren();
-    progressiveMemos = [];
-    progressiveRenderIndex = 0;
-    progressivePinnedIndexes = new Map();
-    progressivePinnedCount = 0;
-    updateMemoRenderProgress();
-    const message = document.createElement("p");
-    message.className = "empty-state";
-    message.textContent = `Search expression error: ${expressionError.message}`;
-    listElement.append(message);
-    updateFilterStatus(expressionError);
-    setStatus("Search expression needs correction.");
+    const [allMemos, labels] = await Promise.all([
+      service.listAll(),
+      labelService.list()
+    ]);
+    if (generation !== refreshGeneration || requestedView !== currentView) return false;
+
+    const stateCounts = summarizeMemoStates(allMemos);
+    const memos = allMemos.filter((memo) => memo.state === requestedView);
+    managedLabels = labels;
+    updateLabelFilterOptions(memos);
+    const filtered = hasActiveFilters();
+    let filterState;
+    try {
+      filterState = readFilterState();
+    } catch (error) {
+      const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
+      listElement.replaceChildren();
+      progressiveMemos = [];
+      progressiveRenderIndex = 0;
+      progressivePinnedIndexes = new Map();
+      progressivePinnedCount = 0;
+      updateMemoRenderProgress();
+      const message = document.createElement("p");
+      message.className = "empty-state";
+      message.textContent = `Search expression error: ${expressionError.message}`;
+      listElement.append(message);
+      updateFilterStatus(expressionError);
+      setStatus("Search expression needs correction.");
+      notifyWorkspaceRendered({
+        view: requestedView,
+        memos,
+        visibleMemos: [],
+        labels,
+        stateCounts,
+        filtered,
+        error: expressionError
+      });
+      return true;
+    }
+
+    const visibleMemos = filterMemos(memos, filterState, { managedLabels });
+    renderMemos(visibleMemos, { filtered });
+    updateFilterStatus();
+
+    const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
+    if (filtered) {
+      const noun = memos.length === 1 ? label : `${label}s`;
+      const verb = visibleMemos.length === 1 ? "matches" : "match";
+      setStatus(`${visibleMemos.length} of ${memos.length} ${noun} ${verb} current filters`);
+    } else {
+      setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
+    }
+
     notifyWorkspaceRendered({
       view: requestedView,
       memos,
-      visibleMemos: [],
+      visibleMemos,
       labels,
       stateCounts,
-      filtered,
-      error: expressionError
+      filtered
     });
-    return;
+    return true;
+  } finally {
+    if (generation === refreshGeneration) {
+      listElement.setAttribute("aria-busy", "false");
+    }
   }
-
-  const visibleMemos = filterMemos(memos, filterState, { managedLabels });
-  renderMemos(visibleMemos, { filtered });
-  updateFilterStatus();
-
-  const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
-  if (filtered) {
-    const noun = memos.length === 1 ? label : `${label}s`;
-    const verb = visibleMemos.length === 1 ? "matches" : "match";
-    setStatus(`${visibleMemos.length} of ${memos.length} ${noun} ${verb} current filters`);
-  } else {
-    setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
-  }
-
-  notifyWorkspaceRendered({
-    view: requestedView,
-    memos,
-    visibleMemos,
-    labels,
-    stateCounts,
-    filtered
-  });
 }
 
 function setView(nextView) {
