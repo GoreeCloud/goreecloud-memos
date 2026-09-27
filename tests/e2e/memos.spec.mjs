@@ -9,6 +9,13 @@ async function captureMemo(page, { title = "", content, color = "", labels = "" 
   await expect(page.locator(".memo-card__content", { hasText: content })).toBeVisible();
 }
 
+async function openViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
   await page.locator("#memo-title").fill("Draft title");
@@ -87,6 +94,7 @@ test("pinning retains manual order across reload", async ({ page }) => {
 test("presentation mode is keyboard accessible and persists across reload", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, { content: "Presentation memo", color: "blue", labels: "Layout" });
+  await openViewControls(page);
 
   const list = page.locator("#memo-list");
   const comfortable = page.getByRole("radio", { name: "Comfortable" });
@@ -102,6 +110,7 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
   await expect(list).toHaveAttribute("data-presentation", "compact");
 
   await page.reload();
+  await openViewControls(page);
   await expect(compact).toBeChecked();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "compact");
   await listMode.check();
@@ -110,6 +119,7 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
 
   await page.reload();
+  await openViewControls(page);
   await expect(page.getByRole("radio", { name: "Dense" })).toBeChecked();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
 });
