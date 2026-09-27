@@ -374,35 +374,38 @@
         </div>
         <p class="memo-card__content"></p>
         <div class="memo-card__meta" aria-label="Memo organization"></div>
-        <form class="memo-editor" hidden>
-          <label>Title <span>(optional)</span>
-            <input data-edit-field="title" maxlength="240" autocomplete="off" />
-          </label>
-          <div class="field-grid">
-            <label>Color
-              <select data-edit-field="color">
-                <option value="">No color</option>
-                <option value="red">Red</option>
-                <option value="orange">Orange</option>
-                <option value="yellow">Yellow</option>
-                <option value="green">Green</option>
-                <option value="teal">Teal</option>
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="pink">Pink</option>
-                <option value="gray">Gray</option>
-              </select>
-            </label>
-            <label>Labels <span>(comma separated)</span>
-              <input data-edit-field="labels" autocomplete="off" />
-            </label>
-          </div>
-          <label>Memo
-            <textarea data-edit-field="content" rows="5" required></textarea>
-          </label>
-          <div class="editor-status muted" aria-live="polite">Changes save automatically.</div>
-        </form>
       </article>
+    </template>
+
+    <template id="memo-editor-template">
+      <form class="memo-editor" hidden>
+        <label>Title <span>(optional)</span>
+          <input data-edit-field="title" maxlength="240" autocomplete="off" />
+        </label>
+        <div class="field-grid">
+          <label>Color
+            <select data-edit-field="color">
+              <option value="">No color</option>
+              <option value="red">Red</option>
+              <option value="orange">Orange</option>
+              <option value="yellow">Yellow</option>
+              <option value="green">Green</option>
+              <option value="teal">Teal</option>
+              <option value="blue">Blue</option>
+              <option value="purple">Purple</option>
+              <option value="pink">Pink</option>
+              <option value="gray">Gray</option>
+            </select>
+          </label>
+          <label>Labels <span>(comma separated)</span>
+            <input data-edit-field="labels" autocomplete="off" />
+          </label>
+        </div>
+        <label>Memo
+          <textarea data-edit-field="content" rows="5" required></textarea>
+        </label>
+        <div class="editor-status muted" aria-live="polite">Changes save automatically.</div>
+      </form>
     </template>
 
     <dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title" aria-describedby="setup-body">
