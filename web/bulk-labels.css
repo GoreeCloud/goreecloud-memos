@@ -1,21 +1,59 @@
 .filter-panel h3 { margin: 0 0 0.35rem; }
 .bulk-label-grid { grid-template-columns: minmax(12rem, 1fr); }
 .bulk-label-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+
 .memo-select {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 44px;
-  padding: 0.3rem 0.55rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin: -0.18rem 0 0 -0.18rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  white-space: nowrap;
+  opacity: 0.48;
+  transition: opacity 140ms ease, border-color 140ms ease, background 140ms ease, transform 140ms ease;
 }
-.memo-select input { width: auto; padding: 0; accent-color: var(--accent); }
-.memo-select:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
-.memo-select:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--accent) 65%, transparent); outline-offset: 2px; }
-.memo-select input:focus-visible { outline: none; }
+
+.memo-select:hover,
+.memo-select:focus-within,
+.memo-select:has(input:checked) {
+  opacity: 1;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+}
+
+.memo-select:active {
+  transform: translateY(1px);
+}
+
+.memo-select input {
+  width: 0.98rem;
+  height: 0.98rem;
+  min-height: auto;
+  margin: 0;
+  padding: 0;
+  border-radius: 5px;
+  accent-color: var(--accent);
+  box-shadow: none;
+}
+
+.memo-select:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: var(--accent-soft);
+}
+
+.memo-select:has(input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.memo-select input:focus-visible {
+  outline: none;
+}
 
 @media (max-width: 680px) {
   .bulk-label-actions { width: 100%; }
