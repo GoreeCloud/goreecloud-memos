@@ -24,6 +24,14 @@ async function openViewControls(page) {
   }
 }
 
+async function runMemoAction(card, name) {
+  const menu = card.locator("details.memo-card-menu");
+  if (!(await menu.evaluate((element) => element.open))) {
+    await menu.locator(":scope > summary").click();
+  }
+  await card.getByRole("button", { name, exact: true }).click();
+}
+
 test("Glaze capture shell keeps primary writing workflow prominent", async ({ page }) => {
   await page.goto("/web/");
 
@@ -75,7 +83,7 @@ test("editing autosaves organization metadata and survives reload", async ({ pag
 
   const card = page.locator(".memo-card").first();
   await expect(card.locator(".memo-card__content")).toHaveText("Before edit");
-  await card.getByRole("button", { name: "Edit", exact: true }).click();
+  await runMemoAction(card, "Edit");
   await card.locator("[data-edit-field='content']").fill("After edit");
   await card.locator("[data-edit-field='color']").selectOption("purple");
   await card.locator("[data-edit-field='labels']").fill("Research, Reference, research");
@@ -99,12 +107,12 @@ test("pinning retains manual order across reload", async ({ page }) => {
 
   let first = page.locator(".memo-card", { hasText: "First pinned memo" });
   let second = page.locator(".memo-card", { hasText: "Second pinned memo" });
-  await first.getByRole("button", { name: "Pin", exact: true }).click();
-  await page.locator(".memo-card", { hasText: "Second pinned memo" }).getByRole("button", { name: "Pin", exact: true }).click();
+  await runMemoAction(first, "Pin");
+  await runMemoAction(page.locator(".memo-card", { hasText: "Second pinned memo" }), "Pin");
   await expect(page.locator(".memo-card").nth(0)).toContainText("First pinned memo");
 
   second = page.locator(".memo-card", { hasText: "Second pinned memo" });
-  await second.getByRole("button", { name: "Move pin up", exact: true }).click();
+  await runMemoAction(second, "Move pin up");
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
   await expect(page.locator(".memo-card").nth(1)).toContainText("First pinned memo");
 
@@ -112,7 +120,7 @@ test("pinning retains manual order across reload", async ({ page }) => {
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
   await expect(page.locator(".memo-card").nth(1)).toContainText("First pinned memo");
   first = page.locator(".memo-card", { hasText: "First pinned memo" });
-  await first.getByRole("button", { name: "Unpin", exact: true }).click();
+  await runMemoAction(first, "Unpin");
   await expect(page.locator(".memo-card", { hasText: "First pinned memo" }).getByText("Pinned", { exact: true })).toHaveCount(0);
 });
 
@@ -154,38 +162,38 @@ test("Archive and Trash are recoverable before explicit permanent deletion", asy
   await captureMemo(page, { content: "Lifecycle memo" });
 
   let card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
-  await card.getByRole("button", { name: "Archive", exact: true }).click();
+  await runMemoAction(card, "Archive");
   await expect(card).toHaveCount(0);
 
   const location = page.getByRole("navigation", { name: "Memo location" });
   await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await runMemoAction(card, "Move to Trash");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Trash", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await runMemoAction(card, "Restore");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await runMemoAction(card, "Restore");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Memos", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await runMemoAction(card, "Move to Trash");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Trash", exact: true }).click();
   page.once("dialog", (dialog) => dialog.accept());
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
-  await card.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await runMemoAction(card, "Delete permanently");
   await expect(page.getByText("Trash is empty.")).toBeVisible();
 });
 
