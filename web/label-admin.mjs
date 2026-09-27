@@ -3,7 +3,6 @@ import { MemoService } from "../src/app/memo-service.mjs";
 import { LABEL_COLORS } from "../src/domain/label.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 
-const STATUS_KEY = "goreecloud-memos:label-admin-status:v1";
 const listElement = document.querySelector("#label-admin-list");
 const statusElement = document.querySelector("#label-admin-status");
 const sidebarLabelList = document.querySelector("#sidebar-label-list");
@@ -13,6 +12,8 @@ const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
 const memoService = new MemoService(store);
 let sidebarRefreshGeneration = 0;
+let latestLabels = [];
+let labelsLoaded = false;
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -28,15 +29,6 @@ const LABEL_DOTS = Object.freeze({
 
 function setStatus(message) {
   statusElement.textContent = message;
-}
-
-function rememberStatus(message) {
-  sessionStorage.setItem(STATUS_KEY, message);
-}
-
-function reloadWithStatus(message) {
-  rememberStatus(message);
-  window.location.reload();
 }
 
 function displayColor(color) {
@@ -254,9 +246,23 @@ async function refreshSidebar(labels) {
 
 async function refreshLabels() {
   const labels = await service.list();
-  renderLabels(labels);
+  latestLabels = labels;
+  labelsLoaded = true;
+  if (managerDrawer?.open) renderLabels(labels);
   await refreshSidebar(labels);
   return labels;
+}
+
+async function refreshAfterLabelMutation(message) {
+  setStatus(message);
+  try {
+    await refreshLabels();
+  } catch (error) {
+    setStatus(message + " Workspace label controls could not be refreshed yet.");
+  }
+  document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
+    detail: { source: "label-admin" }
+  }));
 }
 
 function syncFromWorkspaceRender(event) {
@@ -271,7 +277,9 @@ function syncFromWorkspaceRender(event) {
     return;
   }
 
-  renderLabels(labels);
+  latestLabels = labels;
+  labelsLoaded = true;
+  if (managerDrawer?.open) renderLabels(labels);
 
   const view = typeof detail.view === "string" ? detail.view : currentSidebarView();
   setViewCount(view, memos.length);
@@ -297,7 +305,7 @@ listElement.addEventListener("click", async (event) => {
       case "rename": {
         const name = row.querySelector("[data-label-name]").value;
         const renamed = await service.rename(labelId, name);
-        reloadWithStatus("Renamed label to " + renamed.name + ".");
+        await refreshAfterLabelMutation("Renamed label to " + renamed.name + ".");
         return;
       }
       case "metadata": {
@@ -306,7 +314,7 @@ listElement.addEventListener("click", async (event) => {
           icon: row.querySelector("[data-label-icon]").value,
           description: row.querySelector("[data-label-description]").value
         });
-        reloadWithStatus("Saved details for " + updated.name + ".");
+        await refreshAfterLabelMutation("Saved details for " + updated.name + ".");
         return;
       }
       case "delete": {
@@ -316,7 +324,7 @@ listElement.addEventListener("click", async (event) => {
           return;
         }
         const result = await service.delete(labelId);
-        reloadWithStatus(
+        await refreshAfterLabelMutation(
           "Deleted label " + result.label.name + " from " + result.affectedMemoCount + " memo" +
           (result.affectedMemoCount === 1 ? "" : "s") + "."
         );
@@ -334,7 +342,7 @@ listElement.addEventListener("click", async (event) => {
           return;
         }
         const result = await service.merge(labelId, targetId);
-        reloadWithStatus(
+        await refreshAfterLabelMutation(
           "Merged " + result.source.name + " into " + result.target.name + " across " +
           result.affectedMemoCount + " memo" + (result.affectedMemoCount === 1 ? "" : "s") + "."
         );
@@ -370,14 +378,18 @@ if (sidebarLabelList && filterLabelInput) {
   });
 }
 
-const restoredStatus = sessionStorage.getItem(STATUS_KEY);
-if (restoredStatus) {
-  sessionStorage.removeItem(STATUS_KEY);
-  setStatus(restoredStatus);
-  managerDrawer?.setAttribute("open", "");
-}
-
 document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
+
+managerDrawer?.addEventListener("toggle", () => {
+  if (!managerDrawer.open) return;
+  if (labelsLoaded) {
+    renderLabels(latestLabels);
+    return;
+  }
+  refreshLabels().catch((error) => {
+    setStatus(error instanceof Error ? error.message : "Could not load labels");
+  });
+});
 
 refreshLabels().catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load labels");
