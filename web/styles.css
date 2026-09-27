@@ -708,6 +708,12 @@ img {
   box-shadow: var(--shadow-md);
 }
 
+.hero-card[data-view-surface="archived"] {
+  background:
+    radial-gradient(circle at 94% 5%, rgba(165, 158, 218, 0.24), transparent 22rem),
+    linear-gradient(120deg, color-mix(in srgb, var(--surface-strong) 90%, transparent), color-mix(in srgb, var(--surface-soft) 72%, transparent));
+}
+
 .hero-card::after {
   content: "";
   position: absolute;
