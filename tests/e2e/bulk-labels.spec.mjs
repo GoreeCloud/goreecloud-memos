@@ -102,6 +102,10 @@ test("bulk apply and remove update selected memo relationships without deleting 
   await captureMemo(page, { title: "Beta", content: "Beta body", labels: "Ideas" });
   await captureMemo(page, { title: "Gamma", content: "Gamma body" });
 
+  const before = await readSnapshot(page);
+  expect(before.memos).toHaveLength(3);
+  expect(before.labels.map((label) => label.name).sort()).toEqual(["Ideas", "Work"]);
+
   await selectMemo(page, "Alpha");
   await selectMemo(page, "Gamma");
   await openViewControls(page);
