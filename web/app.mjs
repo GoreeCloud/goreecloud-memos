@@ -220,13 +220,22 @@ function applyMemoToCard(card, memo) {
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
 }
 
-function notifyWorkspaceRendered({ view, memos, visibleMemos, labels, filtered, error = null }) {
+function summarizeMemoStates(memos) {
+  const counts = { active: 0, archived: 0, trashed: 0 };
+  for (const memo of memos) {
+    if (Object.hasOwn(counts, memo.state)) counts[memo.state] += 1;
+  }
+  return counts;
+}
+
+function notifyWorkspaceRendered({ view, memos, visibleMemos, labels, stateCounts, filtered, error = null }) {
   document.dispatchEvent(new CustomEvent("goreecloud:memos-rendered", {
     detail: {
       view,
       memos: [...memos],
       visibleMemos: [...visibleMemos],
       labels: [...labels],
+      stateCounts: { ...stateCounts },
       filtered: Boolean(filtered),
       error: error ? String(error.message ?? error) : null
     }
@@ -393,12 +402,14 @@ function renderMemos(memos, { filtered = false } = {}) {
 async function refresh() {
   const generation = ++refreshGeneration;
   const requestedView = currentView;
-  const [memos, labels] = await Promise.all([
-    service.list({ state: requestedView }),
+  const [allMemos, labels] = await Promise.all([
+    service.listAll(),
     labelService.list()
   ]);
   if (generation !== refreshGeneration || requestedView !== currentView) return;
 
+  const stateCounts = summarizeMemoStates(allMemos);
+  const memos = allMemos.filter((memo) => memo.state === requestedView);
   managedLabels = labels;
   updateLabelFilterOptions(memos);
   const filtered = hasActiveFilters();
@@ -419,6 +430,7 @@ async function refresh() {
       memos,
       visibleMemos: [],
       labels,
+      stateCounts,
       filtered,
       error: expressionError
     });
@@ -441,6 +453,7 @@ async function refresh() {
     memos,
     visibleMemos,
     labels,
+    stateCounts,
     filtered
   });
 }
