@@ -230,10 +230,12 @@ test("workspace lifecycle counts stay exact across filters and state changes", a
   await expect(archivedCount).toHaveText("0");
   await expect(trashedCount).toHaveText("0");
 
-  await page.locator("#memo-search").fill("Count One");
+  const search = page.locator("#memo-search");
+  await search.fill("Count One");
   await expect(page.locator(".memo-card")).toHaveCount(1);
   await expect(activeCount).toHaveText("2");
-  await page.getByRole("button", { name: "Clear search and filters" }).click();
+  await search.fill("");
+  await expect(page.locator(".memo-card")).toHaveCount(2);
 
   let card = page.locator(".memo-card", { hasText: "First count memo" });
   await runMemoAction(card, "Archive");
