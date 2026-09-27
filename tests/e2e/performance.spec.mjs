@@ -224,6 +224,14 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
   const largeLibraryInitialRenderMs = await page.evaluate(
     () => performance.now() - window.__memosBaselineNavigationStart
   );
+  const largeLibraryDom = await page.evaluate(() => ({
+    nodeCount: document.querySelectorAll("#memo-list *").length,
+    hydratedEditors: document.querySelectorAll("#memo-list .memo-editor").length,
+    hydratedActionButtons: document.querySelectorAll("#memo-list .memo-card__actions button").length
+  }));
+
+  expect(largeLibraryDom.hydratedEditors).toBe(0);
+  expect(largeLibraryDom.hydratedActionButtons).toBe(0);
 
   const metrics = {
     revision: process.env.EVALUATED_REVISION ?? "local-unbound",
@@ -233,6 +241,7 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
     largeFixtureMemos: LARGE_FIXTURE_COUNT,
     initialRenderMs: Number(initialRenderMs.toFixed(2)),
     largeLibraryInitialRenderMs: Number(largeLibraryInitialRenderMs.toFixed(2)),
+    largeLibraryDom,
     composerOpen: summarize(composerOpenSamples),
     search: summarize(searchSamples),
     savedViewApply: summarize(savedViewSamples),
