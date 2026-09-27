@@ -14,6 +14,7 @@ const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
 const memoService = new MemoService(store);
 let refreshPending = false;
+let refreshChain = Promise.resolve();
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -262,9 +263,11 @@ function scheduleLabelRefresh() {
   refreshPending = true;
   queueMicrotask(() => {
     refreshPending = false;
-    refreshLabels().catch((error) => {
-      setStatus(error instanceof Error ? error.message : "Could not refresh labels");
-    });
+    refreshChain = refreshChain
+      .then(() => refreshLabels())
+      .catch((error) => {
+        setStatus(error instanceof Error ? error.message : "Could not refresh labels");
+      });
   });
 }
 
