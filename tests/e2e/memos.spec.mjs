@@ -71,6 +71,15 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
   await expect(page.locator("#topbar-new-memo")).toBeVisible();
   await expect(page.locator("details.utility-drawer > summary")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  await page.setViewportSize({ width: 768, height: 1024 });
+  for (const target of targets) {
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
 test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
