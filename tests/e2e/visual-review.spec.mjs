@@ -43,6 +43,7 @@ async function closeTransientPanels(page) {
 
 async function shot(page, fileName, viewport, { fullPage = true } = {}) {
   await page.setViewportSize(viewport);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(80);
   const path = join(OUTPUT_DIR, fileName);
   await page.screenshot({ path, fullPage, animations: "disabled" });
@@ -140,12 +141,20 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
   screenshots.push(await shot(page, "04-desktop-active-deep-dark.png", { width: 1440, height: 1000 }));
 
   await openViewControls(page);
+  await page.locator(".utility-panel").evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  await expect(page.getByRole("heading", { name: "Workspace settings" })).toBeVisible();
   screenshots.push(await shot(page, "05-desktop-settings-deep-dark.png", { width: 1440, height: 1000 }));
   await closeTransientPanels(page);
 
   const manager = page.locator("details.manager-drawer");
   await manager.locator(":scope > summary").click();
   await expect(manager).toHaveJSProperty("open", true);
+  await page.locator(".drawer-panel").evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  await expect(page.getByRole("heading", { name: "Manage labels" })).toBeVisible();
   screenshots.push(await shot(page, "06-desktop-label-manager-deep-dark.png", { width: 1440, height: 1000 }));
   await closeTransientPanels(page);
 
