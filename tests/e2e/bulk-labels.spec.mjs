@@ -99,7 +99,12 @@ test("bulk apply and remove update selected memo relationships without deleting 
 
   const before = await readSnapshot(page);
   expect(before.memos).toHaveLength(3);
+  expect(before.memos.map((memo) => memo.title).sort()).toEqual(["Alpha", "Beta", "Gamma"]);
   expect(before.labels.map((label) => label.name).sort()).toEqual(["Ideas", "Work"]);
+  await expect(page.locator(".memo-card")).toHaveCount(3);
+  for (const title of ["Alpha", "Beta", "Gamma"]) {
+    await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
+  }
 
   await selectMemo(page, "Alpha");
   await selectMemo(page, "Gamma");
