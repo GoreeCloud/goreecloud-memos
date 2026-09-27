@@ -2,7 +2,7 @@
 
 ## Product name
 
-Use **GoreeCloud Memos** for the product and `goreecloud-memos` for the canonical repository identifier.
+Use **GoreeCloud Memos** for the product and `memos` for the canonical repository identifier.
 
 ## Product role
 
@@ -24,7 +24,7 @@ The approved GoreeCloud Memos application icon is owned by the canonical **Goree
 
 - Canonical asset: `products/memos/app-icon.svg`
 - Accepted Git blob: `eb9396c3a1891f6afb96849a29110c6f35e65f19`
-- Consumer repository: `GoreeCloud/goreecloud-memos`
+- Consumer repository: `GoreeCloud/memos`
 - Status: approved
 
 The web application vendors the exact approved vector bytes at `web/assets/memos-icon.svg` for local/offline presentation and favicon use. That file is a synchronized consumer derivative and does not supersede `GoreeCloud/branding-assets` as branding authority.
