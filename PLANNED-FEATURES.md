@@ -1,7 +1,7 @@
 # GoreeCloud Memos — Planned Features
 
 **Record type:** Repository planned/open feature inventory  
-**Repository:** `GoreeCloud/goreecloud-memos`  
+**Repository:** `GoreeCloud/memos`  
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete and authoritative on `main`; PR #20 merged as `7985fed0bad91b5a04e8a586aefda6089086a120`, exact-head and exact-main validation passed, root `FEATURE-ROADMAP.md` is absent, and the mapped legacy Drive roadmap was permanently retired and verified absent on September 22, 2026.  
 **Runtime evidence baseline:** `d86dfb981830dc9941ab7b009fbbe18d818c3a63`; repository feature/changelog migration and retirement reconciliation do not promote runtime state.  
