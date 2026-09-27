@@ -132,6 +132,10 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
 
   await captureMemo(page, { content: "Compact touch target memo" });
   const compactCard = page.locator(".memo-card", { hasText: "Compact touch target memo" });
+  const memoSelectBox = await compactCard.locator(".memo-select").boundingBox();
+  expect(memoSelectBox).not.toBeNull();
+  expect(memoSelectBox.height).toBeGreaterThanOrEqual(48);
+
   const memoMenuTrigger = compactCard.locator("details.memo-card-menu > summary");
   const menuBox = await memoMenuTrigger.boundingBox();
   expect(menuBox).not.toBeNull();
@@ -145,6 +149,12 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
     expect(box).not.toBeNull();
     expect(box.height).toBeGreaterThanOrEqual(48);
   }
+  await page.keyboard.press("Escape");
+
+  await openViewControls(page);
+  const presentationTarget = await page.getByRole("radio", { name: "Comfortable" }).locator("..").boundingBox();
+  expect(presentationTarget).not.toBeNull();
+  expect(presentationTarget.height).toBeGreaterThanOrEqual(48);
   await page.keyboard.press("Escape");
 
   await page.setViewportSize({ width: 768, height: 1024 });
