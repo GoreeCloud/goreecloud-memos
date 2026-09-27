@@ -16,6 +16,20 @@ async function selectMemo(page, title) {
   await page.getByRole("checkbox", { name: `Select ${title}`, exact: true }).check();
 }
 
+async function openViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function closeViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (await drawer.evaluate((element) => element.open)) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
 async function readSnapshot(page) {
   return page.evaluate(async () => new Promise((resolve, reject) => {
     const request = indexedDB.open("goreecloud-memos-local", 5);
@@ -65,9 +79,10 @@ test("bulk apply and remove update selected memo relationships without deleting 
   await captureMemo(page, { title: "Beta", content: "Beta body", labels: "Ideas" });
   await captureMemo(page, { title: "Gamma", content: "Gamma body" });
 
-  await page.locator("#bulk-label-select").selectOption({ label: "Ideas" });
   await selectMemo(page, "Alpha");
   await selectMemo(page, "Gamma");
+  await openViewControls(page);
+  await page.locator("#bulk-label-select").selectOption({ label: "Ideas" });
   await page.getByRole("button", { name: "Apply label", exact: true }).click();
   await expect(page.locator("#bulk-label-status")).toContainText("Applied Ideas to 2 memos.");
 
@@ -75,9 +90,11 @@ test("bulk apply and remove update selected memo relationships without deleting 
   await expect(memoCard(page, "Alpha").getByText("Ideas", { exact: true })).toBeVisible();
   await expect(memoCard(page, "Gamma").getByText("Ideas", { exact: true })).toBeVisible();
 
-  await page.locator("#bulk-label-select").selectOption({ label: "Ideas" });
+  await closeViewControls(page);
   await selectMemo(page, "Alpha");
   await selectMemo(page, "Beta");
+  await openViewControls(page);
+  await page.locator("#bulk-label-select").selectOption({ label: "Ideas" });
   await page.getByRole("button", { name: "Remove label", exact: true }).click();
   await expect(page.locator("#bulk-label-status")).toContainText("Removed Ideas from 2 memos.");
 
@@ -103,9 +120,10 @@ test("bulk apply aborts atomically when one selected memo is already at the labe
   await captureMemo(page, { title: "Source", content: "Source body", labels: "Extra" });
   await captureMemo(page, { title: "Clean", content: "Clean body" });
 
-  await page.locator("#bulk-label-select").selectOption({ label: "Extra" });
   await selectMemo(page, "Clean");
   await selectMemo(page, "At limit");
+  await openViewControls(page);
+  await page.locator("#bulk-label-select").selectOption({ label: "Extra" });
   await page.getByRole("button", { name: "Apply label", exact: true }).click();
   await expect(page.locator("#bulk-label-status")).toContainText("at most 20 labels");
 
