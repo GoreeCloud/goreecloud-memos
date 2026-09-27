@@ -42,20 +42,29 @@ function clearSelection({ clearMessage = true } = {}) {
 
 function createSelector(card) {
   const memoId = card.dataset.memoId;
-  if (!memoId || card.querySelector("[data-bulk-select]")) return;
+  if (!memoId) return;
+
   const title = card.querySelector(".memo-card__title")?.textContent?.trim() || "memo";
-  const label = document.createElement("label");
-  label.className = "memo-select";
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.dataset.bulkSelect = "";
+  let input = card.querySelector("[data-bulk-select]");
+  let label = input?.closest(".memo-select") ?? null;
+
+  if (!input) {
+    label = document.createElement("label");
+    label.className = "memo-select";
+    input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.bulkSelect = "";
+    const text = document.createElement("span");
+    text.className = "sr-only";
+    text.textContent = "Select";
+    label.append(input, text);
+    card.querySelector(".memo-card__header")?.prepend(label);
+  }
+
   input.value = memoId;
   input.checked = selectedMemoIds.has(memoId);
   input.setAttribute("aria-label", `Select ${title}`);
-  const text = document.createElement("span");
-  text.textContent = "Select";
-  label.append(input, text);
-  card.querySelector(".memo-card__header")?.prepend(label);
+  label?.setAttribute("aria-label", `Select ${title}`);
 }
 
 function enhanceVisibleCards() {
