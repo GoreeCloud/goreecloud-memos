@@ -16,6 +16,20 @@ async function openViewControls(page) {
   }
 }
 
+test("Glaze capture shell keeps primary writing workflow prominent", async ({ page }) => {
+  await page.goto("/web/");
+
+  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+  await expect(page.locator(".brand__icon")).toHaveAttribute("src", "./assets/memos-icon.svg");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
+  await expect(page.locator("details.manager-drawer")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-content")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
+});
+
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
   await page.locator("#memo-title").fill("Draft title");
