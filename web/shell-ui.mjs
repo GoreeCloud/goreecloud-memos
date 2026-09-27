@@ -14,6 +14,7 @@ const capturePanel = document.querySelector("#capture-panel");
 const captureContent = document.querySelector("#memo-content");
 const searchInput = document.querySelector("#memo-search");
 const utilityDrawer = document.querySelector("details.utility-drawer");
+const managerDrawer = document.querySelector("details.manager-drawer");
 const settingsPanel = document.querySelector("#view-settings-panel");
 const sidebarSettings = document.querySelector("#sidebar-settings");
 const sidebarNewMemo = document.querySelector("#sidebar-new-memo");
@@ -112,6 +113,14 @@ function applyAppearance(mode, { persist = false } = {}) {
   }
 }
 
+function closeTransientUi() {
+  if (utilityDrawer) utilityDrawer.open = false;
+  if (managerDrawer) managerDrawer.open = false;
+  for (const menu of document.querySelectorAll("details.memo-card-menu[open]")) {
+    menu.open = false;
+  }
+}
+
 function openSettings() {
   if (!utilityDrawer) return;
   utilityDrawer.open = true;
@@ -152,6 +161,11 @@ sidebarNewMemo?.addEventListener("click", openCapture);
 topbarNewMemo?.addEventListener("click", openCapture);
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeTransientUi();
+    return;
+  }
+
   if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
   if (isTypingTarget(event.target)) return;
 
@@ -164,11 +178,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key.toLocaleLowerCase() === "n") {
     event.preventDefault();
     openCapture();
-    return;
-  }
-
-  if (event.key === "Escape" && utilityDrawer?.open) {
-    utilityDrawer.open = false;
   }
 });
 
