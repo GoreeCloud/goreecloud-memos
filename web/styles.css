@@ -1838,6 +1838,7 @@ button.danger {
 
   .app-shell {
     grid-template-columns: 1fr;
+    grid-template-rows: var(--compact-nav-height) minmax(0, 1fr);
   }
 
   .sidebar {
