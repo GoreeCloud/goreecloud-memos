@@ -117,6 +117,27 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
+  await page.goto("/web/");
+
+  const location = page.getByRole("navigation", { name: "Memo location" });
+
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "archived");
+  await expect(page.getByRole("heading", { name: "Keep the active space light." })).toBeVisible();
+  await expect(page.locator("#capture-panel")).toBeHidden();
+
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
+  await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "trashed");
+  await expect(page.getByRole("heading", { name: "Recover what you need." })).toBeVisible();
+  await expect(page.locator("#capture-panel")).toBeHidden();
+
+  await page.locator("#topbar-new-memo").click();
+  await expect(location.getByRole("button", { name: "Memos", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#memo-content")).toBeFocused();
+});
+
 test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
   await page.goto("/web/");
 
