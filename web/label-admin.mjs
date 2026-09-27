@@ -9,6 +9,9 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const managerDrawer = document.querySelector(".manager-drawer");
 const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
+let managerRenderGeneration = 0;
+let latestWorkspaceLabels = [];
+let hasWorkspaceLabelSnapshot = false;
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -243,7 +246,11 @@ function currentSidebarView() {
 }
 
 async function refreshLabels() {
+  const generation = ++managerRenderGeneration;
   const labels = await service.list();
+  if (generation !== managerRenderGeneration) return labels;
+  latestWorkspaceLabels = labels;
+  hasWorkspaceLabelSnapshot = true;
   if (managerDrawer?.open) renderLabels(labels);
   return labels;
 }
@@ -272,6 +279,9 @@ function syncFromWorkspaceRender(event) {
     return;
   }
 
+  managerRenderGeneration += 1;
+  latestWorkspaceLabels = labels;
+  hasWorkspaceLabelSnapshot = true;
   if (managerDrawer?.open) renderLabels(labels);
 
   const view = typeof detail.view === "string" ? detail.view : currentSidebarView();
@@ -385,6 +395,11 @@ filterLabelInput?.addEventListener("change", syncSidebarLabelSelection);
 
 managerDrawer?.addEventListener("toggle", () => {
   if (!managerDrawer.open) return;
+
+  if (hasWorkspaceLabelSnapshot) {
+    renderLabels(latestWorkspaceLabels);
+  }
+
   refreshLabels().catch((error) => {
     setStatus(error instanceof Error ? error.message : "Could not load labels");
   });
