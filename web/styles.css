@@ -1628,6 +1628,22 @@ button.danger {
     display: none;
   }
 
+  .topbar-actions {
+    gap: 0.4rem;
+  }
+
+  .topbar-create {
+    flex: 0 0 48px;
+    width: 48px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .topbar-create > span:last-child,
+  .search-shortcut {
+    display: none;
+  }
+
   .nav-item {
     grid-template-columns: 1.6rem;
   }
