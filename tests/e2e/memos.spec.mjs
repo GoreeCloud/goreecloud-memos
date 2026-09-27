@@ -48,6 +48,34 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
+test("first-use setup resumes and remains replayable", async ({ page }) => {
+  await page.goto("/web/");
+  await page.evaluate(() => {
+    localStorage.removeItem("goreecloud-memos:setup-complete:v1");
+    localStorage.removeItem("goreecloud-memos:setup-step:v1");
+  });
+  await page.reload();
+
+  const dialog = page.locator("#setup-dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+
+  await page.locator("#setup-next").click();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 2 of 3");
+  await page.reload();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 2 of 3");
+
+  await page.locator("#setup-next").click();
+  await page.locator("#setup-next").click();
+  await expect(dialog).not.toBeVisible();
+
+  await page.locator("#sidebar-settings").click();
+  await page.locator("#replay-setup").click();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+});
+
 test("compact shell keeps primary controls reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/web/");
