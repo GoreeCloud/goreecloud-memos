@@ -920,7 +920,9 @@ button.danger {
 }
 
 .memo-card__heading {
+  flex: 1 1 auto;
   min-width: 0;
+  padding-right: 2.15rem;
 }
 
 .memo-card__time {
@@ -948,33 +950,63 @@ button.danger {
   line-height: 1.55;
 }
 
+.memo-card-menu {
+  position: absolute;
+  top: 0.62rem;
+  right: 0.62rem;
+  z-index: 6;
+}
+
+.memo-card-menu > summary {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  list-style: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-strong) 76%, transparent);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  opacity: 0.58;
+  transition: opacity 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.memo-card-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.memo-card:hover .memo-card-menu > summary,
+.memo-card-menu[open] > summary,
+.memo-card-menu > summary:focus-visible {
+  border-color: var(--border);
+  background: var(--surface-strong);
+  color: var(--text);
+  opacity: 1;
+}
+
 .memo-card__actions {
   position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  z-index: 3;
+  top: 2.35rem;
+  right: 0;
+  z-index: 7;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  max-width: calc(100% - 1.3rem);
+  width: max-content;
+  max-width: min(17rem, calc(100vw - 2rem));
   gap: 0.3rem;
-  padding: 0.35rem;
-  border: 1px solid transparent;
-  border-radius: 11px;
-  background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
-  box-shadow: var(--shadow-sm);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease;
-}
-
-.memo-card:hover .memo-card__actions,
-.memo-card:focus-within .memo-card__actions {
-  border-color: var(--border);
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
+  padding: 0.38rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-strong) 96%, transparent);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(22px) saturate(1.08);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
 }
 
 .memo-card__actions button {
@@ -1294,22 +1326,6 @@ button.danger {
 
 .development-note strong {
   color: var(--muted);
-}
-
-@media (hover: none) {
-  .memo-card__actions {
-    position: static;
-    width: 100%;
-    max-width: none;
-    margin-top: 0.65rem;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-  }
 }
 
 @media (max-width: 1080px) {
