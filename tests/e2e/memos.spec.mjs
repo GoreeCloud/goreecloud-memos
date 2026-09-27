@@ -217,10 +217,10 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
 
 test("RTL layout direction preserves shell hierarchy and bounded overlays", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.addInitScript(() => {
+  await page.goto("/web/");
+  await page.evaluate(() => {
     document.documentElement.setAttribute("dir", "rtl");
   });
-  await page.goto("/web/");
 
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
