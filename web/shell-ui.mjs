@@ -14,7 +14,9 @@ const capturePanel = document.querySelector("#capture-panel");
 const captureContent = document.querySelector("#memo-content");
 const searchInput = document.querySelector("#memo-search");
 const utilityDrawer = document.querySelector("details.utility-drawer");
+const utilitySummary = utilityDrawer?.querySelector(":scope > summary");
 const managerDrawer = document.querySelector("details.manager-drawer");
+const managerSummary = managerDrawer?.querySelector(":scope > summary");
 const settingsPanel = document.querySelector("#view-settings-panel");
 const sidebarSettings = document.querySelector("#sidebar-settings");
 const sidebarNewMemo = document.querySelector("#sidebar-new-memo");
@@ -65,6 +67,10 @@ function currentView() {
 
 function applyViewCopy(view) {
   const copy = VIEW_COPY[view] ?? VIEW_COPY.active;
+  for (const button of viewButtons) {
+    if (button.dataset.view === view) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  }
   if (workspaceTitle) workspaceTitle.textContent = copy.workspace;
   if (boardTitle) boardTitle.textContent = copy.board;
   if (heroEyebrow) heroEyebrow.textContent = copy.eyebrow;
@@ -113,11 +119,26 @@ function applyAppearance(mode, { persist = false } = {}) {
   }
 }
 
-function closeTransientUi() {
-  if (utilityDrawer) utilityDrawer.open = false;
-  if (managerDrawer) managerDrawer.open = false;
+function closeTransientUi({ restoreFocus = true } = {}) {
+  let focusTarget = null;
+
+  if (utilityDrawer?.open) {
+    utilityDrawer.open = false;
+    focusTarget ??= utilitySummary;
+  }
+
+  if (managerDrawer?.open) {
+    managerDrawer.open = false;
+    focusTarget ??= managerSummary;
+  }
+
   for (const menu of document.querySelectorAll("details.memo-card-menu[open]")) {
     menu.open = false;
+    focusTarget ??= menu.querySelector(":scope > summary");
+  }
+
+  if (restoreFocus && focusTarget instanceof HTMLElement) {
+    requestAnimationFrame(() => focusTarget.focus());
   }
 }
 
@@ -147,7 +168,10 @@ function isTypingTarget(target) {
 }
 
 for (const button of viewButtons) {
-  button.addEventListener("click", () => applyViewCopy(button.dataset.view));
+  button.addEventListener("click", () => {
+    closeTransientUi({ restoreFocus: false });
+    applyViewCopy(button.dataset.view);
+  });
 }
 
 for (const input of appearanceInputs) {
@@ -167,6 +191,7 @@ document.addEventListener("keydown", (event) => {
   }
 
   if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (document.querySelector("dialog[open]")) return;
   if (isTypingTarget(event.target)) return;
 
   if (event.key === "/") {
