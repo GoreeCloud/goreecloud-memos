@@ -205,13 +205,18 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   const compactNav = page.locator(".sidebar");
   const compactTopbar = page.locator(".topbar");
   const location = page.getByRole("navigation", { name: "Memo location" });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   for (const viewName of ["Memos", "Archive", "Trash"]) {
     await location.getByRole("button", { name: viewName, exact: true }).click();
     const navBox = await compactNav.boundingBox();
     const topbarBox = await compactTopbar.boundingBox();
     expect(navBox).not.toBeNull();
     expect(topbarBox).not.toBeNull();
-    expect(topbarBox.y).toBeLessThanOrEqual(navBox.y + navBox.height + 1);
+    expect(
+      topbarBox.y,
+      `${viewName} top bar should remain attached to the compact navigation at document top`
+    ).toBeLessThanOrEqual(navBox.y + navBox.height + 1);
   }
   await location.getByRole("button", { name: "Memos", exact: true }).click();
 
