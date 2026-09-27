@@ -8,6 +8,7 @@ const applyButton = document.querySelector("#bulk-label-apply");
 const removeButton = document.querySelector("#bulk-label-remove");
 const clearButton = document.querySelector("#bulk-selection-clear");
 const statusElement = document.querySelector("#bulk-label-status");
+const utilityDrawer = document.querySelector("details.utility-drawer");
 
 const store = new IndexedDbMemoStore();
 const memoService = new MemoService(store);
@@ -146,6 +147,14 @@ clearButton.addEventListener("click", () => {
 });
 
 document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
+
+utilityDrawer?.addEventListener("toggle", () => {
+  if (!utilityDrawer.open) return;
+  refreshLabelOptions().catch((error) => {
+    statusElement.textContent = error instanceof Error ? error.message : "Could not refresh bulk label controls";
+  });
+});
+
 enhanceVisibleCards();
 refreshLabelOptions().catch((error) => {
   statusElement.textContent = error instanceof Error ? error.message : "Could not load bulk label controls";
