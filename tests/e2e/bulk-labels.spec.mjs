@@ -143,6 +143,12 @@ test("bulk apply aborts atomically when one selected memo is already at the labe
   await captureMemo(page, { title: "Source", content: "Source body", labels: "Extra" });
   await captureMemo(page, { title: "Clean", content: "Clean body" });
 
+  const before = await readSnapshot(page);
+  const atLimit = before.memos.find((memo) => memo.title === "At limit");
+  expect(atLimit.labels).toHaveLength(20);
+  expect(atLimit.labelIds).toHaveLength(20);
+  expect(before.memoLabels.filter((relation) => relation.memoId === atLimit.id)).toHaveLength(20);
+
   await selectMemo(page, "Clean");
   await selectMemo(page, "At limit");
   await openViewControls(page);
