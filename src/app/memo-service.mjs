@@ -65,9 +65,13 @@ export class MemoService {
     return memo;
   }
 
+  async listAll() {
+    return (await this.#store.list()).sort(compareMemosForDisplay);
+  }
+
   async list({ state = "active" } = {}) {
     if (!MEMO_STATES.includes(state)) throw new TypeError("state must be active, archived, or trashed");
-    return (await this.#store.list()).filter((memo) => memo.state === state).sort(compareMemosForDisplay);
+    return (await this.listAll()).filter((memo) => memo.state === state);
   }
 
   async edit(id, changes) {
