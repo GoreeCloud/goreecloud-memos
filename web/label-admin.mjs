@@ -255,16 +255,22 @@ async function refreshLabels() {
   return labels;
 }
 
+function requestWorkspaceRefresh(source) {
+  return new Promise((resolve, reject) => {
+    document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
+      detail: { source, resolve, reject }
+    }));
+  });
+}
+
 async function refreshAfterLabelMutation(message) {
-  setStatus(message);
   try {
+    await requestWorkspaceRefresh("label-admin");
     await refreshLabels();
+    setStatus(message);
   } catch (error) {
     setStatus(message + " Workspace label controls could not be refreshed yet.");
   }
-  document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
-    detail: { source: "label-admin" }
-  }));
 }
 
 function syncFromWorkspaceRender(event) {
