@@ -16,6 +16,7 @@ const labelService = new LabelService(store);
 let selectedMemoIds = new Set();
 let actionMessage = "";
 let labelOptionsGeneration = 0;
+let latestWorkspaceLabels = null;
 
 function memoCountText(count) {
   return `${count} ${count === 1 ? "memo" : "memos"}`;
@@ -96,7 +97,9 @@ async function refreshLabelOptions(labelsSnapshot = null) {
 function syncFromWorkspaceRender(event) {
   selectedMemoIds = new Set();
   enhanceVisibleCards();
-  refreshLabelOptions(event?.detail?.labels).catch((error) => {
+  const labels = Array.isArray(event?.detail?.labels) ? event.detail.labels : null;
+  if (labels) latestWorkspaceLabels = labels;
+  refreshLabelOptions(labels ?? latestWorkspaceLabels).catch((error) => {
     statusElement.textContent = error instanceof Error ? error.message : "Could not refresh bulk label controls";
   });
   updateControls();
@@ -157,7 +160,7 @@ document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
 
 utilityDrawer?.addEventListener("toggle", () => {
   if (!utilityDrawer.open) return;
-  refreshLabelOptions().catch((error) => {
+  refreshLabelOptions(latestWorkspaceLabels).catch((error) => {
     statusElement.textContent = error instanceof Error ? error.message : "Could not refresh bulk label controls";
   });
 });
