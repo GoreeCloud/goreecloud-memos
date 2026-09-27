@@ -48,6 +48,41 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
+test("long memo cards stay compact until explicitly expanded", async ({ page }) => {
+  await page.goto("/web/");
+
+  const longContent = Array.from(
+    { length: 14 },
+    (_, index) => `Long memo preview line ${index + 1}: details remain fully local and available when expanded.`
+  ).join("\n");
+
+  await captureMemo(page, { title: "Long preview", content: longContent });
+
+  const card = page.locator(".memo-card", { hasText: "Long preview" });
+  const content = card.locator(".memo-card__content");
+  const expand = card.locator("[data-expand-content]");
+
+  await expect(card).toHaveClass(/memo-card--content-collapsed/);
+  await expect(expand).toBeVisible();
+  await expect(expand).toHaveText("Show more");
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+
+  const collapsedBox = await content.boundingBox();
+  expect(collapsedBox).not.toBeNull();
+
+  await expand.click();
+  await expect(card).toHaveClass(/memo-card--content-expanded/);
+  await expect(expand).toHaveText("Show less");
+  await expect(expand).toHaveAttribute("aria-expanded", "true");
+
+  const expandedBox = await content.boundingBox();
+  expect(expandedBox).not.toBeNull();
+  expect(expandedBox.height).toBeGreaterThan(collapsedBox.height);
+
+  await expand.click();
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+});
+
 test("first-use setup resumes and remains replayable", async ({ page }) => {
   await page.goto("/web/");
   await page.evaluate(() => {
