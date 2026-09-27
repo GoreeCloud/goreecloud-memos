@@ -48,6 +48,28 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
+test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
+  await page.goto("/web/");
+
+  await page.keyboard.press("/");
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeFocused();
+  await page.getByRole("searchbox", { name: "Search memos" }).blur();
+
+  await page.keyboard.press("n");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#memo-content")).toBeFocused();
+
+  await openViewControls(page);
+  await page.getByRole("radio", { name: "Deep Dark" }).check();
+  await expect(page.locator("html")).toHaveAttribute("data-appearance", "deep-dark");
+  await expect(page.locator("#appearance-status")).toHaveText("Appearance: Deep Dark.");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-appearance", "deep-dark");
+  await openViewControls(page);
+  await expect(page.getByRole("radio", { name: "Deep Dark" })).toBeChecked();
+});
+
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
   await openCapture(page);
