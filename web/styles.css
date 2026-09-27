@@ -377,6 +377,18 @@ img {
   color: var(--text);
 }
 
+.sidebar-label-button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 62%, var(--surface-strong));
+  color: var(--text-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-label-button[aria-pressed="true"] .sidebar-label-count {
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
 .nav-item:active,
 .sidebar-link:active,
 .sidebar-label-button:active {
