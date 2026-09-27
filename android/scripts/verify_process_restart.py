@@ -73,10 +73,9 @@ def ensure_workspace_ready(timeout_seconds: float = 35.0) -> None:
         if find_by_description(nodes, "Memo title") is not None:
             return
 
-        action = (
-            find_by_description(nodes, "Finish Memos setup")
-            or find_by_description(nodes, "Continue Memos setup")
-        )
+        action = find_by_description(nodes, "Finish Memos setup")
+        if action is None:
+            action = find_by_description(nodes, "Continue Memos setup")
         if action is not None:
             tap(action)
             time.sleep(0.5)
