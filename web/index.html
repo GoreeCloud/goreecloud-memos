@@ -27,17 +27,17 @@
         <section class="sidebar-section" aria-labelledby="workspace-nav-heading">
           <h2 id="workspace-nav-heading" class="sidebar-heading">Workspace</h2>
           <nav class="workspace-nav" aria-label="Memo location">
-            <button type="button" class="nav-item view-tab" data-view="active" aria-pressed="true">
+            <button type="button" class="nav-item view-tab" data-view="active" aria-pressed="true" aria-label="Memos">
               <span class="nav-icon" aria-hidden="true">◉</span>
               <span class="nav-label">Memos</span>
               <span class="nav-count" data-view-count="active" aria-hidden="true">0</span>
             </button>
-            <button type="button" class="nav-item view-tab secondary" data-view="archived" aria-pressed="false">
+            <button type="button" class="nav-item view-tab secondary" data-view="archived" aria-pressed="false" aria-label="Archive">
               <span class="nav-icon" aria-hidden="true">▣</span>
               <span class="nav-label">Archive</span>
               <span class="nav-count" data-view-count="archived" aria-hidden="true">0</span>
             </button>
-            <button type="button" class="nav-item view-tab secondary" data-view="trashed" aria-pressed="false">
+            <button type="button" class="nav-item view-tab secondary" data-view="trashed" aria-pressed="false" aria-label="Trash">
               <span class="nav-icon" aria-hidden="true">⌫</span>
               <span class="nav-label">Trash</span>
               <span class="nav-count" data-view-count="trashed" aria-hidden="true">0</span>
@@ -55,7 +55,7 @@
           </div>
 
           <details class="manager-drawer">
-            <summary class="sidebar-link">
+            <summary class="sidebar-link" aria-label="Edit labels" title="Edit labels">
               <span aria-hidden="true">✎</span>
               <span>Edit labels</span>
             </summary>
