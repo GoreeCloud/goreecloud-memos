@@ -51,6 +51,23 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
 test("compact shell keeps primary controls reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/web/");
+
+  const targets = [
+    page.getByRole("button", { name: "Memos", exact: true }),
+    page.getByRole("button", { name: "Archive", exact: true }),
+    page.getByRole("button", { name: "Trash", exact: true }),
+    page.locator("details.manager-drawer > summary"),
+    page.locator("#memo-search"),
+    page.locator("#topbar-new-memo"),
+    page.locator("details.utility-drawer > summary")
+  ];
+
+  for (const target of targets) {
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
   await expect(page.locator("#topbar-new-memo")).toBeVisible();
   await expect(page.locator("details.utility-drawer > summary")).toBeVisible();
