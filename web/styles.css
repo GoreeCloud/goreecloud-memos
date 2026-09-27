@@ -1874,6 +1874,19 @@ button.danger {
     height: 48px;
   }
 
+  .utility-panel button,
+  .utility-panel select,
+  .utility-panel input:not([type="radio"]):not([type="checkbox"]),
+  .drawer-panel button,
+  .drawer-panel select,
+  .drawer-panel input:not([type="radio"]):not([type="checkbox"]) {
+    min-height: 48px;
+  }
+
+  .presentation-option {
+    min-height: 48px;
+  }
+
   .manager-drawer .sidebar-link span:last-child {
     display: none;
   }
