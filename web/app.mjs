@@ -24,6 +24,7 @@ const contentInput = document.querySelector("#memo-content");
 const saveButton = document.querySelector("#save-button");
 const listElement = document.querySelector("#memo-list");
 const template = document.querySelector("#memo-template");
+const editorTemplate = document.querySelector("#memo-editor-template");
 const status = document.querySelector("#status");
 const draftState = document.querySelector("#draft-state");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
@@ -52,6 +53,7 @@ let currentPresentation = loadPresentationMode(localStorage);
 let refreshGeneration = 0;
 let managedLabels = [];
 let savedViews = [];
+let renderedMemoContexts = new Map();
 
 function setStatus(message) {
   status.textContent = message;
@@ -349,6 +351,7 @@ async function applySavedView(view) {
 
 function renderMemos(memos, { filtered = false } = {}) {
   listElement.replaceChildren();
+  renderedMemoContexts = new Map();
 
   if (memos.length === 0) {
     const empty = document.createElement("p");
@@ -371,26 +374,16 @@ function renderMemos(memos, { filtered = false } = {}) {
   for (const memo of memos) {
     const fragment = template.content.cloneNode(true);
     const card = fragment.querySelector(".memo-card");
-    const actions = fragment.querySelector(".memo-card__actions");
-    const editor = fragment.querySelector(".memo-editor");
-    const editTitle = fragment.querySelector("[data-edit-field='title']");
-    const editContent = fragment.querySelector("[data-edit-field='content']");
-    const editColor = fragment.querySelector("[data-edit-field='color']");
-    const editLabels = fragment.querySelector("[data-edit-field='labels']");
+    const pinnedIndex = pinnedIndexes.get(memo.id) ?? -1;
 
     card.dataset.memoId = memo.id;
-    editor.dataset.memoId = memo.id;
-
-    editTitle.value = memo.title;
-    editContent.value = memo.content;
-    editColor.value = memo.color ?? "";
-    editLabels.value = labelsToInput(memo.labels);
-    applyMemoToCard(card, memo);
-    renderActions(actions, memo, {
-      pinnedIndex: pinnedIndexes.get(memo.id) ?? -1,
+    renderedMemoContexts.set(memo.id, {
+      memo,
+      pinnedIndex,
       pinnedCount: pinnedMemos.length
     });
 
+    applyMemoToCard(card, memo);
     renderedCards.append(fragment);
   }
 
@@ -462,9 +455,41 @@ function setView(nextView) {
   return refresh();
 }
 
+function hydrateMemoActions(card) {
+  const actions = card?.querySelector(".memo-card__actions");
+  const context = card ? renderedMemoContexts.get(card.dataset.memoId) : null;
+  if (!actions || !context || actions.dataset.hydrated === "true") return;
+
+  renderActions(actions, context.memo, {
+    pinnedIndex: context.pinnedIndex,
+    pinnedCount: context.pinnedCount
+  });
+  actions.dataset.hydrated = "true";
+}
+
+function ensureMemoEditor(card) {
+  let editor = card?.querySelector(".memo-editor");
+  if (editor) return editor;
+
+  const context = card ? renderedMemoContexts.get(card.dataset.memoId) : null;
+  if (!card || !context || !editorTemplate) return null;
+
+  const fragment = editorTemplate.content.cloneNode(true);
+  editor = fragment.querySelector(".memo-editor");
+  editor.dataset.memoId = context.memo.id;
+  editor.querySelector("[data-edit-field='title']").value = context.memo.title;
+  editor.querySelector("[data-edit-field='content']").value = context.memo.content;
+  editor.querySelector("[data-edit-field='color']").value = context.memo.color ?? "";
+  editor.querySelector("[data-edit-field='labels']").value = labelsToInput(context.memo.labels);
+  card.append(fragment);
+  return editor;
+}
+
 function toggleEditor(button) {
   const card = button.closest(".memo-card");
-  const editor = card.querySelector(".memo-editor");
+  const editor = ensureMemoEditor(card);
+  if (!editor) return;
+
   editor.hidden = !editor.hidden;
   button.textContent = editor.hidden ? "Edit" : "Close editor";
   if (!editor.hidden) {
@@ -489,6 +514,10 @@ function scheduleEditSave(editor) {
         color: editor.querySelector("[data-edit-field='color']").value,
         labels: parseLabelsInput(editor.querySelector("[data-edit-field='labels']").value)
       });
+      const existingContext = renderedMemoContexts.get(memoId);
+      if (existingContext) {
+        renderedMemoContexts.set(memoId, { ...existingContext, memo: updated });
+      }
       applyMemoToCard(editor.closest(".memo-card"), updated);
       editorStatus.textContent = "Saved.";
     } catch (error) {
@@ -620,7 +649,18 @@ listElement.addEventListener("input", (event) => {
   if (editor) scheduleEditSave(editor);
 });
 
+listElement.addEventListener("toggle", (event) => {
+  const menu = event.target.closest?.("details.memo-card-menu");
+  if (menu?.open) hydrateMemoActions(menu.closest(".memo-card"));
+}, true);
+
 listElement.addEventListener("click", async (event) => {
+  const menuSummary = event.target.closest("details.memo-card-menu > summary");
+  if (menuSummary) {
+    hydrateMemoActions(menuSummary.closest(".memo-card"));
+    return;
+  }
+
   const button = event.target.closest("[data-action]");
   if (!button) return;
 
