@@ -988,6 +988,31 @@ button.danger {
   gap: 0.55rem;
 }
 
+.memo-render-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1rem auto 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
+  color: var(--muted);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.memo-render-progress[hidden] {
+  display: none;
+}
+
+.memo-render-progress button {
+  min-height: 44px;
+  box-shadow: none;
+}
+
 .memo-card {
   --memo-color: transparent;
   position: relative;
@@ -1895,6 +1920,16 @@ button.danger {
     width: 48px;
     height: 48px;
     opacity: 1;
+  }
+
+  .memo-render-progress {
+    align-items: stretch;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .memo-render-progress button {
+    min-height: 48px;
   }
 
   .memo-card__actions {
