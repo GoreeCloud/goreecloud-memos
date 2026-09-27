@@ -11,6 +11,8 @@ const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
 
 const form = document.querySelector("#memo-form");
+const capturePanel = document.querySelector("#capture-panel");
+const captureSummary = capturePanel?.querySelector(":scope > summary");
 const titleInput = document.querySelector("#memo-title");
 const colorInput = document.querySelector("#memo-color");
 const labelsInput = document.querySelector("#memo-labels");
@@ -103,6 +105,7 @@ function restoreDraft() {
   colorInput.value = typeof draft.color === "string" ? draft.color : "";
   labelsInput.value = typeof draft.labels === "string" ? draft.labels : "";
   if (titleInput.value || contentInput.value || colorInput.value || labelsInput.value) {
+    if (capturePanel) capturePanel.open = true;
     draftState.textContent = "Recovered a local draft.";
   }
 }
@@ -458,6 +461,11 @@ function refreshFromFilterControl() {
 
 form.addEventListener("input", saveDraft);
 
+capturePanel?.addEventListener("toggle", () => {
+  if (!capturePanel.open) return;
+  requestAnimationFrame(() => contentInput.focus());
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   saveButton.disabled = true;
@@ -472,7 +480,8 @@ form.addEventListener("submit", async (event) => {
     form.reset();
     clearDraft();
     await setView("active");
-    contentInput.focus();
+    if (capturePanel) capturePanel.open = false;
+    captureSummary?.focus();
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Could not save memo");
   } finally {
