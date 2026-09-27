@@ -45,6 +45,14 @@ async function closeLabelManager(page) {
   }
 }
 
+async function runMemoAction(card, name) {
+  const menu = card.locator("details.memo-card-menu");
+  if (!(await menu.evaluate((element) => element.open))) {
+    await menu.locator(":scope > summary").click();
+  }
+  await card.getByRole("button", { name, exact: true }).click();
+}
+
 test("local search and filters combine within the current lifecycle view and reset on reload", async ({ page }) => {
   await page.goto("/web/");
 
@@ -117,7 +125,7 @@ test("local search and filters combine within the current lifecycle view and res
   await closeViewControls(page);
 
   const reference = page.locator(".memo-card", { hasText: "Reference" });
-  await reference.getByRole("button", { name: "Archive", exact: true }).click();
+  await runMemoAction(reference, "Archive");
   await page.getByRole("navigation", { name: "Memo location" }).getByRole("button", { name: "Archive", exact: true }).click();
 
   await search.fill("alpha");
