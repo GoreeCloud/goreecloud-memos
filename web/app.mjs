@@ -513,7 +513,9 @@ async function refresh() {
 
   const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
   if (filtered) {
-    setStatus(`${visibleMemos.length} of ${memos.length} ${memos.length === 1 ? label : `${label}s`} shown`);
+    const noun = memos.length === 1 ? label : `${label}s`;
+    const verb = visibleMemos.length === 1 ? "matches" : "match";
+    setStatus(`${visibleMemos.length} of ${memos.length} ${noun} ${verb} current filters`);
   } else {
     setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
   }
@@ -705,9 +707,18 @@ savedViewApplyButton.addEventListener("click", async () => {
 });
 
 renderMoreButton?.addEventListener("click", () => {
+  const firstNewCardIndex = progressiveRenderIndex;
   appendMemoRenderBatch();
+
   if (!renderProgress?.hidden) {
     renderMoreButton.focus();
+    return;
+  }
+
+  const firstNewCard = listElement.querySelectorAll(".memo-card")[firstNewCardIndex];
+  if (firstNewCard instanceof HTMLElement) {
+    firstNewCard.tabIndex = -1;
+    firstNewCard.focus();
   }
 });
 
