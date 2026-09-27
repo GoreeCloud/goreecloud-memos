@@ -102,6 +102,14 @@ function syncFromWorkspaceRender(event) {
   updateControls();
 }
 
+function requestWorkspaceRefresh(source) {
+  return new Promise((resolve, reject) => {
+    document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
+      detail: { source, resolve, reject }
+    }));
+  });
+}
+
 async function runBulkAction(mode) {
   const memoIds = [...selectedMemoIds];
   const labelId = labelSelect.value;
@@ -115,11 +123,10 @@ async function runBulkAction(mode) {
       : await memoService.removeLabelFromMany(memoIds, labelId);
     const verb = mode === "apply" ? "Applied" : "Removed";
     const preposition = mode === "apply" ? "to" : "from";
+    clearSelection();
+    await requestWorkspaceRefresh("bulk-labels");
     actionMessage = `${verb} ${result.label.name} ${preposition} ${memoCountText(result.changedMemoCount)}.`;
-    clearSelection({ clearMessage: false });
-    document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
-      detail: { source: "bulk-labels" }
-    }));
+    updateControls();
   } catch (error) {
     actionMessage = error instanceof Error ? error.message : "Could not update selected memos";
     updateControls();
