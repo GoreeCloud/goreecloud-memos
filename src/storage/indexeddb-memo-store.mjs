@@ -177,7 +177,12 @@ function mergeMemoLabelProjection(memo, sourceId, targetId, targetName) {
 function applyLabelToMemo(memo, label, changedAt) {
   const normalized = migrateMemoRecord(memo);
   if (normalized.labelIds.includes(label.id)) return { memo: normalized, changed: false };
-  if (normalized.labelIds.length >= MAX_LABELS_PER_MEMO) {
+
+  // Memo label names are a portable projection while labelIds carry managed
+  // identity. Recovery/migration-safe records may temporarily disagree, so
+  // capacity must honor whichever projection already represents more labels.
+  const currentLabelCount = Math.max(normalized.labels.length, normalized.labelIds.length);
+  if (currentLabelCount >= MAX_LABELS_PER_MEMO) {
     throw new RangeError(`a memo can have at most ${MAX_LABELS_PER_MEMO} labels`);
   }
   return {
