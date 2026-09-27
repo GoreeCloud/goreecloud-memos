@@ -109,6 +109,7 @@
               <span class="search-icon" aria-hidden="true">⌕</span>
               <span class="sr-only">Search memos</span>
               <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Search notes" />
+              <kbd class="search-shortcut" aria-hidden="true">/</kbd>
             </label>
             <span id="memo-search-help" class="sr-only">Search text or use color:, label:, and label-color:. Quote values containing spaces.</span>
 
@@ -229,6 +230,17 @@
                   </div>
                   <output id="presentation-status" class="muted" aria-live="polite">Presentation: Comfortable.</output>
                 </fieldset>
+
+                <fieldset class="presentation-picker appearance-picker">
+                  <legend>Appearance</legend>
+                  <div class="presentation-options">
+                    <label class="presentation-option"><input type="radio" name="appearance" value="system" checked /> <span>System</span></label>
+                    <label class="presentation-option"><input type="radio" name="appearance" value="light" /> <span>Light</span></label>
+                    <label class="presentation-option"><input type="radio" name="appearance" value="dark" /> <span>Dark</span></label>
+                    <label class="presentation-option"><input type="radio" name="appearance" value="deep-dark" /> <span>Deep Dark</span></label>
+                  </div>
+                  <output id="appearance-status" class="muted" aria-live="polite">Appearance: Follow system.</output>
+                </fieldset>
               </section>
             </details>
           </div>
@@ -248,7 +260,7 @@
             <summary class="capture-summary">
               <span class="capture-plus" aria-hidden="true">＋</span>
               <span>Take a note…</span>
-              <span class="capture-summary__hint">Quick capture</span>
+              <span class="capture-summary__hint">Quick capture <kbd aria-hidden="true">N</kbd></span>
             </summary>
             <div class="capture-body">
               <form id="memo-form">
