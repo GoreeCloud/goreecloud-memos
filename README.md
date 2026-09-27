@@ -13,12 +13,16 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Android UI explicitly reports that synchronization is not configured; the Development APK requests no `INTERNET` permission and does not invent Identity, Sync, server, Privacy Shield, Wardveil, Everkeep, or production authority.
 - Android host-side unit tests cover codec round-trip, saved-memo persistence, draft persistence/clear, blank-memo rejection, and fallback to the previous readable local generation.
 - Exact-source Android CI lints, unit-tests, assembles the debug APK, verifies Development package/version/label, rejects unexpected Internet permission, and retains APK provenance plus SHA-256 evidence.
+- Responsive Glaze-oriented browser application shell with persistent Memos / Archive / Trash navigation, live lifecycle counts, managed-label navigation, top-bar search, compact quick capture, and secondary workspace/label-management drawers.
+- Replayable first-use setup and contextual guidance for quick capture, local privacy boundaries, workspace controls, and keyboard shortcuts.
+- Browser-local System / Light / Dark / Deep Dark appearance plus reduced-motion, increased-contrast, reduced-transparency, and Forced Colors resilience.
 - Browser quick-capture composer with optional title.
 - Local draft preservation in browser storage, including draft color and label fields.
 - Local saved-memo persistence through IndexedDB.
 - Memo editing with debounced local autosave.
 - Optional memo color metadata using a curated local palette.
 - Managed local Label identities with stable UUIDs and a Memo–Label relation layer, while retaining the current label-name projection for UI/search compatibility.
+- Sidebar managed Labels expose per-lifecycle counts and reversible exact-label filtering with explicit pressed-state semantics.
 - Browser-local managed-label administration for transactional rename, explicit delete, and merge. These operations update affected Memo–Label relations and memo label-name/ID projections atomically; deleting a label does not delete its memos.
 - Browser-local managed-label metadata editing for an optional curated color, optional icon text, and optional description. Existing Label v1 records normalize to Label schema v2 without a Label-specific database-version migration.
 - Memo cards join stable Label identities to current Label v2 metadata and present optional icon/color as supplementary cues while always keeping the canonical label name visible; descriptions remain in Manage labels.
@@ -29,9 +33,10 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
 - Ephemeral browser-local substring search across memo title, body, and label-name projection, plus combinable exact memo-color, label-name, and managed Label-color filters within the current lifecycle view. The same search box also supports bounded advanced expressions for `color:`, `label:`, and `label-color:`, including quoted label values, with explicit validation errors for malformed recognized expressions.
 - User-named browser-local Saved View v1 records that persist and restore the current raw search text plus direct memo-color, label-name, and managed Label-color controls. Saved views are unique by case-insensitive name, do not change lifecycle location, and can be explicitly deleted.
+- Progressive browser rendering for libraries larger than 200 visible memos, with accessible Show more controls, bounded initial DOM work, lazy memo action/editor hydration, and Show more / Show less previews for long memo bodies.
 - Versioned local Memo schema v4 / Label schema v2 / Saved View schema v1 on IndexedDB database v5, with tested v1/v2/v3 → v5 migration and a dedicated v4 → v5 preservation path.
 - Framework-independent memo/label/saved-view domain and application-service modules.
-- Automated unit, syntax, repository-baseline, and Chromium end-to-end validation.
+- Automated unit, syntax, repository-baseline, and Chromium end-to-end validation, including onboarding, focus/keyboard behavior, compact touch targets, 200% text/reflow, accessibility media modes, progressive large-library behavior, and deterministic Development performance diagnostics.
 
 ## Run locally
 
