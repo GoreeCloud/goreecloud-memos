@@ -265,6 +265,28 @@ test("native shell shortcuts and Glaze appearance preference persist locally", a
 });
 
 // Native shell context coverage follows the primary shell tests.
+test("memo secondary controls hydrate only when requested", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Lazy controls", content: "Hydrate secondary UI on demand" });
+
+  const card = page.locator(".memo-card", { hasText: "Hydrate secondary UI on demand" });
+  await expect(card.locator(".memo-editor")).toHaveCount(0);
+  await expect(card.locator(".memo-card__actions button")).toHaveCount(0);
+
+  const menu = card.locator("details.memo-card-menu");
+  await menu.locator(":scope > summary").click();
+  await expect(card.locator(".memo-card__actions button")).toHaveCount(4);
+  await expect(card.locator(".memo-editor")).toHaveCount(0);
+
+  await card.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(card.locator(".memo-editor")).toHaveCount(1);
+  await expect(card.locator("[data-edit-field='content']")).toHaveValue("Hydrate secondary UI on demand");
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
+
+  await runMemoAction(card, "Close editor");
+  await expect(card.locator(".memo-editor")).toBeHidden();
+});
+
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
   await openCapture(page);
