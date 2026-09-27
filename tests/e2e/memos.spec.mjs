@@ -111,8 +111,8 @@ test("pinning retains manual order across reload", async ({ page }) => {
   await runMemoAction(page.locator(".memo-card", { hasText: "Second pinned memo" }), "Pin");
   await expect(page.locator(".memo-card").nth(0)).toContainText("First pinned memo");
 
-  second = page.locator(".memo-card", { hasText: "Second pinned memo" });
-  await runMemoAction(second, "Move pin up");
+  first = page.locator(".memo-card", { hasText: "First pinned memo" });
+  await runMemoAction(first, "Move pin down");
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
   await expect(page.locator(".memo-card").nth(1)).toContainText("First pinned memo");
 
