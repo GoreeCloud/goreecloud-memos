@@ -20,8 +20,14 @@ function memoCard(page, title) {
   return page.locator(".memo-card").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
 }
 
+function memoBulkSelect(page, title) {
+  return memoCard(page, title).locator("[data-bulk-select]");
+}
+
 async function selectMemo(page, title) {
-  await page.getByRole("checkbox", { name: `Select ${title}`, exact: true }).check();
+  const input = memoBulkSelect(page, title);
+  await expect(input).toHaveAttribute("aria-label", `Select ${title}`);
+  await input.check();
 }
 
 async function openViewControls(page) {
@@ -76,8 +82,9 @@ test("bulk selection is ephemeral and clears when filtering rerenders the visibl
   await expect(page.locator("#bulk-label-status")).toContainText("1 memo selected");
 
   await page.locator("#memo-search").fill("Beta");
-  await expect(page.getByRole("checkbox", { name: "Select Alpha" })).toHaveCount(0);
-  await expect(page.getByRole("checkbox", { name: "Select Beta" })).toBeVisible();
+  await expect(memoBulkSelect(page, "Alpha")).toHaveCount(0);
+  await expect(memoBulkSelect(page, "Beta")).toHaveAttribute("aria-label", "Select Beta");
+  await expect(memoBulkSelect(page, "Beta")).toBeVisible();
   await expect(page.locator("#bulk-label-status")).toContainText("0 memos selected");
 });
 
