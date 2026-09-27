@@ -382,7 +382,7 @@ async function applySavedView(view) {
   filterColorInput.value = view.filters.color;
   filterLabelInput.value = view.filters.label;
   filterLabelColorInput.value = view.filters.labelColor;
-  await refresh();
+  await refreshAndWait();
   savedViewStatus.textContent = `Applied saved view "${view.name}" in the current memo location.`;
 }
 
@@ -539,6 +539,24 @@ async function refresh() {
   }
 }
 
+function waitForWorkspaceReady() {
+  if (listElement.getAttribute("aria-busy") !== "true") return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (listElement.getAttribute("aria-busy") === "true") return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(listElement, { attributes: true, attributeFilter: ["aria-busy"] });
+  });
+}
+
+async function refreshAndWait() {
+  const rendered = await refresh();
+  if (!rendered) await waitForWorkspaceReady();
+}
+
 function setView(nextView) {
   currentView = nextView;
   for (const button of viewButtons) {
@@ -546,7 +564,7 @@ function setView(nextView) {
     button.setAttribute("aria-pressed", String(selected));
     button.classList.toggle("secondary", !selected);
   }
-  return refresh();
+  return refreshAndWait();
 }
 
 function hydrateMemoActions(card) {
@@ -750,7 +768,7 @@ savedViewDeleteButton.addEventListener("click", async () => {
 
 document.addEventListener("goreecloud:memos-refresh-requested", async (event) => {
   try {
-    await refresh();
+    await refreshAndWait();
     event.detail?.resolve?.();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not refresh local memos";
