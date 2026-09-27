@@ -159,6 +159,26 @@ function memoHasLabel(memo, label) {
     memo.labels.some((name) => String(name).toLocaleLowerCase() === normalizedName);
 }
 
+function currentSidebarLabelKey() {
+  const value = filterLabelInput?.value ?? "all";
+  return value === "all" ? null : value.toLocaleLowerCase();
+}
+
+function syncSidebarLabelSelection() {
+  if (!sidebarLabelList) return;
+  const selectedKey = currentSidebarLabelKey();
+  for (const button of sidebarLabelList.querySelectorAll("[data-sidebar-label-name]")) {
+    const name = button.dataset.sidebarLabelName ?? "";
+    const active = selectedKey !== null && name.toLocaleLowerCase() === selectedKey;
+    button.setAttribute("aria-pressed", String(active));
+    button.setAttribute(
+      "aria-label",
+      active ? "Clear label filter " + name : "Filter current view by label " + name
+    );
+    button.title = active ? "Clear label filter" : "Filter by label";
+  }
+}
+
 function renderSidebarLabels(labels, memos) {
   if (!sidebarLabelList) return;
   sidebarLabelList.replaceChildren();
@@ -187,7 +207,7 @@ function renderSidebarLabels(labels, memos) {
     button.className = "sidebar-label-button";
     button.dataset.sidebarLabelId = label.id;
     button.dataset.sidebarLabelName = label.name;
-    button.setAttribute("aria-label", "Filter current view by label " + label.name);
+    button.setAttribute("aria-pressed", "false");
 
     const dot = document.createElement("span");
     dot.className = "sidebar-label-dot";
@@ -208,6 +228,8 @@ function renderSidebarLabels(labels, memos) {
     button.append(dot, name, countElement);
     sidebarLabelList.append(button);
   }
+
+  syncSidebarLabelSelection();
 }
 
 function setViewCount(view, count) {
@@ -349,13 +371,17 @@ if (sidebarLabelList && filterLabelInput) {
       return;
     }
 
-    filterLabelInput.value = option.value;
+    const requestedKey = requested.toLocaleLowerCase();
+    const selectedKey = currentSidebarLabelKey();
+    filterLabelInput.value = selectedKey === requestedKey ? "all" : option.value;
+    syncSidebarLabelSelection();
     filterLabelInput.dispatchEvent(new Event("change", { bubbles: true }));
     document.querySelector("#memo-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 
 document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
+filterLabelInput?.addEventListener("change", syncSidebarLabelSelection);
 
 managerDrawer?.addEventListener("toggle", () => {
   if (!managerDrawer.open) return;
