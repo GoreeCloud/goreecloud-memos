@@ -1656,7 +1656,15 @@ button.danger {
   }
 
   .nav-item {
-    grid-template-columns: 1.6rem;
+    grid-template-columns: 32px;
+    width: 48px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .nav-icon {
+    width: 32px;
+    height: 32px;
   }
 
   .hero-card {
