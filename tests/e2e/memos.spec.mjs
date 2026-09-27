@@ -1,6 +1,14 @@
 import { test, expect } from "@playwright/test";
 
+async function openCapture(page) {
+  const panel = page.locator("#capture-panel");
+  if (!(await panel.evaluate((element) => element.open))) {
+    await panel.locator(":scope > summary").click();
+  }
+}
+
 async function captureMemo(page, { title = "", content, color = "", labels = "" }) {
+  await openCapture(page);
   if (title) await page.locator("#memo-title").fill(title);
   if (color) await page.locator("#memo-color").selectOption(color);
   if (labels) await page.locator("#memo-labels").fill(labels);
@@ -23,15 +31,18 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
   await expect(page.locator(".brand__icon")).toHaveAttribute("src", "./assets/memos-icon.svg");
-  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
   await expect(page.locator("details.manager-drawer")).toHaveJSProperty("open", false);
+  await page.locator("#capture-panel > summary").click();
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
   await expect(page.locator("#memo-content")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
+  await openCapture(page);
   await page.locator("#memo-title").fill("Draft title");
   await page.locator("#memo-color").selectOption("teal");
   await page.locator("#memo-labels").fill("Work, Ideas");
