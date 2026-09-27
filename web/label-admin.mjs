@@ -9,6 +9,7 @@ const statusElement = document.querySelector("#label-admin-status");
 const memoListElement = document.querySelector("#memo-list");
 const sidebarLabelList = document.querySelector("#sidebar-label-list");
 const filterLabelInput = document.querySelector("#memo-filter-label");
+const managerDrawer = document.querySelector(".manager-drawer");
 const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
 const memoService = new MemoService(store);
@@ -357,6 +358,7 @@ const restoredStatus = sessionStorage.getItem(STATUS_KEY);
 if (restoredStatus) {
   sessionStorage.removeItem(STATUS_KEY);
   setStatus(restoredStatus);
+  managerDrawer?.setAttribute("open", "");
 }
 
 if (memoListElement) {
