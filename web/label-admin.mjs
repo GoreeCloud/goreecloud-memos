@@ -368,6 +368,6 @@ if (memoListElement) {
   new MutationObserver(scheduleLabelRefresh).observe(memoListElement, { childList: true, subtree: true });
 }
 
-refreshLabels().catch((error) => {
+refreshChain = refreshLabels().catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load labels");
 });
