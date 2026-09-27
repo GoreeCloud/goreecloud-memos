@@ -59,6 +59,9 @@ test("first-use setup resumes and remains replayable", async ({ page }) => {
   const dialog = page.locator("#setup-dialog");
   await expect(dialog).toBeVisible();
   await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+  const setupNextBox = await page.locator("#setup-next").boundingBox();
+  expect(setupNextBox).not.toBeNull();
+  expect(setupNextBox.height).toBeGreaterThanOrEqual(48);
   await page.keyboard.press("n");
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await page.keyboard.press("/");
@@ -78,6 +81,28 @@ test("first-use setup resumes and remains replayable", async ({ page }) => {
   await page.locator("#replay-setup").click();
   await expect(dialog).toBeVisible();
   await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+});
+
+test("contextual hints can be disabled and re-enabled persistently", async ({ page }) => {
+  await page.goto("/web/");
+
+  const hint = page.locator("#contextual-hint");
+  await expect(hint).toBeVisible();
+
+  await page.locator("#sidebar-settings").click();
+  const hintsToggle = page.locator("#contextual-hints-enabled");
+  await expect(hintsToggle).toBeChecked();
+  await hintsToggle.uncheck();
+  await expect(page.locator("#guidance-status")).toHaveText("Contextual hints are off.");
+  await expect(hint).toBeHidden();
+
+  await page.reload();
+  await expect(hint).toBeHidden();
+  await page.locator("#sidebar-settings").click();
+  await expect(hintsToggle).not.toBeChecked();
+  await hintsToggle.check();
+  await expect(page.locator("#guidance-status")).toHaveText("Contextual hints are on.");
+  await expect(hint).toBeVisible();
 });
 
 test("compact shell keeps primary controls reachable", async ({ page }) => {
