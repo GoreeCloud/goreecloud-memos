@@ -9,6 +9,7 @@ import { SavedViewService } from "../src/app/saved-view-service.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
+const MEMO_RENDER_BATCH_SIZE = 200;
 const memoTimestampFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short"
@@ -23,6 +24,9 @@ const labelsInput = document.querySelector("#memo-labels");
 const contentInput = document.querySelector("#memo-content");
 const saveButton = document.querySelector("#save-button");
 const listElement = document.querySelector("#memo-list");
+const renderProgress = document.querySelector("#memo-render-progress");
+const renderProgressStatus = document.querySelector("#memo-render-progress-status");
+const renderMoreButton = document.querySelector("#memo-render-more");
 const template = document.querySelector("#memo-template");
 const editorTemplate = document.querySelector("#memo-editor-template");
 const status = document.querySelector("#status");
@@ -54,6 +58,10 @@ let refreshGeneration = 0;
 let managedLabels = [];
 let savedViews = [];
 let renderedMemoContexts = new Map();
+let progressiveMemos = [];
+let progressiveRenderIndex = 0;
+let progressivePinnedIndexes = new Map();
+let progressivePinnedCount = 0;
 
 function setStatus(message) {
   status.textContent = message;
@@ -358,11 +366,65 @@ async function applySavedView(view) {
   savedViewStatus.textContent = `Applied saved view "${view.name}" in the current memo location.`;
 }
 
+function updateMemoRenderProgress() {
+  if (!renderProgress || !renderProgressStatus || !renderMoreButton) return;
+
+  const total = progressiveMemos.length;
+  const remaining = Math.max(0, total - progressiveRenderIndex);
+  if (total <= MEMO_RENDER_BATCH_SIZE || remaining === 0) {
+    renderProgress.hidden = true;
+    renderProgressStatus.textContent = "";
+    return;
+  }
+
+  renderProgress.hidden = false;
+  renderProgressStatus.textContent = `Showing ${progressiveRenderIndex} of ${total} memos.`;
+  const nextBatch = Math.min(MEMO_RENDER_BATCH_SIZE, remaining);
+  renderMoreButton.textContent = remaining <= MEMO_RENDER_BATCH_SIZE
+    ? `Show remaining ${remaining}`
+    : `Show ${nextBatch} more`;
+}
+
+function appendMemoRenderBatch() {
+  if (progressiveRenderIndex >= progressiveMemos.length) {
+    updateMemoRenderProgress();
+    return;
+  }
+
+  const nextIndex = Math.min(progressiveRenderIndex + MEMO_RENDER_BATCH_SIZE, progressiveMemos.length);
+  const renderedCards = document.createDocumentFragment();
+
+  for (const memo of progressiveMemos.slice(progressiveRenderIndex, nextIndex)) {
+    const fragment = template.content.cloneNode(true);
+    const card = fragment.querySelector(".memo-card");
+    const pinnedIndex = progressivePinnedIndexes.get(memo.id) ?? -1;
+
+    card.dataset.memoId = memo.id;
+    renderedMemoContexts.set(memo.id, {
+      memo,
+      pinnedIndex,
+      pinnedCount: progressivePinnedCount
+    });
+
+    applyMemoToCard(card, memo);
+    renderedCards.append(fragment);
+  }
+
+  listElement.append(renderedCards);
+  progressiveRenderIndex = nextIndex;
+  updateMemoRenderProgress();
+}
+
 function renderMemos(memos, { filtered = false } = {}) {
   listElement.replaceChildren();
   renderedMemoContexts = new Map();
+  progressiveMemos = memos;
+  progressiveRenderIndex = 0;
 
   if (memos.length === 0) {
+    progressivePinnedIndexes = new Map();
+    progressivePinnedCount = 0;
+    updateMemoRenderProgress();
     const empty = document.createElement("p");
     empty.className = "empty-state";
     empty.textContent = filtered
@@ -377,26 +439,9 @@ function renderMemos(memos, { filtered = false } = {}) {
   }
 
   const pinnedMemos = memos.filter((memo) => memo.pinned);
-  const pinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
-  const renderedCards = document.createDocumentFragment();
-
-  for (const memo of memos) {
-    const fragment = template.content.cloneNode(true);
-    const card = fragment.querySelector(".memo-card");
-    const pinnedIndex = pinnedIndexes.get(memo.id) ?? -1;
-
-    card.dataset.memoId = memo.id;
-    renderedMemoContexts.set(memo.id, {
-      memo,
-      pinnedIndex,
-      pinnedCount: pinnedMemos.length
-    });
-
-    applyMemoToCard(card, memo);
-    renderedCards.append(fragment);
-  }
-
-  listElement.append(renderedCards);
+  progressivePinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
+  progressivePinnedCount = pinnedMemos.length;
+  appendMemoRenderBatch();
 }
 
 async function refresh() {
@@ -419,6 +464,11 @@ async function refresh() {
   } catch (error) {
     const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
     listElement.replaceChildren();
+    progressiveMemos = [];
+    progressiveRenderIndex = 0;
+    progressivePinnedIndexes = new Map();
+    progressivePinnedCount = 0;
+    updateMemoRenderProgress();
     const message = document.createElement("p");
     message.className = "empty-state";
     message.textContent = `Search expression error: ${expressionError.message}`;
@@ -631,6 +681,13 @@ savedViewApplyButton.addEventListener("click", async () => {
     savedViewStatus.textContent = error instanceof Error ? error.message : "Could not apply saved view";
   } finally {
     updateSavedViewActions();
+  }
+});
+
+renderMoreButton?.addEventListener("click", () => {
+  appendMemoRenderBatch();
+  if (!renderProgress?.hidden) {
+    renderMoreButton.focus();
   }
 });
 
