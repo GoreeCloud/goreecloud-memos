@@ -14,6 +14,7 @@ const memoService = new MemoService(store);
 const labelService = new LabelService(store);
 let selectedMemoIds = new Set();
 let actionMessage = "";
+let labelOptionsGeneration = 0;
 
 function memoCountText(count) {
   return `${count} ${count === 1 ? "memo" : "memos"}`;
@@ -69,8 +70,10 @@ function enhanceVisibleCards() {
 }
 
 async function refreshLabelOptions(labelsSnapshot = null) {
+  const generation = ++labelOptionsGeneration;
   const previous = labelSelect.value;
   const labels = Array.isArray(labelsSnapshot) ? labelsSnapshot : await labelService.list();
+  if (generation !== labelOptionsGeneration) return;
   labelSelect.replaceChildren();
 
   const placeholder = document.createElement("option");
