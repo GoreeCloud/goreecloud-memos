@@ -94,6 +94,10 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
     return performance.now() - start;
   }, SEARCH_TERM);
 
+  const utilityDrawer = page.locator("details.utility-drawer");
+  await utilityDrawer.locator(":scope > summary").click();
+  await expect(utilityDrawer).toHaveJSProperty("open", true);
+
   await page.locator("#saved-view-name").fill("Performance baseline");
   await page.locator("#saved-view-save").click();
   await expect(page.locator("#saved-view-status")).toContainText('Saved view "Performance baseline"');
