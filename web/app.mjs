@@ -10,6 +10,8 @@ import { SavedViewService } from "../src/app/saved-view-service.mjs";
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
 const MEMO_RENDER_BATCH_SIZE = 200;
+const MEMO_PREVIEW_CHARACTER_LIMIT = 560;
+const MEMO_PREVIEW_LINE_LIMIT = 10;
 const memoTimestampFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short"
@@ -221,7 +223,25 @@ function applyMemoToCard(card, memo) {
     bulkSelect.closest(".memo-select")?.setAttribute("aria-label", `Select ${displayTitle}`);
   }
 
-  card.querySelector(".memo-card__content").textContent = memo.content;
+  const content = card.querySelector(".memo-card__content");
+  const expandButton = card.querySelector("[data-expand-content]");
+  const contentWasExpanded = card.classList.contains("memo-card--content-expanded");
+  const contentNeedsPreview =
+    memo.content.length > MEMO_PREVIEW_CHARACTER_LIMIT ||
+    memo.content.split("\n").length > MEMO_PREVIEW_LINE_LIMIT;
+
+  content.textContent = memo.content;
+  content.id = `memo-content-${memo.id}`;
+  card.classList.toggle("memo-card--content-collapsed", contentNeedsPreview && !contentWasExpanded);
+  card.classList.toggle("memo-card--content-expanded", contentNeedsPreview && contentWasExpanded);
+
+  if (expandButton) {
+    expandButton.hidden = !contentNeedsPreview;
+    expandButton.setAttribute("aria-controls", content.id);
+    expandButton.setAttribute("aria-expanded", String(contentNeedsPreview && contentWasExpanded));
+    expandButton.textContent = contentNeedsPreview && contentWasExpanded ? "Show less" : "Show more";
+  }
+
   const time = card.querySelector(".memo-card__time");
   time.dateTime = memo.updatedAt;
   time.textContent = memoTimestampFormatter.format(new Date(memo.updatedAt));
@@ -725,6 +745,17 @@ listElement.addEventListener("toggle", (event) => {
 }, true);
 
 listElement.addEventListener("click", async (event) => {
+  const expandButton = event.target.closest("[data-expand-content]");
+  if (expandButton) {
+    const card = expandButton.closest(".memo-card");
+    if (!card) return;
+    const expanded = card.classList.toggle("memo-card--content-expanded");
+    card.classList.toggle("memo-card--content-collapsed", !expanded);
+    expandButton.setAttribute("aria-expanded", String(expanded));
+    expandButton.textContent = expanded ? "Show less" : "Show more";
+    return;
+  }
+
   const menuSummary = event.target.closest("details.memo-card-menu > summary");
   if (menuSummary) {
     hydrateMemoActions(menuSummary.closest(".memo-card"));
