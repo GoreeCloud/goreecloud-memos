@@ -362,6 +362,16 @@ function renderMemos(memos, { filtered = false } = {}) {
 
     card.dataset.memoId = memo.id;
     editor.dataset.memoId = memo.id;
+
+    const bulkSelect = fragment.querySelector("[data-bulk-select]");
+    const bulkSelectLabel = bulkSelect?.closest(".memo-select");
+    const bulkSelectName = `Select ${memo.title || "Untitled memo"}`;
+    if (bulkSelect) {
+      bulkSelect.value = memo.id;
+      bulkSelect.setAttribute("aria-label", bulkSelectName);
+    }
+    bulkSelectLabel?.setAttribute("aria-label", bulkSelectName);
+
     editTitle.value = memo.title;
     editContent.value = memo.content;
     editColor.value = memo.color ?? "";
