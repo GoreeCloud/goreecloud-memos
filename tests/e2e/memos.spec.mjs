@@ -59,6 +59,10 @@ test("first-use setup resumes and remains replayable", async ({ page }) => {
   const dialog = page.locator("#setup-dialog");
   await expect(dialog).toBeVisible();
   await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+  await page.keyboard.press("n");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await page.keyboard.press("/");
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).not.toBeFocused();
 
   await page.locator("#setup-next").click();
   await expect(page.locator("#setup-progress")).toHaveText("Step 2 of 3");
@@ -101,6 +105,23 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   await expect(page.locator("details.utility-drawer > summary")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
+  await captureMemo(page, { content: "Compact touch target memo" });
+  const compactCard = page.locator(".memo-card", { hasText: "Compact touch target memo" });
+  const memoMenuTrigger = compactCard.locator("details.memo-card-menu > summary");
+  const menuBox = await memoMenuTrigger.boundingBox();
+  expect(menuBox).not.toBeNull();
+  expect(menuBox.height).toBeGreaterThanOrEqual(48);
+  await memoMenuTrigger.click();
+  const actionButtons = compactCard.locator(".memo-card__actions button");
+  const actionCount = await actionButtons.count();
+  expect(actionCount).toBeGreaterThan(0);
+  for (let index = 0; index < actionCount; index += 1) {
+    const box = await actionButtons.nth(index).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+  await page.keyboard.press("Escape");
+
   await page.setViewportSize({ width: 768, height: 1024 });
   for (const target of targets) {
     const box = await target.boundingBox();
@@ -112,9 +133,16 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
+    document.body.style.minHeight = "1800px";
+    window.scrollTo(0, 600);
   });
   await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  const compactNavBox = await page.locator(".sidebar").boundingBox();
+  const topbarBox = await page.locator(".topbar").boundingBox();
+  expect(compactNavBox).not.toBeNull();
+  expect(topbarBox).not.toBeNull();
+  expect(topbarBox.y).toBeGreaterThanOrEqual(compactNavBox.y + compactNavBox.height - 1);
 });
 
 test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
@@ -123,6 +151,8 @@ test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
   const location = page.getByRole("navigation", { name: "Memo location" });
 
   await location.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(location.getByRole("button", { name: "Archive", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(location.getByRole("button", { name: "Memos", exact: true })).not.toHaveAttribute("aria-current", "page");
   await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "archived");
   await expect(page.getByRole("heading", { name: "Keep the active space light." })).toBeVisible();
   await expect(page.locator("#capture-panel")).toBeHidden();
@@ -140,6 +170,12 @@ test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
 
 test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
   await page.goto("/web/");
+
+  await openViewControls(page);
+  const utilitySummary = page.locator("details.utility-drawer > summary");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
+  await expect(utilitySummary).toBeFocused();
 
   await page.keyboard.press("/");
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeFocused();
