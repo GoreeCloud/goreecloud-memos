@@ -87,6 +87,17 @@ test("local search and filters combine within the current lifecycle view and res
   await closeLabelManager(page);
   await expect(page.locator(".memo-card")).toHaveCount(3);
 
+  const sidebarWork = page.getByRole("button", { name: "Filter current view by label Work", exact: true });
+  await expect(sidebarWork).toHaveAttribute("aria-pressed", "false");
+  await sidebarWork.click();
+  await expect(page.locator("#memo-filter-label")).toHaveValue("Work");
+  await expect(page.locator(".memo-card")).toHaveCount(2);
+  const activeSidebarWork = page.getByRole("button", { name: "Clear label filter Work", exact: true });
+  await expect(activeSidebarWork).toHaveAttribute("aria-pressed", "true");
+  await activeSidebarWork.click();
+  await expect(page.locator("#memo-filter-label")).toHaveValue("all");
+  await expect(page.locator(".memo-card")).toHaveCount(3);
+
   await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const color = page.locator("#memo-filter-color");
