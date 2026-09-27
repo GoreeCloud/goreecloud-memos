@@ -1905,7 +1905,7 @@ button.danger {
   }
 
   .memo-card__actions button {
-    min-height: 48px;
+    min-height: 49px;
     padding: 0.55rem 0.7rem;
     font-size: 0.78rem;
   }
