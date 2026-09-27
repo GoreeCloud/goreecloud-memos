@@ -252,6 +252,21 @@
                   <output id="appearance-status" class="muted" aria-live="polite">Appearance: Follow system.</output>
                 </fieldset>
 
+                <fieldset class="presentation-picker guidance-picker">
+                  <legend>Guidance</legend>
+                  <label class="guidance-toggle" for="contextual-hints-enabled">
+                    <input id="contextual-hints-enabled" type="checkbox" checked />
+                    <span>
+                      <strong>Contextual hints</strong>
+                      <small>Show lightweight usage tips in the workspace. Safety, recovery, and error messages are never hidden by this preference.</small>
+                    </span>
+                  </label>
+                  <div class="guidance-actions">
+                    <button id="replay-setup" type="button" class="secondary">Replay setup</button>
+                    <output id="guidance-status" class="muted" aria-live="polite">Contextual hints are on.</output>
+                  </div>
+                </fieldset>
+
                 <div class="filter-panel settings-boundary" role="note">
                   <strong>Native local workspace</strong>
                   <span>Only controls backed by the current native browser implementation are shown. Account, server, synchronization, and administrator settings remain absent until those capabilities have their own accepted native authority.</span>
@@ -270,6 +285,12 @@
             </div>
             <span id="view-chip" class="privacy-chip"><span id="view-chip-icon" aria-hidden="true">⌾</span> <span id="view-chip-label">Local to this browser</span></span>
           </section>
+
+          <aside id="contextual-hint" class="contextual-hint" hidden aria-label="Memos tip">
+            <span class="contextual-hint__icon" aria-hidden="true">✦</span>
+            <span class="contextual-hint__copy"><strong>Quick tip</strong> Press <kbd>N</kbd> to capture, <kbd>/</kbd> to search, and use a memo’s <strong>•••</strong> menu for contextual actions.</span>
+            <button id="dismiss-contextual-hint" type="button" class="secondary">Dismiss</button>
+          </aside>
 
           <details id="capture-panel" class="capture-card" data-glaze-semantic-surface="protected">
             <summary class="capture-summary">
@@ -384,6 +405,40 @@
       </article>
     </template>
 
+    <dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title" aria-describedby="setup-body">
+      <section class="setup-shell" data-glaze-semantic-surface="protected">
+        <header class="setup-header">
+          <img src="./assets/memos-icon.svg" width="42" height="42" alt="" />
+          <div>
+            <p id="setup-progress" class="drawer-kicker">Step 1 of 3</p>
+            <h2 id="setup-title">Set up GoreeCloud Memos</h2>
+          </div>
+        </header>
+        <div class="setup-visual" aria-hidden="true">
+          <span class="setup-orb setup-orb--one"></span>
+          <span class="setup-orb setup-orb--two"></span>
+          <span class="setup-glyph">✦</span>
+        </div>
+        <p id="setup-body" class="setup-body"></p>
+        <ul id="setup-points" class="setup-points"></ul>
+        <label id="setup-hints-row" class="guidance-toggle setup-hints-row" for="setup-hints-enabled" hidden>
+          <input id="setup-hints-enabled" type="checkbox" checked />
+          <span>
+            <strong>Contextual hints</strong>
+            <small>You can change this later in Workspace settings.</small>
+          </span>
+        </label>
+        <div class="setup-actions">
+          <button id="setup-return" type="button" class="secondary" hidden>Return to Memos</button>
+          <span class="setup-actions__spacer"></span>
+          <button id="setup-back" type="button" class="secondary">Back</button>
+          <button id="setup-next" type="button">Continue</button>
+        </div>
+        <output id="setup-status" class="sr-only" aria-live="polite"></output>
+      </section>
+    </dialog>
+
+    <script type="module" src="./onboarding.mjs"></script>
     <script type="module" src="./app.mjs"></script>
     <script type="module" src="./label-admin.mjs"></script>
     <script type="module" src="./bulk-labels.mjs"></script>
