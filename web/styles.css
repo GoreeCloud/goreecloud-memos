@@ -71,6 +71,84 @@
   }
 }
 
+html[data-appearance="light"] {
+  color-scheme: light;
+  --canvas: #f7f6f1;
+  --canvas-alt: #f0eee8;
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-soft: rgba(248, 247, 242, 0.72);
+  --surface-muted: rgba(238, 236, 230, 0.76);
+  --text: #27251f;
+  --text-strong: #181711;
+  --muted: #77736b;
+  --subtle: #9e998f;
+  --border: rgba(54, 50, 42, 0.12);
+  --border-strong: rgba(54, 50, 42, 0.2);
+  --accent: #5f66c9;
+  --accent-strong: #4d55b4;
+  --accent-soft: rgba(95, 102, 201, 0.1);
+  --accent-frost: rgba(100, 119, 212, 0.14);
+  --accent-text: #ffffff;
+  --danger: #bb3e45;
+  --danger-soft: rgba(187, 62, 69, 0.09);
+  --shadow-sm: 0 1px 2px rgba(35, 31, 24, 0.05), 0 6px 18px rgba(35, 31, 24, 0.035);
+  --shadow-md: 0 10px 34px rgba(45, 42, 34, 0.07), 0 2px 8px rgba(45, 42, 34, 0.04);
+  --shadow-float: 0 20px 60px rgba(42, 39, 32, 0.13), 0 4px 16px rgba(42, 39, 32, 0.06);
+}
+
+html[data-appearance="dark"] {
+  color-scheme: dark;
+  --canvas: #11120f;
+  --canvas-alt: #171812;
+  --surface: rgba(28, 29, 25, 0.8);
+  --surface-strong: rgba(35, 36, 31, 0.95);
+  --surface-soft: rgba(30, 31, 27, 0.76);
+  --surface-muted: rgba(39, 40, 35, 0.8);
+  --text: #e8e5dd;
+  --text-strong: #fbf8f1;
+  --muted: #aaa69d;
+  --subtle: #817e76;
+  --border: rgba(241, 237, 227, 0.11);
+  --border-strong: rgba(241, 237, 227, 0.2);
+  --accent: #949bff;
+  --accent-strong: #aab0ff;
+  --accent-soft: rgba(148, 155, 255, 0.12);
+  --accent-frost: rgba(126, 143, 228, 0.16);
+  --accent-text: #12131a;
+  --danger: #ff8d95;
+  --danger-soft: rgba(255, 141, 149, 0.1);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18), 0 6px 18px rgba(0, 0, 0, 0.14);
+  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-float: 0 24px 70px rgba(0, 0, 0, 0.42), 0 4px 18px rgba(0, 0, 0, 0.24);
+}
+
+html[data-appearance="deep-dark"] {
+  color-scheme: dark;
+  --canvas: #080906;
+  --canvas-alt: #0b0c09;
+  --surface: rgba(17, 18, 14, 0.9);
+  --surface-strong: rgba(22, 23, 18, 0.98);
+  --surface-soft: rgba(19, 20, 16, 0.9);
+  --surface-muted: rgba(28, 29, 24, 0.92);
+  --text: #e7e5dd;
+  --text-strong: #fffdf7;
+  --muted: #a5a198;
+  --subtle: #77736b;
+  --border: rgba(244, 240, 229, 0.105);
+  --border-strong: rgba(244, 240, 229, 0.19);
+  --accent: #9ca4ff;
+  --accent-strong: #bcc1ff;
+  --accent-soft: rgba(156, 164, 255, 0.13);
+  --accent-frost: rgba(137, 149, 231, 0.16);
+  --accent-text: #0b0c12;
+  --danger: #ff8b94;
+  --danger-soft: rgba(255, 139, 148, 0.11);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 14px 42px rgba(0, 0, 0, 0.38), 0 3px 10px rgba(0, 0, 0, 0.28);
+  --shadow-float: 0 28px 78px rgba(0, 0, 0, 0.58), 0 6px 20px rgba(0, 0, 0, 0.36);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -520,7 +598,7 @@ img {
 
 .search-shell {
   display: grid;
-  grid-template-columns: 1.4rem minmax(0, 1fr);
+  grid-template-columns: 1.4rem minmax(0, 1fr) auto;
   align-items: center;
   width: min(100%, 720px);
   min-height: 46px;
@@ -558,6 +636,23 @@ img {
 
 .search-shell input::placeholder {
   color: var(--subtle);
+}
+
+.search-shortcut,
+.capture-summary kbd {
+  min-width: 1.45rem;
+  padding: 0.12rem 0.35rem;
+  border: 1px solid var(--border);
+  border-bottom-color: var(--border-strong);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+  color: var(--subtle);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-strong) 55%, transparent);
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .icon-button {
@@ -601,8 +696,6 @@ img {
     radial-gradient(circle at 94% 5%, rgba(153, 180, 232, 0.28), transparent 22rem),
     linear-gradient(120deg, color-mix(in srgb, var(--surface-strong) 88%, transparent), color-mix(in srgb, var(--surface-soft) 68%, transparent));
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(24px) saturate(1.12);
-  -webkit-backdrop-filter: blur(24px) saturate(1.12);
 }
 
 .hero-card::after {
@@ -666,8 +759,6 @@ img {
   border-radius: 18px;
   background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(22px) saturate(1.1);
-  -webkit-backdrop-filter: blur(22px) saturate(1.1);
 }
 
 .capture-summary {
@@ -884,8 +975,6 @@ button.danger {
   background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
   box-shadow: var(--shadow-md);
   vertical-align: top;
-  backdrop-filter: blur(20px) saturate(1.08);
-  -webkit-backdrop-filter: blur(20px) saturate(1.08);
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
