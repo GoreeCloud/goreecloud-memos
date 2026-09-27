@@ -1,5 +1,4 @@
 import { LabelService } from "../src/app/label-service.mjs";
-import { MemoService } from "../src/app/memo-service.mjs";
 import { LABEL_COLORS } from "../src/domain/label.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 
@@ -10,8 +9,6 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const managerDrawer = document.querySelector(".manager-drawer");
 const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
-const memoService = new MemoService(store);
-let sidebarRefreshGeneration = 0;
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -223,29 +220,9 @@ function currentSidebarView() {
   return document.querySelector("[data-view][aria-pressed='true']")?.dataset.view ?? "active";
 }
 
-async function refreshSidebar(labels) {
-  const generation = ++sidebarRefreshGeneration;
-  const [active, archived, trashed] = await Promise.all([
-    memoService.list({ state: "active" }),
-    memoService.list({ state: "archived" }),
-    memoService.list({ state: "trashed" })
-  ]);
-
-  if (generation !== sidebarRefreshGeneration) return;
-
-  setViewCount("active", active.length);
-  setViewCount("archived", archived.length);
-  setViewCount("trashed", trashed.length);
-
-  const current = currentSidebarView();
-  const memos = current === "archived" ? archived : current === "trashed" ? trashed : active;
-  renderSidebarLabels(labels, memos);
-}
-
 async function refreshLabels() {
   const labels = await service.list();
   if (managerDrawer?.open) renderLabels(labels);
-  await refreshSidebar(labels);
   return labels;
 }
 
@@ -276,14 +253,20 @@ function syncFromWorkspaceRender(event) {
   if (managerDrawer?.open) renderLabels(labels);
 
   const view = typeof detail.view === "string" ? detail.view : currentSidebarView();
-  setViewCount(view, memos.length);
+  const counts = detail.stateCounts;
+  if (counts && typeof counts === "object") {
+    for (const state of ["active", "archived", "trashed"]) {
+      if (Number.isInteger(counts[state]) && counts[state] >= 0) {
+        setViewCount(state, counts[state]);
+      }
+    }
+  } else {
+    setViewCount(view, memos.length);
+  }
+
   if (view === currentSidebarView()) {
     renderSidebarLabels(labels, memos);
   }
-
-  refreshSidebar(labels).catch((error) => {
-    setStatus(error instanceof Error ? error.message : "Could not refresh labels");
-  });
 }
 
 listElement.addEventListener("click", async (event) => {
@@ -381,6 +364,3 @@ managerDrawer?.addEventListener("toggle", () => {
   });
 });
 
-refreshLabels().catch((error) => {
-  setStatus(error instanceof Error ? error.message : "Could not load labels");
-});
