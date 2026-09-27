@@ -15,6 +15,7 @@ async function captureMemo(page, { title = "", content, color = "", labels = "" 
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".memo-card__content", { hasText: content })).toBeVisible();
 }
 
