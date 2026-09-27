@@ -200,9 +200,7 @@ img {
   padding: 1.05rem 0.8rem 0.8rem;
   overflow: auto;
   border-right: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-strong) 78%, transparent);
-  backdrop-filter: blur(28px) saturate(1.2);
-  -webkit-backdrop-filter: blur(28px) saturate(1.2);
+  background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
 }
 
 .brand {
@@ -484,9 +482,7 @@ img {
   gap: 1.25rem;
   padding: 0.8rem 1.65rem;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
-  backdrop-filter: blur(26px) saturate(1.15);
-  -webkit-backdrop-filter: blur(26px) saturate(1.15);
+  background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
 }
 
 .context-title {
