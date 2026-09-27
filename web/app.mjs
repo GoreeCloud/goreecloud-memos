@@ -197,7 +197,16 @@ function renderMemoMetadata(container, memo) {
 
 function applyMemoToCard(card, memo) {
   card.dataset.color = memo.color ?? "none";
-  card.querySelector(".memo-card__title").textContent = memo.title || "Untitled memo";
+  const displayTitle = memo.title || "Untitled memo";
+  card.querySelector(".memo-card__title").textContent = displayTitle;
+
+  const bulkSelect = card.querySelector("[data-bulk-select]");
+  if (bulkSelect) {
+    bulkSelect.value = memo.id;
+    bulkSelect.setAttribute("aria-label", `Select ${displayTitle}`);
+    bulkSelect.closest(".memo-select")?.setAttribute("aria-label", `Select ${displayTitle}`);
+  }
+
   card.querySelector(".memo-card__content").textContent = memo.content;
   const time = card.querySelector(".memo-card__time");
   time.dateTime = memo.updatedAt;
