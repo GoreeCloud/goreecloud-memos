@@ -85,6 +85,7 @@ test("local search and filters combine within the current lifecycle view and res
   await workRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Work.");
   await closeLabelManager(page);
+  await expect(page.locator(".memo-card")).toHaveCount(3);
 
   await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
