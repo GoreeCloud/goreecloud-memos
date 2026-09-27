@@ -9,6 +9,9 @@
 - Android local memo persistence uses a versioned v1 record format and previous-generation fallback; Android draft persistence uses a separate versioned v1 draft record with the same bounded recovery model.
 - Android Development source requests no Internet permission. No network, account, Identity, Sync, remote backup, or server authority is implied by the client shell.
 - Android host-side tests cover persistence/recreation, Unicode/newline codec round-trip, blank-memo rejection without clearing prior data, draft clear/reload, and corruption fallback to the previous readable generation.
+- Responsive Glaze-oriented browser shell with persistent Memos / Archive / Trash workspace navigation, live lifecycle counts, managed-label navigation, top-bar search, compact quick capture, and secondary workspace/label-management drawers.
+- First-use setup and replayable contextual guidance for quick capture, local privacy boundaries, workspace controls, and keyboard shortcuts.
+- Browser-local System / Light / Dark / Deep Dark appearance plus Reduced Motion, Increased Contrast, Reduced Transparency, and Forced Colors resilience handling.
 - Quick-capture form with optional title and required memo content.
 - Local composer draft recovery using browser local storage, including draft color and label input state.
 - Saved memo persistence using browser IndexedDB.
@@ -16,6 +19,7 @@
 - Memo timestamps and explicit schema-version metadata.
 - Local Memo schema v4 / Label schema v2 / Saved View schema v1 on IndexedDB database v5, with migration coverage from v1, v2, v3, and preservation coverage for existing v4 managed-label state.
 - Managed local Label v2 identity records with stable UUIDs, a case-insensitive unique `nameKey`, optional curated color, optional icon text, optional description, and a composite Memo–Label relation store.
+- Sidebar labels show per-lifecycle counts and act as reversible exact-label filters with explicit pressed-state semantics rather than one-way navigation.
 - Legacy managed Label v1 records normalize to Label v2 with empty optional metadata without requiring a Label-specific IndexedDB migration; database v5 is introduced separately for Saved View persistence.
 - v3 → v4 migration of memo-local label names into shared managed Label identities while preserving the existing label-name display/search projection.
 - Browser-local managed-label administration for rename, metadata editing, explicit delete, and merge.
@@ -36,13 +40,15 @@
 - Combinable exact memo-color, label-name, and managed Label-color filters scoped to the current Memos, Archive, or Trash lifecycle view. Label-color matching resolves current Label v2 metadata by stable `labelId` and matches when any linked managed Label has the selected palette color.
 - Bounded advanced expressions in **Search memos** for `color:<memo-color>`, `label:<exact-name>`, and `label-color:<managed-label-color>`. Quoted values support label names containing spaces; recognized malformed/duplicate/unsupported expressions surface deterministic errors, while unknown colon-containing text remains ordinary substring search text. Expression constraints combine with the separate filter controls using AND semantics.
 - Browser-local Saved View v1 records with stable UUIDs and case-insensitive unique names. A saved view captures the raw Search memos value plus the direct memo-color, label-name, and managed Label-color controls, persists across reload, restores those controls in the current lifecycle location, and can be explicitly deleted.
+- Large browser libraries are progressively materialized in 200-card batches while preserving full result/lifecycle counts, and memo editors/action controls hydrate only when requested to bound initial DOM work.
+- Long memo bodies use accessible Show more / Show less previews so a single memo does not dominate a board column.
 - Active search/filter state and bulk memo selection remain ephemeral unless the user explicitly saves the filter state as a Saved View; there is still no recent-search history, synchronization, saved selection state, saved-view ordering, pinning, styling metadata, or default-view behavior.
 - Recoverable Archive behavior with restore to active Memos.
 - Recoverable Trash behavior that remembers whether a memo came from Memos or Archive.
 - Explicit permanent deletion restricted to memos already in Trash.
-- Accessible labels, focus indicators, live status text, visible metadata badges, responsive layout, and reduced-motion-safe behavior in the prototype UI.
+- Accessible labels, visible focus indicators, concise live status text, current-page/pressed-state semantics, focus restoration for transient UI, 48 px compact-layout touch-target coverage, 200% text/reflow coverage, and reduced-motion/high-contrast/forced-colors resilience in the browser UI.
 - Unit tests for memo/label/saved-view normalization, managed-label reconciliation/rename/metadata, label presentation identity/fallback behavior, label and Saved View service forwarding/validation, bulk-label service validation/forwarding, memo migration/editing, colors, pin ordering, capture, lifecycle transitions, permanent-deletion guards, presentation preferences, bounded advanced-search parsing/error handling, and local query/filter behavior including managed Label-color matching by stable identity.
-- Chromium end-to-end tests for draft recovery, persistence across reload, organization-metadata autosave, manual pin ordering, presentation preference persistence, lifecycle-scoped local search/filter behavior including managed Label-color combinations and bounded advanced expressions/error recovery, Saved View save/reload/apply/delete behavior with duplicate-name rejection, ephemeral bulk selection, atomic bulk label apply/remove and label-limit rollback, Archive/Trash recovery, managed-label rename/collision/metadata/presentation/merge/delete behavior, v1/v2/v3 → v5 migration, and v4 → v5 identity-preservation migration.
+- Chromium end-to-end tests for draft recovery, persistence across reload, organization-metadata autosave, manual pin ordering, presentation/appearance persistence, onboarding/hint behavior, keyboard/focus semantics, mobile/tablet touch targets and large-text reflow, accessibility media modes, lifecycle-scoped local search/filter behavior including reversible sidebar label filters and managed Label-color combinations, bounded advanced expressions/error recovery, Saved View save/reload/apply/delete behavior with duplicate-name rejection, progressive large-library rendering, long-card expansion, ephemeral bulk selection, atomic bulk label apply/remove and label-limit rollback, Archive/Trash recovery, managed-label rename/collision/metadata/presentation/merge/delete behavior, v1/v2/v3 → v5 migration, v4 → v5 identity-preservation migration, and deterministic Development performance diagnostics.
 
 ## Not implemented
 
