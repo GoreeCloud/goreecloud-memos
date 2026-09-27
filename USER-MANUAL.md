@@ -1,6 +1,6 @@
 # GoreeCloud Memos — Development User Manual
 
-**Applies to:** current local browser development slice only.
+**Applies to:** current local browser Development experience only.
 
 ## Start the application
 
@@ -11,6 +11,20 @@ python3 -m http.server 4173
 ```
 
 Open `http://localhost:4173/web/` in a modern browser with IndexedDB support.
+
+## First use and navigation
+
+On a fresh browser profile, Memos presents a short three-step setup flow covering quick capture, the local privacy boundary, and workspace controls. Setup progress is stored locally so an interrupted first-use flow can resume. After completion, the setup can be replayed from **Settings**.
+
+The main shell keeps **Memos**, **Archive**, **Trash**, managed Labels, Quick capture, Settings, and About in the persistent workspace navigation. **Search memos** stays in the top application bar. Advanced filters, Saved Views, bulk-label controls, presentation modes, appearance, and contextual-hint preferences live in **Workspace settings** so they remain available without crowding the primary capture surface.
+
+Keyboard shortcuts available outside text-entry fields and modal setup are:
+
+- **N** — open Quick capture in Memos.
+- **/** — focus Search memos.
+- **Escape** — close an open transient settings/label/action surface and return focus to its trigger when applicable.
+
+Contextual hints can be disabled and re-enabled from Settings.
 
 ## Capture a memo
 
@@ -34,7 +48,7 @@ The **Manage labels** panel works only with managed labels already created by me
 - **Merge** moves every relationship from the source label to the selected target label, deduplicates memos that already had both labels, updates memo projections, removes the source label, and preserves the target label's metadata.
 - **Delete** explicitly removes the label from every related memo and deletes the managed Label identity. It does **not** delete any memo.
 
-Merge and Delete require confirmation. Successful management operations reload the Development page so memo cards, search/filter options, and the management panel all reflect the committed transaction.
+Merge and Delete require confirmation. Successful management operations refresh the affected memo/label workspace in place after the committed transaction. The page is not reloaded, so the current application context remains available while cards, counts, filters, and label controls reconcile to the persisted state.
 
 Memo cards use the managed Label identity to show the current canonical label name. When a label has an icon or color, the card also shows the icon and a restrained color accent as supplementary cues. The label name remains visible and is the accessible label identity, so color is never required to understand which label is present. Label descriptions remain in **Manage labels** and are not shown on memo cards.
 
@@ -47,7 +61,7 @@ The bulk-label controls work with managed labels that already exist in the brows
 1. In the current **Memos**, **Archive**, or **Trash** view, select the **Select** checkbox on each memo you want to change.
 2. Choose a managed label from **Bulk label**.
 3. Select **Apply label** to add that label to every selected memo that does not already have it, or **Remove label** to remove it from every selected memo that currently has it.
-4. The page reloads after a successful bulk action and shows the resulting label state.
+4. After a successful bulk action, Memos refreshes the affected workspace in place, clears the temporary selection, and shows the resulting label state.
 
 Bulk selection is intentionally temporary. It is cleared whenever the memo list rerenders, including when search/filter results or lifecycle location change, and it is not stored across reloads.
 
@@ -57,7 +71,7 @@ Bulk actions other than label application/removal are not implemented in this sl
 
 ## Edit a memo
 
-1. In **Memos**, select **Edit** on a memo card.
+1. In **Memos**, open the memo card's action menu and select **Edit**.
 2. Change the title, color, labels, or memo content.
 3. Changes save automatically after a short pause in typing.
 4. Wait for **Saved.** before closing the page when you need confirmation that the most recent edit was written locally.
@@ -66,9 +80,9 @@ Memo content cannot be saved as blank.
 
 ## Pin and reorder memos
 
-Select **Pin** on an active memo to place it before ordinary memos. Pinned memos retain a stored manual order.
+Open an active memo's action menu and select **Pin** to place it before ordinary memos. Pinned memos retain a stored manual order.
 
-Use **Move pin up** and **Move pin down** to change that order. The controls are disabled when a pinned memo is already at the corresponding boundary. Select **Unpin** to return the memo to ordinary update-time ordering.
+Use **Move pin up** and **Move pin down** in the card action menu to change that order. The controls are disabled when a pinned memo is already at the corresponding boundary. Select **Unpin** to return the memo to ordinary update-time ordering.
 
 Pin state and manual pin order persist across reloads in the same browser profile.
 
@@ -80,7 +94,7 @@ Color is stored as memo metadata. The card shows both a visual color treatment a
 
 ## Search and filters
 
-The current Development slice supports browser-local filtering within the selected lifecycle location: **Memos**, **Archive**, or **Trash**.
+The current Development experience supports browser-local filtering within the selected lifecycle location: **Memos**, **Archive**, or **Trash**. Search is always available in the top bar; direct filter controls live in **Workspace settings**.
 
 - **Search memos** performs a case-insensitive substring match across the memo title, memo body, and current label-name projection. The same box also recognizes bounded field expressions: `color:<memo-color>`, `label:<exact-name>`, and `label-color:<managed-label-color>`. Use quotes for label names containing spaces, for example `label:"Project Work"`.
 - **Color** can show all colors, memos with no color, or one exact memo color.
@@ -107,17 +121,19 @@ Saved View names are unique case-insensitively. A Saved View stores the raw Sear
 
 Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, synchronized Saved Views, saved-view ordering/pinning/styling/default behavior, and recent-search history are not implemented yet.
 
-## Presentation modes
+## Presentation and appearance
 
-The memo collection supports four browser-local presentation modes: **Comfortable**, **Compact**, **List**, and **Dense**. Choose a mode with the radio controls above the memo collection. Native radio-button keyboard behavior is retained. The selected mode is stored only in the current browser profile and survives reloads; it does not change memo records or synchronize to another browser/device.
+The memo collection supports four browser-local presentation modes: **Comfortable**, **Compact**, **List**, and **Dense**. Choose a mode in **Workspace settings**. Native radio-button keyboard behavior is retained. The selected mode is stored only in the current browser profile and survives reloads; it does not change memo records or synchronize to another browser/device.
+
+Appearance is also browser-local and offers **System**, **Light**, **Dark**, and **Deep Dark**. Accessibility media preferences such as Reduced Motion, Increased Contrast, Reduced Transparency, and Forced Colors are respected by the shell where the browser exposes them.
 
 ## Archive and restore
 
-Select **Archive** on an active memo to remove it from the main Memos view without deleting it. Open **Archive** to view archived memos. Select **Restore** to return an archived memo to **Memos**.
+Open an active memo's action menu and select **Archive** to remove it from the main Memos view without deleting it. Open **Archive** to view archived memos, then use a card's action menu to **Restore** it to **Memos**.
 
 ## Trash and recovery
 
-Select **Move to Trash** from Memos or Archive. Open **Trash** to view trashed memos. Select **Restore** in Trash to return the memo to the location it came from. **Delete permanently** is available only in Trash and requires explicit confirmation.
+Use **Move to Trash** from a memo card's action menu in Memos or Archive. Open **Trash** to view trashed memos. Use **Restore** in the card action menu to return the memo to the location it came from. **Delete permanently** is available only in Trash and requires explicit confirmation.
 
 ## Data migration
 
@@ -132,9 +148,13 @@ When the application opens older databases:
 
 Managed Label records remain schema version 2. Older managed Label v1 records are normalized to v2 with no color, icon, or description until details are saved. Rename, metadata updates, Delete, Merge, and bulk label Apply/Remove continue to use the existing Memo/Label stores. Saved View records use schema version 1 in the v5 `savedViews` store.
 
+## Large libraries and long memos
+
+When more than 200 memos match the current lifecycle/search state, Memos materializes the board progressively in 200-card batches. The result/status count continues to reflect the complete matching set, while **Show more** exposes additional cards without eagerly building every off-screen editor/action control. Long memo bodies use **Show more** / **Show less** previews so one memo does not dominate a board column.
+
 ## Data boundary
 
-This Development slice has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, Saved Views, drafts, and the presentation preference. Active search terms, active filter selections, and bulk memo selection are not persisted automatically; only explicitly created Saved Views preserve filter-state snapshots. Operational backup and restore are not implemented.
+This Development experience has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, Saved Views, drafts, presentation/appearance preferences, onboarding state, and contextual-hint preferences. Active search terms, active filter selections, and bulk memo selection are not persisted automatically; only explicitly created Saved Views preserve filter-state snapshots. Operational backup and restore are not implemented.
 
 ## Validation commands
 
@@ -153,4 +173,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, Saved View synchronization/order/pin/icon/color/default-view behavior beyond named local filter snapshots, checklists, reminders, import/export, backups, native clients, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, Saved View synchronization/order/pin/icon/color/default-view behavior beyond named local filter snapshots, checklists, reminders, import/export, backups, a native desktop client, connected/synchronized Android behavior beyond the current local Development foundation, administration beyond the local label-management slice, and Stable release qualification are not implemented.
