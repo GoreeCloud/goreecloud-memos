@@ -104,7 +104,7 @@ test("local search and filters combine within the current lifecycle view and res
 
   await label.selectOption("Work");
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toBeVisible();
-  await expect(page.getByText("1 of 3 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 3 memos matches current filters")).toBeVisible();
 
   await labelColor.selectOption("purple");
   await expect(page.locator(".memo-card")).toHaveCount(0);
@@ -120,7 +120,7 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.locator(".memo-card", { hasText: "Garden" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toHaveCount(0);
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toHaveCount(0);
-  await expect(page.getByText("1 of 3 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 3 memos matches current filters")).toBeVisible();
 
   await page.getByRole("button", { name: "Clear search and filters" }).click();
   await closeViewControls(page);
@@ -132,7 +132,7 @@ test("local search and filters combine within the current lifecycle view and res
   await search.fill("alpha");
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toHaveCount(0);
-  await expect(page.getByText("1 of 1 archived memo shown")).toBeVisible();
+  await expect(page.getByText("1 of 1 archived memo matches current filters")).toBeVisible();
 
   await openViewControls(page);
   await color.selectOption("green");
@@ -179,7 +179,7 @@ test("advanced search expressions combine verified local dimensions and surface 
   await search.fill('advanced color:blue label:"Project Work" label-color:purple');
   await expect(page.locator(".memo-card", { hasText: "Expression Alpha" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Expression Garden" })).toHaveCount(0);
-  await expect(page.getByText("1 of 2 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 2 memos matches current filters")).toBeVisible();
 
   await memoColor.selectOption("green");
   await expect(page.locator(".memo-card")).toHaveCount(0);
