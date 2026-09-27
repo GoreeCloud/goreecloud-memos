@@ -602,6 +602,12 @@ savedViewDeleteButton.addEventListener("click", async () => {
   }
 });
 
+document.addEventListener("goreecloud:memos-refresh-requested", () => {
+  refresh().catch((error) => {
+    setStatus(error instanceof Error ? error.message : "Could not refresh local memos");
+  });
+});
+
 listElement.addEventListener("input", (event) => {
   const editor = event.target.closest(".memo-editor");
   if (editor) scheduleEditSave(editor);
