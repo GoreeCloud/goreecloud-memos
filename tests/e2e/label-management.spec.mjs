@@ -1,6 +1,14 @@
 import { test, expect } from "@playwright/test";
 
+async function openCapture(page) {
+  const panel = page.locator("#capture-panel");
+  if (!(await panel.evaluate((element) => element.open))) {
+    await panel.locator(":scope > summary").click();
+  }
+}
+
 async function captureMemo(page, content, labels) {
+  await openCapture(page);
   await page.locator("#memo-labels").fill(labels);
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
