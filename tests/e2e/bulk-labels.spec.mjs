@@ -13,6 +13,7 @@ async function captureMemo(page, { title, content, labels = "" }) {
   await page.locator("#memo-labels").fill(labels);
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await expect(page.locator(".memo-card", { hasText: title })).toBeVisible();
 }
 
