@@ -311,6 +311,10 @@
     <template id="memo-template">
       <article class="memo-card" data-color="none" data-glaze-semantic-surface="protected">
         <div class="memo-card__header">
+          <label class="memo-select" aria-label="Select memo">
+            <input type="checkbox" data-bulk-select="" />
+            <span class="sr-only">Select</span>
+          </label>
           <div class="memo-card__heading">
             <time class="memo-card__time"></time>
             <h3 class="memo-card__title"></h3>
