@@ -11,6 +11,13 @@ function labelRow(page, name) {
   return page.locator(".label-admin-row").filter({ has: page.getByLabel(`Label name for ${name}`) });
 }
 
+async function openLabelManager(page) {
+  const drawer = page.locator("details.manager-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
 async function readManagedSnapshot(page) {
   return page.evaluate(async () => new Promise((resolve, reject) => {
     const request = indexedDB.open("goreecloud-memos-local", 5);
@@ -44,6 +51,7 @@ test("managed labels rename, reject collisions, merge, and explicitly delete wit
   await page.goto("/web/");
   await captureMemo(page, "Alpha memo", "Work, Ideas");
   await captureMemo(page, "Beta memo", "work, Research");
+  await openLabelManager(page);
 
   await expect(page.getByLabel("Label name for Work")).toBeVisible();
   await expect(page.getByLabel("Label name for Ideas")).toBeVisible();
@@ -96,6 +104,7 @@ test("managed labels rename, reject collisions, merge, and explicitly delete wit
 test("managed label color, icon, and description persist without changing memo relationships", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, "Metadata memo", "Ideas");
+  await openLabelManager(page);
 
   const row = labelRow(page, "Ideas");
   await row.getByLabel("Color for Ideas").selectOption("purple");
