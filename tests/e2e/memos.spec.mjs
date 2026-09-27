@@ -213,6 +213,50 @@ test("Glaze accessibility media modes preserve the primary shell", async ({ page
   expect(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)).toBe(true);
 });
 
+test("workspace lifecycle counts stay exact across filters and state changes", async ({ page }) => {
+  await page.goto("/web/");
+
+  const activeCount = page.locator('[data-view-count="active"]').first();
+  const archivedCount = page.locator('[data-view-count="archived"]').first();
+  const trashedCount = page.locator('[data-view-count="trashed"]').first();
+
+  await expect(activeCount).toHaveText("0");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("0");
+
+  await captureMemo(page, { title: "Count One", content: "First count memo" });
+  await captureMemo(page, { title: "Count Two", content: "Second count memo" });
+  await expect(activeCount).toHaveText("2");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("0");
+
+  await page.locator("#memo-search").fill("Count One");
+  await expect(page.locator(".memo-card")).toHaveCount(1);
+  await expect(activeCount).toHaveText("2");
+  await page.getByRole("button", { name: "Clear search and filters" }).click();
+
+  let card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Archive");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("1");
+  await expect(trashedCount).toHaveText("0");
+
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
+  card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Move to Trash");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("1");
+
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
+  card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Restore");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("1");
+  await expect(trashedCount).toHaveText("0");
+});
+
 test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
   await page.goto("/web/");
 
