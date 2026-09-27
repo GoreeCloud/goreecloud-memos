@@ -220,18 +220,31 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
 
   await seedPerformanceFixture(page, LARGE_FIXTURE_COUNT);
   await page.reload();
-  await expect(page.locator(".memo-card")).toHaveCount(LARGE_FIXTURE_COUNT);
+  await expect(page.locator(".memo-card")).toHaveCount(FIXTURE_COUNT);
+  await expect(page.locator("#memo-render-progress")).toBeVisible();
+  await expect(page.locator("#memo-render-progress-status")).toHaveText(
+    `Showing ${FIXTURE_COUNT} of ${LARGE_FIXTURE_COUNT} memos.`
+  );
+
   const largeLibraryInitialRenderMs = await page.evaluate(
     () => performance.now() - window.__memosBaselineNavigationStart
   );
-  const largeLibraryDom = await page.evaluate(() => ({
+  const largeLibraryInitialDom = await page.evaluate(() => ({
     nodeCount: document.querySelectorAll("#memo-list *").length,
     hydratedEditors: document.querySelectorAll("#memo-list .memo-editor").length,
     hydratedActionButtons: document.querySelectorAll("#memo-list .memo-card__actions button").length
   }));
 
-  expect(largeLibraryDom.hydratedEditors).toBe(0);
-  expect(largeLibraryDom.hydratedActionButtons).toBe(0);
+  const loadMoreStart = await page.evaluate(() => performance.now());
+  await page.locator("#memo-render-more").click();
+  await expect(page.locator(".memo-card")).toHaveCount(FIXTURE_COUNT * 2);
+  const largeLibraryNextBatchMs = await page.evaluate(
+    (start) => performance.now() - start,
+    loadMoreStart
+  );
+
+  expect(largeLibraryInitialDom.hydratedEditors).toBe(0);
+  expect(largeLibraryInitialDom.hydratedActionButtons).toBe(0);
 
   const metrics = {
     revision: process.env.EVALUATED_REVISION ?? "local-unbound",
@@ -239,9 +252,11 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
     measuredAt: new Date().toISOString(),
     fixtureMemos: FIXTURE_COUNT,
     largeFixtureMemos: LARGE_FIXTURE_COUNT,
+    progressiveBatchMemos: FIXTURE_COUNT,
     initialRenderMs: Number(initialRenderMs.toFixed(2)),
     largeLibraryInitialRenderMs: Number(largeLibraryInitialRenderMs.toFixed(2)),
-    largeLibraryDom,
+    largeLibraryNextBatchMs: Number(largeLibraryNextBatchMs.toFixed(2)),
+    largeLibraryInitialDom,
     composerOpen: summarize(composerOpenSamples),
     search: summarize(searchSamples),
     savedViewApply: summarize(savedViewSamples),
@@ -252,6 +267,9 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
   expect(metrics.initialRenderMs).toBeGreaterThanOrEqual(0);
   expect(Number.isFinite(metrics.largeLibraryInitialRenderMs)).toBe(true);
   expect(metrics.largeLibraryInitialRenderMs).toBeGreaterThanOrEqual(0);
+  expect(Number.isFinite(metrics.largeLibraryNextBatchMs)).toBe(true);
+  expect(metrics.largeLibraryNextBatchMs).toBeGreaterThanOrEqual(0);
+  expect(metrics.largeLibraryInitialDom.nodeCount).toBeLessThan(LARGE_FIXTURE_COUNT * 13);
   expect(metrics.composerOpen.samples).toBe(INTERACTION_SAMPLES);
   expect(metrics.search.samples).toBe(INTERACTION_SAMPLES);
   expect(metrics.savedViewApply.samples).toBe(INTERACTION_SAMPLES);
