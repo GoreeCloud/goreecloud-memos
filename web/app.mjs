@@ -739,10 +739,15 @@ savedViewDeleteButton.addEventListener("click", async () => {
   }
 });
 
-document.addEventListener("goreecloud:memos-refresh-requested", () => {
-  refresh().catch((error) => {
-    setStatus(error instanceof Error ? error.message : "Could not refresh local memos");
-  });
+document.addEventListener("goreecloud:memos-refresh-requested", async (event) => {
+  try {
+    await refresh();
+    event.detail?.resolve?.();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not refresh local memos";
+    setStatus(message);
+    event.detail?.reject?.(error instanceof Error ? error : new Error(message));
+  }
 });
 
 listElement.addEventListener("input", (event) => {
