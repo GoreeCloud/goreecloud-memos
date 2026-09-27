@@ -1,192 +1,324 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-glaze-ui="1.6.0">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f5ef" />
+    <meta name="goreecloud-glaze-ui-target" content="1.6.0" />
     <title>GoreeCloud Memos — Development</title>
+    <link rel="icon" href="./assets/memos-icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./bulk-labels.css" />
   </head>
   <body>
-    <main class="shell">
-      <header class="hero">
-        <p class="eyebrow">GoreeCloud Memos · Development</p>
-        <h1>Open → type → done.</h1>
-        <p>This development slice stores memos only in this browser. Synchronization and server features are not implemented.</p>
-      </header>
+    <a class="skip-link" href="#memo-list">Skip to memos</a>
 
-      <section class="composer-card" aria-labelledby="composer-heading">
-        <h2 id="composer-heading">Take a memo…</h2>
-        <form id="memo-form">
-          <label for="memo-title">Title <span>(optional)</span></label>
-          <input id="memo-title" name="title" maxlength="240" autocomplete="off" />
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="GoreeCloud Memos navigation" data-glaze-semantic-surface="protected">
+        <header class="brand">
+          <img class="brand__icon" src="./assets/memos-icon.svg" width="34" height="34" alt="" />
+          <div class="brand__copy">
+            <strong>GoreeCloud Memos</strong>
+            <span>Development</span>
+          </div>
+        </header>
 
-          <div class="field-grid">
-            <label for="memo-color">Color
-              <select id="memo-color" name="color">
-                <option value="">No color</option>
-                <option value="red">Red</option>
-                <option value="orange">Orange</option>
-                <option value="yellow">Yellow</option>
-                <option value="green">Green</option>
-                <option value="teal">Teal</option>
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="pink">Pink</option>
-                <option value="gray">Gray</option>
-              </select>
-            </label>
-            <label for="memo-labels">Labels <span>(comma separated)</span>
-              <input id="memo-labels" name="labels" autocomplete="off" placeholder="Work, Ideas" />
-            </label>
+        <section class="sidebar-section" aria-labelledby="workspace-nav-heading">
+          <h2 id="workspace-nav-heading" class="sidebar-heading">Workspace</h2>
+          <nav class="workspace-nav" aria-label="Memo location">
+            <button type="button" class="nav-item view-tab" data-view="active" aria-pressed="true">
+              <span class="nav-icon" aria-hidden="true">◉</span>
+              <span class="nav-label">Memos</span>
+              <span class="nav-count" data-view-count="active" aria-hidden="true">0</span>
+            </button>
+            <button type="button" class="nav-item view-tab secondary" data-view="archived" aria-pressed="false">
+              <span class="nav-icon" aria-hidden="true">▣</span>
+              <span class="nav-label">Archive</span>
+              <span class="nav-count" data-view-count="archived" aria-hidden="true">0</span>
+            </button>
+            <button type="button" class="nav-item view-tab secondary" data-view="trashed" aria-pressed="false">
+              <span class="nav-icon" aria-hidden="true">⌫</span>
+              <span class="nav-label">Trash</span>
+              <span class="nav-count" data-view-count="trashed" aria-hidden="true">0</span>
+            </button>
+          </nav>
+        </section>
+
+        <section class="sidebar-section sidebar-label-section" aria-labelledby="sidebar-labels-heading">
+          <div class="sidebar-heading-row">
+            <h2 id="sidebar-labels-heading" class="sidebar-heading">Labels</h2>
+            <span class="sidebar-heading-note">Local</span>
+          </div>
+          <div id="sidebar-label-list" class="sidebar-label-list">
+            <p class="sidebar-empty">Labels appear after you use them.</p>
           </div>
 
-          <label for="memo-content">Memo</label>
-          <textarea id="memo-content" name="content" rows="6" required placeholder="Write something before it is forgotten…"></textarea>
+          <details class="manager-drawer">
+            <summary class="sidebar-link">
+              <span aria-hidden="true">✎</span>
+              <span>Edit labels</span>
+            </summary>
+            <section id="label-manager" class="drawer-panel" aria-labelledby="label-admin-heading" data-glaze-semantic-surface="protected">
+              <div class="drawer-header">
+                <div>
+                  <p class="drawer-kicker">Organization</p>
+                  <h2 id="label-admin-heading">Manage labels</h2>
+                </div>
+                <span class="drawer-hint">Click “Edit labels” again to close</span>
+              </div>
+              <p class="muted">Rename, merge, color, describe, or explicitly delete labels stored in this browser. Memo relationships stay consistent.</p>
+              <div id="label-admin-list"></div>
+              <output id="label-admin-status" class="muted" aria-live="polite">Label changes stay on this device.</output>
+            </section>
+          </details>
+        </section>
 
-          <div class="composer-actions">
-            <span id="draft-state" class="muted">Drafts stay on this device.</span>
-            <button id="save-button" type="submit">Save memo</button>
-          </div>
-        </form>
-      </section>
+        <div class="sidebar-spacer"></div>
 
-      <section class="composer-card" aria-labelledby="label-admin-heading">
-        <h2 id="label-admin-heading">Manage labels</h2>
-        <p class="muted">Edit details, rename, merge, or explicitly delete managed labels stored in this browser. Identity, metadata, relationships, and memo label projections stay consistent.</p>
-        <div id="label-admin-list"></div>
-        <output id="label-admin-status" class="muted" aria-live="polite">Label changes stay on this device.</output>
-      </section>
+        <section class="sidebar-section sidebar-library" aria-labelledby="library-heading">
+          <h2 id="library-heading" class="sidebar-heading">Library</h2>
+          <a class="sidebar-link" href="#capture-panel">
+            <span aria-hidden="true">＋</span>
+            <span>Quick capture</span>
+          </a>
+          <a class="sidebar-link" href="#memo-list">
+            <span aria-hidden="true">▦</span>
+            <span>Current view</span>
+          </a>
+        </section>
 
-      <section aria-labelledby="memos-heading">
-        <div class="section-heading">
-          <div>
-            <h2 id="memos-heading">Memos</h2>
-            <nav class="view-tabs" aria-label="Memo location">
-              <button type="button" class="view-tab" data-view="active" aria-pressed="true">Memos</button>
-              <button type="button" class="view-tab secondary" data-view="archived" aria-pressed="false">Archive</button>
-              <button type="button" class="view-tab secondary" data-view="trashed" aria-pressed="false">Trash</button>
-            </nav>
-          </div>
-          <output id="status" aria-live="polite"></output>
-        </div>
+        <footer class="sidebar-footer">
+          <span class="goreecloud-mark" aria-hidden="true">G</span>
+          <span>
+            <strong>GoreeCloud</strong>
+            <small>Local-only development slice</small>
+          </span>
+        </footer>
+      </aside>
 
-        <div class="filter-panel" role="search" aria-label="Search and filter memos">
-          <div class="filter-grid memo-filter-grid">
-            <label for="memo-search">Search memos
-              <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Text or color:blue label:Work" />
-              <span id="memo-search-help">Expressions: color:, label:, label-color:. Quote values containing spaces.</span>
-            </label>
-            <label for="memo-filter-color">Color
-              <select id="memo-filter-color">
-                <option value="all">All colors</option>
-                <option value="none">No color</option>
-                <option value="red">Red</option>
-                <option value="orange">Orange</option>
-                <option value="yellow">Yellow</option>
-                <option value="green">Green</option>
-                <option value="teal">Teal</option>
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="pink">Pink</option>
-                <option value="gray">Gray</option>
-              </select>
-            </label>
-            <label for="memo-filter-label">Label
-              <select id="memo-filter-label">
-                <option value="all">All labels</option>
-              </select>
-            </label>
-            <label for="memo-filter-label-color">Label color
-              <select id="memo-filter-label-color">
-                <option value="all">All label colors</option>
-                <option value="red">Red</option>
-                <option value="orange">Orange</option>
-                <option value="yellow">Yellow</option>
-                <option value="green">Green</option>
-                <option value="teal">Teal</option>
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="pink">Pink</option>
-                <option value="gray">Gray</option>
-              </select>
-            </label>
+      <main class="main-pane">
+        <header class="topbar" data-glaze-semantic-surface="protected">
+          <div class="context-title">
+            <span>Quick notes</span>
+            <strong id="workspace-title">Capture space</strong>
           </div>
-          <div class="filter-actions">
-            <output id="filter-status" class="muted" aria-live="polite">Search and filters are not saved.</output>
-            <button id="clear-filters" type="button" class="secondary" disabled>Clear search and filters</button>
-          </div>
-        </div>
 
-        <div class="filter-panel" aria-labelledby="saved-view-heading">
-          <h3 id="saved-view-heading">Saved views</h3>
-          <p class="muted">Save or restore the current search and direct filter controls in this browser. Saved views do not change the current Memos, Archive, or Trash location.</p>
-          <div class="filter-grid saved-view-grid">
-            <label for="saved-view-name">New view name
-              <input id="saved-view-name" maxlength="80" autocomplete="off" placeholder="Work focus" />
+          <div class="topbar-actions">
+            <label class="search-shell" for="memo-search">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <span class="sr-only">Search memos</span>
+              <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Search notes" />
             </label>
-            <button id="saved-view-save" type="button">Save current view</button>
-            <label for="saved-view-select">Saved view
-              <select id="saved-view-select">
-                <option value="">Choose saved view…</option>
-              </select>
-            </label>
+            <span id="memo-search-help" class="sr-only">Search text or use color:, label:, and label-color:. Quote values containing spaces.</span>
+
+            <details class="utility-drawer">
+              <summary class="icon-button" aria-label="Filters and view options" title="Filters and view options">
+                <span aria-hidden="true">☷</span>
+              </summary>
+              <section class="utility-panel" aria-label="Filters and view options" data-glaze-semantic-surface="protected">
+                <div class="utility-panel__header">
+                  <div>
+                    <p class="drawer-kicker">View controls</p>
+                    <h2>Refine this space</h2>
+                  </div>
+                  <span class="drawer-hint">Search stays in the top bar</span>
+                </div>
+
+                <div class="filter-panel" role="search" aria-label="Filter memos">
+                  <div class="filter-grid memo-filter-grid">
+                    <label for="memo-filter-color">Memo color
+                      <select id="memo-filter-color">
+                        <option value="all">All colors</option>
+                        <option value="none">No color</option>
+                        <option value="red">Red</option>
+                        <option value="orange">Orange</option>
+                        <option value="yellow">Yellow</option>
+                        <option value="green">Green</option>
+                        <option value="teal">Teal</option>
+                        <option value="blue">Blue</option>
+                        <option value="purple">Purple</option>
+                        <option value="pink">Pink</option>
+                        <option value="gray">Gray</option>
+                      </select>
+                    </label>
+                    <label for="memo-filter-label">Label
+                      <select id="memo-filter-label">
+                        <option value="all">All labels</option>
+                      </select>
+                    </label>
+                    <label for="memo-filter-label-color">Label color
+                      <select id="memo-filter-label-color">
+                        <option value="all">All label colors</option>
+                        <option value="red">Red</option>
+                        <option value="orange">Orange</option>
+                        <option value="yellow">Yellow</option>
+                        <option value="green">Green</option>
+                        <option value="teal">Teal</option>
+                        <option value="blue">Blue</option>
+                        <option value="purple">Purple</option>
+                        <option value="pink">Pink</option>
+                        <option value="gray">Gray</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="filter-actions">
+                    <output id="filter-status" class="muted" aria-live="polite">Search and filters are not saved.</output>
+                    <button id="clear-filters" type="button" class="secondary" disabled>Clear filters</button>
+                  </div>
+                </div>
+
+                <div class="filter-panel" aria-labelledby="saved-view-heading">
+                  <div class="panel-heading">
+                    <div>
+                      <span>Saved views</span>
+                      <h3 id="saved-view-heading">Keep a useful lens</h3>
+                    </div>
+                  </div>
+                  <div class="filter-grid saved-view-grid">
+                    <label for="saved-view-name">New view name
+                      <input id="saved-view-name" maxlength="80" autocomplete="off" placeholder="Work focus" />
+                    </label>
+                    <button id="saved-view-save" type="button">Save current view</button>
+                    <label for="saved-view-select">Saved view
+                      <select id="saved-view-select">
+                        <option value="">Choose saved view…</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="filter-actions">
+                    <output id="saved-view-status" class="muted" aria-live="polite">Saved views stay only in this browser.</output>
+                    <div class="saved-view-actions">
+                      <button id="saved-view-apply" type="button" disabled>Apply</button>
+                      <button id="saved-view-delete" type="button" class="danger" disabled>Delete</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="filter-panel" aria-labelledby="bulk-label-heading">
+                  <div class="panel-heading">
+                    <div>
+                      <span>Selection</span>
+                      <h3 id="bulk-label-heading">Bulk labels</h3>
+                    </div>
+                  </div>
+                  <div class="filter-grid bulk-label-grid">
+                    <label for="bulk-label-select">Managed label
+                      <select id="bulk-label-select">
+                        <option value="">Choose label…</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="filter-actions">
+                    <output id="bulk-label-status" class="muted" aria-live="polite">0 memos selected. Selection stays only in this view and is not saved.</output>
+                    <div class="bulk-label-actions">
+                      <button id="bulk-label-apply" type="button" disabled>Apply label</button>
+                      <button id="bulk-label-remove" type="button" class="secondary" disabled>Remove label</button>
+                      <button id="bulk-selection-clear" type="button" class="secondary" disabled>Clear selection</button>
+                    </div>
+                  </div>
+                </div>
+
+                <fieldset class="presentation-picker">
+                  <legend>Presentation</legend>
+                  <div class="presentation-options">
+                    <label class="presentation-option"><input type="radio" name="presentation" value="comfortable" checked /> <span>Comfortable</span></label>
+                    <label class="presentation-option"><input type="radio" name="presentation" value="compact" /> <span>Compact</span></label>
+                    <label class="presentation-option"><input type="radio" name="presentation" value="list" /> <span>List</span></label>
+                    <label class="presentation-option"><input type="radio" name="presentation" value="dense" /> <span>Dense</span></label>
+                  </div>
+                  <output id="presentation-status" class="muted" aria-live="polite">Presentation: Comfortable.</output>
+                </fieldset>
+              </section>
+            </details>
           </div>
-          <div class="filter-actions">
-            <output id="saved-view-status" class="muted" aria-live="polite">Saved views stay only in this browser.</output>
-            <div class="saved-view-actions">
-              <button id="saved-view-apply" type="button" disabled>Apply saved view</button>
-              <button id="saved-view-delete" type="button" class="danger" disabled>Delete saved view</button>
+        </header>
+
+        <div class="workspace-canvas">
+          <section class="hero-card" data-glaze-semantic-surface="protected">
+            <div>
+              <p class="eyebrow">Quick notes</p>
+              <h1>Capture what matters.</h1>
+              <p>Fast local capture with labels, color, Archive, recoverable Trash, search, and saved views in your private GoreeCloud workspace.</p>
             </div>
-          </div>
-        </div>
+            <span class="privacy-chip"><span aria-hidden="true">⌾</span> Local to this browser</span>
+          </section>
 
-        <div class="filter-panel" aria-labelledby="bulk-label-heading">
-          <h3 id="bulk-label-heading">Bulk labels</h3>
-          <p class="muted">Select currently visible memos, then apply or remove one existing managed label. Selection is temporary and clears when this memo list rerenders.</p>
-          <div class="filter-grid bulk-label-grid">
-            <label for="bulk-label-select">Managed label
-              <select id="bulk-label-select">
-                <option value="">Choose label…</option>
-              </select>
-            </label>
-          </div>
-          <div class="filter-actions">
-            <output id="bulk-label-status" class="muted" aria-live="polite">0 memos selected. Selection stays only in this view and is not saved.</output>
-            <div class="bulk-label-actions">
-              <button id="bulk-label-apply" type="button" disabled>Apply label</button>
-              <button id="bulk-label-remove" type="button" class="secondary" disabled>Remove label</button>
-              <button id="bulk-selection-clear" type="button" class="secondary" disabled>Clear selection</button>
+          <details id="capture-panel" class="capture-card" open data-glaze-semantic-surface="protected">
+            <summary class="capture-summary">
+              <span class="capture-plus" aria-hidden="true">＋</span>
+              <span>Take a note…</span>
+              <span class="capture-summary__hint">Quick capture</span>
+            </summary>
+            <div class="capture-body">
+              <form id="memo-form">
+                <div class="composer-title-row">
+                  <label for="memo-title">Title <span>(optional)</span>
+                    <input id="memo-title" name="title" maxlength="240" autocomplete="off" placeholder="Give this memo a title" />
+                  </label>
+                  <label for="memo-color">Color
+                    <select id="memo-color" name="color">
+                      <option value="">No color</option>
+                      <option value="red">Red</option>
+                      <option value="orange">Orange</option>
+                      <option value="yellow">Yellow</option>
+                      <option value="green">Green</option>
+                      <option value="teal">Teal</option>
+                      <option value="blue">Blue</option>
+                      <option value="purple">Purple</option>
+                      <option value="pink">Pink</option>
+                      <option value="gray">Gray</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label for="memo-content">Memo
+                  <textarea id="memo-content" name="content" rows="5" required placeholder="Write something before it is forgotten…"></textarea>
+                </label>
+
+                <label for="memo-labels">Labels <span>(comma separated)</span>
+                  <input id="memo-labels" name="labels" autocomplete="off" placeholder="Work, Ideas" />
+                </label>
+
+                <div class="composer-actions">
+                  <span id="draft-state" class="muted">Drafts stay on this device.</span>
+                  <button id="save-button" type="submit">Save memo</button>
+                </div>
+              </form>
             </div>
-          </div>
-        </div>
+          </details>
 
-        <fieldset class="presentation-picker">
-          <legend>Presentation</legend>
-          <div class="presentation-options">
-            <label class="presentation-option"><input type="radio" name="presentation" value="comfortable" checked /> <span>Comfortable</span></label>
-            <label class="presentation-option"><input type="radio" name="presentation" value="compact" /> <span>Compact</span></label>
-            <label class="presentation-option"><input type="radio" name="presentation" value="list" /> <span>List</span></label>
-            <label class="presentation-option"><input type="radio" name="presentation" value="dense" /> <span>Dense</span></label>
-          </div>
-          <output id="presentation-status" class="muted" aria-live="polite">Presentation: Comfortable.</output>
-        </fieldset>
-        <div id="memo-list" class="memo-list" data-presentation="comfortable" aria-live="polite"></div>
-      </section>
-    </main>
+          <section class="memo-board" aria-labelledby="memos-heading">
+            <div class="board-heading">
+              <div>
+                <p class="eyebrow">Your notes</p>
+                <h2 id="memos-heading">Memos</h2>
+              </div>
+              <output id="status" aria-live="polite"></output>
+            </div>
+
+            <div id="memo-list" class="memo-list" data-presentation="comfortable" aria-live="polite"></div>
+          </section>
+
+          <footer class="development-note">
+            <strong>Development workspace</strong>
+            <span>Memos remain local to this browser. Synchronization, accounts, server authority, and production acceptance are not established.</span>
+          </footer>
+        </div>
+      </main>
+    </div>
 
     <template id="memo-template">
-      <article class="memo-card" data-color="none">
+      <article class="memo-card" data-color="none" data-glaze-semantic-surface="protected">
         <div class="memo-card__header">
-          <div>
-            <h3 class="memo-card__title"></h3>
+          <div class="memo-card__heading">
             <time class="memo-card__time"></time>
+            <h3 class="memo-card__title"></h3>
           </div>
           <div class="memo-card__actions"></div>
         </div>
-        <div class="memo-card__meta" aria-label="Memo organization"></div>
         <p class="memo-card__content"></p>
+        <div class="memo-card__meta" aria-label="Memo organization"></div>
         <form class="memo-editor" hidden>
           <label>Title <span>(optional)</span>
             <input data-edit-field="title" maxlength="240" autocomplete="off" />
