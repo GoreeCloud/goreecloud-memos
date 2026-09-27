@@ -12,18 +12,7 @@ async function captureMemo(page, content, labels) {
   await openCapture(page);
   await page.locator("#memo-labels").fill(labels);
   await page.locator("#memo-content").fill(content);
-  await page.evaluate((expectedContent) => {
-    window.__memosNextRender = new Promise((resolve) => {
-      const onRendered = (event) => {
-        if (!event.detail?.memos?.some((memo) => memo.content === expectedContent)) return;
-        document.removeEventListener("goreecloud:memos-rendered", onRendered);
-        resolve();
-      };
-      document.addEventListener("goreecloud:memos-rendered", onRendered);
-    });
-  }, content);
   await page.getByRole("button", { name: "Save memo" }).click();
-  await page.evaluate(() => window.__memosNextRender);
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".memo-card", { hasText: content })).toBeVisible();
