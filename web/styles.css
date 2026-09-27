@@ -1091,6 +1091,34 @@ button.danger {
   line-height: 1.55;
 }
 
+.memo-card--content-collapsed .memo-card__content {
+  max-height: 12.8rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%);
+}
+
+.memo-card--content-expanded .memo-card__content {
+  max-height: none;
+  overflow: visible;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.memo-card__expand {
+  min-height: 34px;
+  margin-top: 0.45rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 9px;
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  box-shadow: none;
+}
+
+.memo-card__expand[hidden] {
+  display: none;
+}
+
 .memo-card-menu {
   position: absolute;
   top: 0.62rem;
@@ -1945,6 +1973,10 @@ button.danger {
     font-size: 0.78rem;
   }
 
+  .memo-card__expand {
+    min-height: 48px;
+  }
+
   .drawer-panel {
     top: calc(var(--compact-nav-height) + 10px);
     left: 0.75rem;
@@ -2160,6 +2192,11 @@ button.danger {
 }
 
 @media (forced-colors: active) {
+  .memo-card--content-collapsed .memo-card__content {
+    mask-image: none;
+    -webkit-mask-image: none;
+    border-block-end: 1px dashed CanvasText;
+  }
   :root {
     --canvas: Canvas;
     --canvas-alt: Canvas;
