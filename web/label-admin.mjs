@@ -12,8 +12,6 @@ const store = new IndexedDbMemoStore();
 const service = new LabelService(store);
 const memoService = new MemoService(store);
 let sidebarRefreshGeneration = 0;
-let latestLabels = [];
-let labelsLoaded = false;
 
 const LABEL_DOTS = Object.freeze({
   red: "#d65a5a",
@@ -246,8 +244,6 @@ async function refreshSidebar(labels) {
 
 async function refreshLabels() {
   const labels = await service.list();
-  latestLabels = labels;
-  labelsLoaded = true;
   if (managerDrawer?.open) renderLabels(labels);
   await refreshSidebar(labels);
   return labels;
@@ -277,8 +273,6 @@ function syncFromWorkspaceRender(event) {
     return;
   }
 
-  latestLabels = labels;
-  labelsLoaded = true;
   if (managerDrawer?.open) renderLabels(labels);
 
   const view = typeof detail.view === "string" ? detail.view : currentSidebarView();
@@ -382,10 +376,6 @@ document.addEventListener("goreecloud:memos-rendered", syncFromWorkspaceRender);
 
 managerDrawer?.addEventListener("toggle", () => {
   if (!managerDrawer.open) return;
-  if (labelsLoaded) {
-    renderLabels(latestLabels);
-    return;
-  }
   refreshLabels().catch((error) => {
     setStatus(error instanceof Error ? error.message : "Could not load labels");
   });
