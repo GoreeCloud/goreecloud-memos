@@ -40,6 +40,7 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
   await expect(page.locator(".brand__icon")).toHaveAttribute("src", "./assets/memos-icon.svg");
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
   await expect(page.locator("details.manager-drawer")).toHaveJSProperty("open", false);
   await page.locator("#capture-panel > summary").click();
@@ -99,6 +100,7 @@ test("first-use setup resumes and remains replayable", async ({ page }) => {
   expect(setupNextBox.height).toBeGreaterThanOrEqual(48);
   await page.keyboard.press("n");
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await page.keyboard.press("/");
   await expect(page.getByRole("searchbox", { name: "Search memos" })).not.toBeFocused();
 
