@@ -70,7 +70,7 @@ test("native shell shortcuts and Glaze appearance preference persist locally", a
   await expect(page.getByRole("radio", { name: "Deep Dark" })).toBeChecked();
 });
 
-test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
+// Native shell context coverage follows the primary shell tests.\ntest("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
   await openCapture(page);
   await page.locator("#memo-title").fill("Draft title");
