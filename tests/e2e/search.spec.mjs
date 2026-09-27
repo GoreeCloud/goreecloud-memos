@@ -16,6 +16,13 @@ async function openViewControls(page) {
   }
 }
 
+async function closeViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (await drawer.evaluate((element) => element.open)) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
 async function openLabelManager(page) {
   const drawer = page.locator("details.manager-drawer");
   if (!(await drawer.evaluate((element) => element.open))) {
@@ -99,6 +106,7 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.getByText("1 of 3 memos shown")).toBeVisible();
 
   await page.getByRole("button", { name: "Clear search and filters" }).click();
+  await closeViewControls(page);
 
   const reference = page.locator(".memo-card", { hasText: "Reference" });
   await reference.getByRole("button", { name: "Archive", exact: true }).click();
@@ -109,6 +117,7 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toHaveCount(0);
   await expect(page.getByText("1 of 1 archived memo shown")).toBeVisible();
 
+  await openViewControls(page);
   await color.selectOption("green");
   await label.selectOption("Work");
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toBeVisible();
