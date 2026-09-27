@@ -202,6 +202,19 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
+  const compactNav = page.locator(".sidebar");
+  const compactTopbar = page.locator(".topbar");
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  for (const viewName of ["Memos", "Archive", "Trash"]) {
+    await location.getByRole("button", { name: viewName, exact: true }).click();
+    const navBox = await compactNav.boundingBox();
+    const topbarBox = await compactTopbar.boundingBox();
+    expect(navBox).not.toBeNull();
+    expect(topbarBox).not.toBeNull();
+    expect(topbarBox.y).toBeLessThanOrEqual(navBox.y + navBox.height + 1);
+  }
+  await location.getByRole("button", { name: "Memos", exact: true }).click();
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
