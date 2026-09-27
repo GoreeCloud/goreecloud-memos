@@ -23,6 +23,13 @@ async function openLabelManager(page) {
   }
 }
 
+async function closeLabelManager(page) {
+  const drawer = page.locator("details.manager-drawer");
+  if (await drawer.evaluate((element) => element.open)) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
 test("local search and filters combine within the current lifecycle view and reset on reload", async ({ page }) => {
   await page.goto("/web/");
 
@@ -54,6 +61,7 @@ test("local search and filters combine within the current lifecycle view and res
   await workRow.getByLabel("Color for Work").selectOption("blue");
   await workRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Work.");
+  await closeLabelManager(page);
 
   await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
@@ -136,6 +144,7 @@ test("advanced search expressions combine verified local dimensions and surface 
   await projectRow.getByLabel("Color for Project Work").selectOption("purple");
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+  await closeLabelManager(page);
 
   await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
@@ -183,6 +192,7 @@ test("named saved views persist locally and restore the current query and direct
   await projectRow.getByLabel("Color for Project Work").selectOption("purple");
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+  await closeLabelManager(page);
 
   await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
