@@ -80,6 +80,13 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
     expect(box.height).toBeGreaterThanOrEqual(48);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
+  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
 test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
