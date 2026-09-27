@@ -596,6 +596,16 @@ img {
   gap: 0.6rem;
 }
 
+.topbar-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 42px;
+  padding-inline: 0.8rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .search-shell {
   display: grid;
   grid-template-columns: 1.4rem minmax(0, 1fr) auto;
