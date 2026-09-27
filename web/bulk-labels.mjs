@@ -2,7 +2,6 @@ import { LabelService } from "../src/app/label-service.mjs";
 import { MemoService } from "../src/app/memo-service.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
 
-const STATUS_KEY = "goreecloud-memos:bulk-label-status:v1";
 const listElement = document.querySelector("#memo-list");
 const labelSelect = document.querySelector("#bulk-label-select");
 const applyButton = document.querySelector("#bulk-label-apply");
@@ -14,8 +13,7 @@ const store = new IndexedDbMemoStore();
 const memoService = new MemoService(store);
 const labelService = new LabelService(store);
 let selectedMemoIds = new Set();
-let actionMessage = sessionStorage.getItem(STATUS_KEY) ?? "";
-sessionStorage.removeItem(STATUS_KEY);
+let actionMessage = "";
 
 function memoCountText(count) {
   return `${count} ${count === 1 ? "memo" : "memos"}`;
@@ -100,11 +98,6 @@ function syncFromWorkspaceRender(event) {
   updateControls();
 }
 
-function reloadWithStatus(message) {
-  sessionStorage.setItem(STATUS_KEY, message);
-  window.location.reload();
-}
-
 async function runBulkAction(mode) {
   const memoIds = [...selectedMemoIds];
   const labelId = labelSelect.value;
@@ -118,7 +111,11 @@ async function runBulkAction(mode) {
       : await memoService.removeLabelFromMany(memoIds, labelId);
     const verb = mode === "apply" ? "Applied" : "Removed";
     const preposition = mode === "apply" ? "to" : "from";
-    reloadWithStatus(`${verb} ${result.label.name} ${preposition} ${memoCountText(result.changedMemoCount)}.`);
+    actionMessage = `${verb} ${result.label.name} ${preposition} ${memoCountText(result.changedMemoCount)}.`;
+    clearSelection({ clearMessage: false });
+    document.dispatchEvent(new CustomEvent("goreecloud:memos-refresh-requested", {
+      detail: { source: "bulk-labels" }
+    }));
   } catch (error) {
     actionMessage = error instanceof Error ? error.message : "Could not update selected memos";
     updateControls();
