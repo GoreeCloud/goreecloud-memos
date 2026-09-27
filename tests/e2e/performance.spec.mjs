@@ -1,7 +1,24 @@
 import { test, expect } from "@playwright/test";
 
 const FIXTURE_COUNT = 200;
+const INTERACTION_SAMPLES = 30;
 const SEARCH_TERM = "needle-baseline-target";
+
+function percentile(values, percentileValue) {
+  const sorted = [...values].sort((left, right) => left - right);
+  const index = Math.max(0, Math.ceil((percentileValue / 100) * sorted.length) - 1);
+  return sorted[index];
+}
+
+function summarize(values) {
+  return {
+    samples: values.length,
+    p50Ms: Number(percentile(values, 50).toFixed(2)),
+    p95Ms: Number(percentile(values, 95).toFixed(2)),
+    p99Ms: Number(percentile(values, 99).toFixed(2)),
+    maxMs: Number(Math.max(...values).toFixed(2))
+  };
+}
 
 async function seedPerformanceFixture(page) {
   await page.goto("/web/");
@@ -66,20 +83,16 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
     () => performance.now() - window.__memosBaselineNavigationStart
   );
 
-  const searchMs = await page.evaluate(async (searchTerm) => {
+  const searchSamples = await page.evaluate(async ({ searchTerm, samples }) => {
     const input = document.querySelector("#memo-search");
     const list = document.querySelector("#memo-list");
     if (!input || !list) throw new Error("performance baseline search controls are unavailable");
 
-    const start = performance.now();
-    input.value = searchTerm;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-
-    await new Promise((resolve, reject) => {
+    const waitForCardCount = (count) => new Promise((resolve, reject) => {
       const deadline = performance.now() + 10_000;
       const check = () => {
-        if (list.querySelectorAll(".memo-card").length === 1) {
-          resolve();
+        if (list.querySelectorAll(".memo-card").length === count) {
+          requestAnimationFrame(() => resolve());
           return;
         }
         if (performance.now() > deadline) {
@@ -91,8 +104,20 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
       check();
     });
 
-    return performance.now() - start;
-  }, SEARCH_TERM);
+    const durations = [];
+    for (let index = 0; index < samples; index += 1) {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForCardCount(200);
+
+      const start = performance.now();
+      input.value = searchTerm;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForCardCount(1);
+      durations.push(performance.now() - start);
+    }
+    return durations;
+  }, { searchTerm: SEARCH_TERM, samples: INTERACTION_SAMPLES });
 
   const utilityDrawer = page.locator("details.utility-drawer");
   await utilityDrawer.locator(":scope > summary").click();
@@ -106,19 +131,19 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
   await expect(page.locator(".memo-card")).toHaveCount(FIXTURE_COUNT);
   await page.locator("#saved-view-select").selectOption({ label: "Performance baseline" });
 
-  const savedViewApplyMs = await page.evaluate(async () => {
-    const button = document.querySelector("#saved-view-apply");
+  const savedViewSamples = await page.evaluate(async ({ samples, fixtureCount }) => {
+    const applyButton = document.querySelector("#saved-view-apply");
+    const clearButton = document.querySelector("#clear-filters");
     const list = document.querySelector("#memo-list");
-    if (!button || !list) throw new Error("performance baseline Saved View controls are unavailable");
+    if (!applyButton || !clearButton || !list) {
+      throw new Error("performance baseline Saved View controls are unavailable");
+    }
 
-    const start = performance.now();
-    button.click();
-
-    await new Promise((resolve, reject) => {
+    const waitForCardCount = (count) => new Promise((resolve, reject) => {
       const deadline = performance.now() + 10_000;
       const check = () => {
-        if (list.querySelectorAll(".memo-card").length === 1) {
-          resolve();
+        if (list.querySelectorAll(".memo-card").length === count) {
+          requestAnimationFrame(() => resolve());
           return;
         }
         if (performance.now() > deadline) {
@@ -130,20 +155,42 @@ test("browser-local performance baseline is reproducible", async ({ page }) => {
       check();
     });
 
-    return performance.now() - start;
-  });
+    const durations = [];
+    for (let index = 0; index < samples; index += 1) {
+      clearButton.click();
+      await waitForCardCount(fixtureCount);
+
+      const start = performance.now();
+      applyButton.click();
+      await waitForCardCount(1);
+      durations.push(performance.now() - start);
+    }
+    return durations;
+  }, { samples: INTERACTION_SAMPLES, fixtureCount: FIXTURE_COUNT });
+
+  const environment = await page.evaluate(() => ({
+    userAgent: navigator.userAgent,
+    hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+    deviceMemoryGiB: navigator.deviceMemory ?? null,
+    viewport: { width: innerWidth, height: innerHeight },
+    visibilityState: document.visibilityState
+  }));
 
   const metrics = {
+    revision: process.env.EVALUATED_REVISION ?? "local-unbound",
+    lifecycle: "Development",
+    measuredAt: new Date().toISOString(),
     fixtureMemos: FIXTURE_COUNT,
     initialRenderMs: Number(initialRenderMs.toFixed(2)),
-    searchMs: Number(searchMs.toFixed(2)),
-    savedViewApplyMs: Number(savedViewApplyMs.toFixed(2))
+    search: summarize(searchSamples),
+    savedViewApply: summarize(savedViewSamples),
+    environment
   };
 
-  for (const value of [metrics.initialRenderMs, metrics.searchMs, metrics.savedViewApplyMs]) {
-    expect(Number.isFinite(value)).toBe(true);
-    expect(value).toBeGreaterThanOrEqual(0);
-  }
+  expect(Number.isFinite(metrics.initialRenderMs)).toBe(true);
+  expect(metrics.initialRenderMs).toBeGreaterThanOrEqual(0);
+  expect(metrics.search.samples).toBe(INTERACTION_SAMPLES);
+  expect(metrics.savedViewApply.samples).toBe(INTERACTION_SAMPLES);
 
   console.log("[memos-performance-baseline] " + JSON.stringify(metrics));
 });
