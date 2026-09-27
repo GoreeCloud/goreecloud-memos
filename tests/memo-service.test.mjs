@@ -45,6 +45,22 @@ test("capture persists memo organization metadata and active list returns it", a
   assert.deepEqual(memos[0].labels, ["Work"]);
 });
 
+test("listAll returns every lifecycle state in display order from one snapshot", async () => {
+  const service = createService();
+  await service.capture({ content: "Active one" });
+  await service.capture({ content: "Archive me" });
+  await service.capture({ content: "Trash me" });
+  await service.archive("memo-2");
+  await service.trash("memo-3");
+
+  const all = await service.listAll();
+  assert.equal(all.length, 3);
+  assert.deepEqual(new Set(all.map((memo) => memo.state)), new Set(["active", "archived", "trashed"]));
+  assert.equal(all.find((memo) => memo.id === "memo-1").state, "active");
+  assert.equal(all.find((memo) => memo.id === "memo-2").state, "archived");
+  assert.equal(all.find((memo) => memo.id === "memo-3").state, "trashed");
+});
+
 test("edit persists content, color, and labels", async () => {
   const service = createService();
   await service.capture({ content: "Before" });
