@@ -129,10 +129,11 @@ body{background:var(--memos-canvas)!important;color:var(--memos-ink)!important}
 .contextual-hint{width:340px!important;border-radius:13px!important;padding:.4rem!important}.contextual-hint__copy{font-size:.66rem!important}.development-note{margin-top:1.4rem!important;padding-top:.68rem!important;color:var(--memos-ink-3)!important;font-size:.58rem!important}
 @media(min-width:1121px){.memo-list[data-presentation="comfortable"]{display:block!important;columns:246px 4!important;column-count:4!important;column-width:246px!important;column-gap:.76rem!important}.memo-list[data-presentation="compact"]{display:block!important;columns:215px 5!important;column-count:5!important;column-width:215px!important;column-gap:.62rem!important}.memo-list[data-presentation="comfortable"]>.memo-card,.memo-list[data-presentation="compact"]>.memo-card{display:inline-block!important;width:100%!important;margin:0 0 .76rem!important;break-inside:avoid!important}}
 @media(max-width:900px){
-  .sidebar{display:block!important;height:58px!important;padding:.38rem .5rem!important;background:color-mix(in srgb,var(--memos-panel) 96%,transparent)!important}
+  .sidebar{display:block!important;width:100%!important;min-width:0!important;max-width:none!important;height:58px!important;padding:.38rem .5rem!important;background:color-mix(in srgb,var(--memos-panel) 96%,transparent)!important}
   .brand{display:none!important}
-  .sidebar .sidebar-section:first-of-type{height:100%!important}
-  .workspace-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;height:100%!important;gap:.34rem!important}
+  .sidebar .sidebar-section:not(:first-of-type),.sidebar-spacer,.sidebar-library,.sidebar-footer{display:none!important}
+  .sidebar .sidebar-section:first-of-type{width:100%!important;height:100%!important;padding:0!important}
+  .workspace-nav{display:grid!important;width:100%!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;height:100%!important;gap:.34rem!important}
   .nav-item{width:100%!important;min-width:0!important;min-height:48px!important;justify-content:center!important;gap:.28rem!important;border-radius:12px!important;padding:.28rem .5rem!important}
   .nav-icon{width:25px!important;height:25px!important}
   .nav-label{display:block!important;font-size:.7rem!important;font-weight:680!important}
