@@ -183,8 +183,8 @@ function syncCompactShell() {
     labelSection.style.display = compact ? "block" : "";
     labelSection.style.margin = compact ? "0 0 0 0.2rem" : "";
     labelSection.style.padding = compact ? "0" : "";
-    labelSection.querySelector(".sidebar-heading-row")?.setAttribute("hidden", compact ? "" : null);
-    labelSection.querySelector(".sidebar-label-list")?.setAttribute("hidden", compact ? "" : null);
+    labelSection.querySelector(".sidebar-heading-row")?.toggleAttribute("hidden", compact);
+    labelSection.querySelector(".sidebar-label-list")?.toggleAttribute("hidden", compact);
   }
 
   if (managerDrawer instanceof HTMLElement) {
@@ -198,6 +198,7 @@ function syncCompactShell() {
     managerSummary.style.minHeight = compact ? "48px" : "";
     managerSummary.style.justifyContent = compact ? "center" : "";
     managerSummary.style.padding = compact ? "0" : "";
+    managerSummary.querySelector("span:last-child")?.toggleAttribute("hidden", compact);
   }
 }
 
