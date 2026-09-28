@@ -895,12 +895,25 @@ listElement.addEventListener("toggle", (event) => {
 document.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
 
-  if (event.target.closest("details.memo-card-menu")) return;
-  closeOpenMemoMenus();
+  if (!event.target.closest("details.memo-card-menu")) {
+    closeOpenMemoMenus();
+  }
 
   const editingCard = listElement.querySelector(".memo-card--editing");
   if (editingCard && !event.target.closest(".memo-card--editing")) {
     closeMemoEditor(editingCard, { focusCard: false });
+  }
+
+  if (
+    managerDrawer?.open &&
+    !event.target.closest("details.manager-drawer") &&
+    !event.target.closest("#utility-manage-labels")
+  ) {
+    managerDrawer.open = false;
+  }
+
+  if (utilityDrawer?.open && !event.target.closest("details.utility-drawer")) {
+    utilityDrawer.open = false;
   }
 });
 
@@ -911,6 +924,18 @@ document.addEventListener("keydown", (event) => {
   if (openMenu) {
     openMenu.open = false;
     openMenu.querySelector(":scope > summary")?.focus();
+    return;
+  }
+
+  if (managerDrawer?.open) {
+    managerDrawer.open = false;
+    utilityManageLabelsButton?.focus();
+    return;
+  }
+
+  if (utilityDrawer?.open) {
+    utilityDrawer.open = false;
+    utilityDrawer.querySelector(":scope > summary")?.focus();
     return;
   }
 
