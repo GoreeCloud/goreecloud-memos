@@ -3088,3 +3088,146 @@ button.secondary {
     forced-color-adjust: auto;
   }
 }
+
+
+/* Owner review: compact capture and vertical memo board, 2026-09-27. */
+@media (min-width: 901px) {
+  .workspace-canvas {
+    width: min(1240px, calc(100% - 2.4rem));
+    padding-top: 1rem;
+  }
+
+  .hero-card {
+    min-height: 0;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.72rem 1rem;
+    border-radius: 16px;
+  }
+
+  .hero-card h1 {
+    margin: 0.12rem 0 0.18rem;
+    font-size: clamp(1.18rem, 1.7vw, 1.48rem);
+    line-height: 1.08;
+    letter-spacing: -0.028em;
+  }
+
+  .hero-card p:not(.eyebrow) {
+    max-width: 52rem;
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .hero-card .eyebrow {
+    font-size: 0.58rem;
+  }
+
+  .privacy-chip {
+    min-height: 29px;
+    padding: 0.28rem 0.58rem;
+    font-size: 0.68rem;
+  }
+
+  .capture-card {
+    width: min(720px, calc(100% - 2rem));
+    margin: 0.72rem auto 1rem;
+  }
+
+  .capture-summary {
+    min-height: 48px;
+    padding: 0.36rem 0.62rem;
+  }
+
+  .capture-plus {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .capture-body {
+    padding: 0.68rem 0.78rem 0.72rem;
+  }
+
+  #memo-form {
+    gap: 0.5rem;
+  }
+
+  .composer-title-row {
+    grid-template-columns: minmax(0, 3fr) minmax(8rem, 0.9fr);
+    gap: 0.5rem;
+  }
+
+  #memo-form input,
+  #memo-form select {
+    min-height: 38px;
+    padding: 0.48rem 0.58rem;
+  }
+
+  #memo-form textarea {
+    min-height: 5.2rem;
+    padding: 0.52rem 0.6rem;
+  }
+
+  .composer-actions {
+    margin-top: 0.05rem;
+  }
+
+  .memo-board {
+    padding-top: 0.05rem;
+  }
+
+  .board-heading {
+    margin-bottom: 0.62rem;
+  }
+
+  .memo-list[data-presentation="comfortable"] {
+    columns: 245px 4;
+    column-gap: 0.76rem;
+  }
+
+  .memo-list[data-presentation="compact"] {
+    columns: 220px 5;
+    column-gap: 0.64rem;
+  }
+
+  .memo-card {
+    margin-bottom: 0.76rem;
+    padding: 0.88rem 0.9rem 0.96rem;
+  }
+
+  .memo-card--content-collapsed .memo-card__content {
+    max-height: 18rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-card {
+    min-height: 0;
+    padding: 0.88rem 1rem;
+  }
+
+  .hero-card h1 {
+    margin: 0.16rem 0 0.28rem;
+    font-size: clamp(1.35rem, 6vw, 1.72rem);
+  }
+
+  .hero-card p:not(.eyebrow) {
+    font-size: 0.82rem;
+    line-height: 1.38;
+  }
+
+  .capture-card {
+    margin-bottom: 1rem;
+  }
+
+  .capture-body {
+    padding: 0.78rem 0.86rem 0.82rem;
+  }
+
+  #memo-form {
+    gap: 0.55rem;
+  }
+
+  #memo-form textarea {
+    min-height: 5.5rem;
+  }
+}
