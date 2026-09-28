@@ -49,10 +49,13 @@ async function shot(page, fileName, viewport, { fullPage = true } = {}) {
   await page.setViewportSize(viewport);
   await page.evaluate(() => {
     document.documentElement.style.scrollBehavior = "auto";
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) active.blur();
+    const scrollingElement = document.scrollingElement;
+    if (scrollingElement) scrollingElement.scrollTop = 0;
     window.scrollTo(0, 0);
   });
-  await page.waitForFunction(() => window.scrollY === 0);
-  await page.waitForTimeout(80);
+  await page.waitForTimeout(100);
   const path = join(OUTPUT_DIR, fileName);
   await page.screenshot({ path, fullPage, animations: "disabled" });
   await page.evaluate(() => {
