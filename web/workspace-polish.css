@@ -157,8 +157,12 @@ body{background:var(--memos-canvas)!important;color:var(--memos-ink)!important}
 }
 @media(max-width:620px){.contextual-hint{display:none!important}.label-admin-row{grid-template-columns:1fr!important}.nav-item{gap:.22rem!important;padding-inline:.32rem!important}.nav-label{font-size:.66rem!important}.nav-count{display:none!important}.topbar{grid-template-columns:1fr!important}.context-title{display:none!important}.topbar-privacy{display:none!important}.workspace-canvas{width:calc(100% - .7rem)!important}.capture-card{width:100%!important;border-radius:15px!important}.composer-title-row{align-items:flex-start}.composer-privacy{min-height:28px;padding-inline:.42rem;font-size:.61rem}.color-picker{gap:.28rem}.color-swatch{width:31px;height:31px;min-height:31px}.contextual-hint{position:static!important;grid-template-columns:minmax(0,1fr) auto!important;width:auto!important;margin:0 auto .55rem!important;padding:.38rem .42rem!important}.contextual-hint__icon{display:none!important}.contextual-hint__copy{font-size:.62rem!important;line-height:1.32!important}.contextual-hint button{grid-column:auto!important;min-height:36px!important;justify-self:end!important;padding:.32rem .48rem!important}}
 @media (hover:hover) and (pointer:fine) and (min-width:901px){
-  .memo-select{opacity:0;transition:opacity 120ms ease}
-  .memo-card:hover .memo-select,.memo-card:focus-within .memo-select,.memo-select:has(input:checked){opacity:1}
+  .memo-card__header{display:block!important;position:relative!important;padding-top:0!important}
+  .memo-card__heading{padding-inline-end:1.85rem!important}
+  .memo-select{position:absolute!important;z-index:3;top:-1.05rem;inset-inline-start:-1.05rem;width:28px!important;height:28px!important;margin:0!important;border:1px solid var(--memos-line-strong);border-radius:999px;background:var(--memos-panel);box-shadow:0 4px 14px rgba(24,27,34,.12);opacity:0;transition:opacity 120ms ease,transform 120ms ease;transform:scale(.94)}
+  .memo-select input{width:15px!important;height:15px!important}
+  .memo-card:hover .memo-select,.memo-card:focus-within .memo-select,.memo-select:has(input:checked){opacity:1;transform:scale(1)}
+  .memo-card-menu{position:absolute!important;top:-.28rem;inset-inline-end:-.28rem}
   .memo-card-menu>summary{opacity:0;transition:opacity 120ms ease,background-color 120ms ease,border-color 120ms ease}
   .memo-card:hover .memo-card-menu>summary,.memo-card:focus-within .memo-card-menu>summary,.memo-card-menu[open]>summary{opacity:1}
 }
