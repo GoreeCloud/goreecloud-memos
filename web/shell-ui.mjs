@@ -186,15 +186,18 @@ function syncCompactShell() {
 
   for (const button of viewButtons) {
     button.style.paddingInline = compact ? "4px" : "";
-    button.querySelector(".nav-count")?.toggleAttribute("hidden", compact);
+    const count = button.querySelector(".nav-count");
+    if (count instanceof HTMLElement) count.style.display = compact ? "none" : "";
   }
 
   if (labelSection instanceof HTMLElement) {
     labelSection.style.display = compact ? "block" : "";
     labelSection.style.margin = compact ? "0 0 0 0.2rem" : "";
     labelSection.style.padding = compact ? "0" : "";
-    labelSection.querySelector(".sidebar-heading-row")?.toggleAttribute("hidden", compact);
-    labelSection.querySelector(".sidebar-label-list")?.toggleAttribute("hidden", compact);
+    const headingRow = labelSection.querySelector(".sidebar-heading-row");
+    const labelList = labelSection.querySelector(".sidebar-label-list");
+    if (headingRow instanceof HTMLElement) headingRow.style.display = compact ? "none" : "";
+    if (labelList instanceof HTMLElement) labelList.style.display = compact ? "none" : "";
   }
 
   if (managerDrawer instanceof HTMLElement) {
@@ -213,7 +216,8 @@ function syncCompactShell() {
     managerSummary.style.minHeight = compact ? "48px" : "";
     managerSummary.style.justifyContent = compact ? "center" : "";
     managerSummary.style.padding = compact ? "0" : "";
-    managerSummary.querySelector("span:last-child")?.toggleAttribute("hidden", compact);
+    const summaryLabel = managerSummary.querySelector("span:last-child");
+    if (summaryLabel instanceof HTMLElement) summaryLabel.style.display = compact ? "none" : "";
   }
 }
 
