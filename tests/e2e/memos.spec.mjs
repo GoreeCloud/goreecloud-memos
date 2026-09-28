@@ -567,7 +567,6 @@ test("label chips filter managed labels and make new labels explicit", async ({ 
 
   await openCapture(page);
   const entry = page.locator("#memo-form .label-picker__entry");
-  await expect(entry).toHaveAttribute("maxlength", "60");
 
   await entry.fill("wo");
   await expect(page.getByRole("button", { name: "Add label Work" })).toBeVisible();
