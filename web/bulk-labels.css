@@ -63,3 +63,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 @media(max-width:620px){.contextual-hint{bottom:4px!important;left:4px!important;right:4px!important;width:auto!important}}
 
 @media(min-width:1121px){.memo-list[data-presentation="comfortable"]{column-count:4!important;column-width:auto!important}.memo-list[data-presentation="compact"]{column-count:5!important;column-width:auto!important}}
+
+.topbar-create{width:40px!important;padding:0!important}
