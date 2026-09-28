@@ -28,17 +28,17 @@
           <h2 id="workspace-nav-heading" class="sidebar-heading">Workspace</h2>
           <nav class="workspace-nav" aria-label="Memo location">
             <button type="button" class="nav-item view-tab" data-view="active" aria-pressed="true" aria-label="Memos">
-              <span class="nav-icon" aria-hidden="true">◉</span>
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5C14.5 15.3 14 16 14 17h-4c0-1-.5-1.7-1.5-2.5Z"/></svg></span>
               <span class="nav-label">Memos</span>
               <span class="nav-count" data-view-count="active" aria-hidden="true">0</span>
             </button>
             <button type="button" class="nav-item view-tab secondary" data-view="archived" aria-pressed="false" aria-label="Archive">
-              <span class="nav-icon" aria-hidden="true">▣</span>
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"/><path d="M5 7l1-3h12l1 3"/><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 11h6"/></svg></span>
               <span class="nav-label">Archive</span>
               <span class="nav-count" data-view-count="archived" aria-hidden="true">0</span>
             </button>
             <button type="button" class="nav-item view-tab secondary" data-view="trashed" aria-pressed="false" aria-label="Trash">
-              <span class="nav-icon" aria-hidden="true">⌫</span>
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg></span>
               <span class="nav-label">Trash</span>
               <span class="nav-count" data-view-count="trashed" aria-hidden="true">0</span>
             </button>
@@ -56,7 +56,7 @@
 
           <details class="manager-drawer">
             <summary class="sidebar-link" aria-label="Edit labels" title="Edit labels">
-              <span aria-hidden="true">✎</span>
+              <span class="sidebar-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20l4.2-1 10-10a2 2 0 0 0-2.8-2.8l-10 10L4 20Z"/><path d="M13.8 7.8l2.4 2.4"/></svg></span>
               <span>Edit labels</span>
             </summary>
             <section id="label-manager" class="drawer-panel" aria-labelledby="label-admin-heading" data-glaze-semantic-surface="protected">
@@ -79,15 +79,15 @@
         <section class="sidebar-section sidebar-library" aria-labelledby="library-heading">
           <h2 id="library-heading" class="sidebar-heading">Library</h2>
           <button id="sidebar-new-memo" class="sidebar-link secondary" type="button">
-            <span aria-hidden="true">＋</span>
+            <span class="sidebar-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>
             <span>Quick capture</span>
           </button>
           <button id="sidebar-settings" class="sidebar-link secondary" type="button" aria-controls="view-settings-panel">
-            <span aria-hidden="true">⚙</span>
+            <span class="sidebar-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21h-4v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3v-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V3h4v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1v4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
             <span>Settings</span>
           </button>
           <a class="sidebar-link" href="#development-info">
-            <span aria-hidden="true">ⓘ</span>
+            <span class="sidebar-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7h.01"/></svg></span>
             <span>About</span>
           </a>
         </section>
@@ -110,7 +110,7 @@
 
           <div class="topbar-actions">
             <label class="search-shell" for="memo-search">
-              <span class="search-icon" aria-hidden="true">⌕</span>
+              <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg></span>
               <span class="sr-only">Search memos</span>
               <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Search notes" />
               <kbd class="search-shortcut" aria-hidden="true">/</kbd>
@@ -118,13 +118,13 @@
             <span id="memo-search-help" class="sr-only">Search text or use color:, label:, and label-color:. Quote values containing spaces.</span>
 
             <button id="topbar-new-memo" class="topbar-create" type="button" aria-label="New memo" title="New memo">
-              <span aria-hidden="true">＋</span>
+              <span class="button-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>
               <span>New memo</span>
             </button>
 
             <details class="utility-drawer">
               <summary class="icon-button" aria-label="Filters and view options" title="Filters and view options">
-                <span aria-hidden="true">☷</span>
+                <span class="button-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h6M14 17h6"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="12" cy="17" r="2"/></svg></span>
               </summary>
               <section id="view-settings-panel" class="utility-panel" aria-label="Workspace settings and filters" data-glaze-semantic-surface="protected">
                 <div class="utility-panel__header">
@@ -294,7 +294,7 @@
 
           <details id="capture-panel" class="capture-card" data-glaze-semantic-surface="protected">
             <summary class="capture-summary">
-              <span class="capture-plus" aria-hidden="true">＋</span>
+              <span class="capture-plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>
               <span>Take a note…</span>
               <span class="capture-summary__hint">Quick capture <kbd aria-hidden="true">N</kbd></span>
             </summary>
