@@ -421,11 +421,15 @@ test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
   await expect(location.getByRole("button", { name: "Memos", exact: true })).not.toHaveAttribute("aria-current", "page");
   await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "archived");
   await expect(page.getByRole("heading", { name: "Keep the active space light." })).toBeVisible();
+  await expect(page.locator("#workspace-title")).toHaveText("Archive");
+  await expect(page.locator("#workspace-description")).toHaveText("Saved notes, out of the active flow.");
   await expect(page.locator("#capture-panel")).toBeHidden();
 
   await location.getByRole("button", { name: "Trash", exact: true }).click();
   await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "trashed");
   await expect(page.getByRole("heading", { name: "Recover what you need." })).toBeVisible();
+  await expect(page.locator("#workspace-title")).toHaveText("Trash");
+  await expect(page.locator("#workspace-description")).toHaveText("Recover or delete notes explicitly.");
   await expect(page.locator("#capture-panel")).toBeHidden();
 
   await page.locator("#topbar-new-memo").click();
