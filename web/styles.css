@@ -3281,3 +3281,54 @@ button.secondary {
     min-height: 3.75rem;
   }
 }
+
+
+/* Owner review: active desktop workspace density pass, 2026-09-27. */
+@media (min-width: 901px) {
+  #view-hero[data-view-surface="active"] {
+    min-height: 42px;
+    padding: 0.38rem 0.72rem;
+    border-radius: 14px;
+  }
+
+  #view-hero[data-view-surface="active"] .eyebrow,
+  #view-hero[data-view-surface="active"] #view-description {
+    display: none;
+  }
+
+  #view-hero[data-view-surface="active"] h1 {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  #view-hero[data-view-surface="active"] .privacy-chip {
+    min-height: 26px;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .contextual-hint {
+    width: min(720px, calc(100% - 2rem));
+    gap: 0.55rem;
+    margin: 0.55rem auto -0.25rem;
+    padding: 0.45rem 0.55rem;
+    border-radius: 13px;
+  }
+
+  .contextual-hint__icon {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 9px;
+  }
+
+  .contextual-hint button {
+    min-height: 34px;
+    padding-block: 0.32rem;
+  }
+
+  .capture-card {
+    margin-top: 0.55rem;
+    margin-bottom: 0.72rem;
+  }
+}
