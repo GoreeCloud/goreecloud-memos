@@ -59,3 +59,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .sidebar-footer small{display:none!important}
 
 @media(max-width:900px){.nav-item{min-height:48px!important;height:48px!important}#memo-search{min-height:48px!important;height:48px!important}.search-shell{height:48px!important}}
+
+@media(max-width:620px){.contextual-hint{bottom:4px!important;left:4px!important;right:4px!important;width:auto!important}}
