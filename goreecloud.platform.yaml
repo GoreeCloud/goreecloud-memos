@@ -4,7 +4,7 @@ component:
   type: application
   id: goreecloud-memos
   product_name: GoreeCloud Memos
-  repository: GoreeCloud/goreecloud-memos
+  repository: GoreeCloud/memos
 
 lifecycle: development
 version: '0.0.13-dev.0'
@@ -21,7 +21,7 @@ platform_systems:
   manager:
     result: applicable-blocked
     version: null
-    evidence: [README.md, FEATURE-ROADMAP.md]
+    evidence: [README.md, PLANNED-FEATURES.md]
     notes: Administration and lifecycle integration are planned but not implemented.
   privacy_shield:
     result: applicable-blocked
@@ -36,17 +36,17 @@ platform_systems:
   everkeep:
     result: applicable-blocked
     version: null
-    evidence: [FEATURE-ROADMAP.md, USER-MANUAL.md]
+    evidence: [PLANNED-FEATURES.md, USER-MANUAL.md]
     notes: Portability, backup, recovery, and continuity integration remain future work.
   glaze_ui:
     result: applicable-migration-required
     version: null
-    evidence: [BRANDING.md, web/styles.css, android/app/src/main/java/com/goreecloud/memos/MemosGlazeStyle.kt]
-    notes: Web and Android Development presentation scaffolds retain Glaze UI 1.5.1-era semantics. Current shared Stable authority is Glaze UI 1.6.0, so deliberate V1.6 migration plus repository-local rendered, accessibility, representative-device/form-factor, performance, rollback, and production visual acceptance remain required.
+    evidence: [BRANDING.md, web/rebuild-v2.css, web/workspace-polish.css, web/memo-controls.mjs, android/app/src/main/java/com/goreecloud/memos/MemosGlazeStyle.kt]
+    notes: The web Development candidate includes an active Glaze UI 1.6-oriented migration and rendered browser acceptance work, but repository-local current-Stable conformance has not been established. Android still requires deliberate V1.6 migration plus representative-device/form-factor, accessibility, performance, rollback, and production visual acceptance evidence.
   mesh:
     result: applicable-blocked
     version: null
-    evidence: [FEATURE-ROADMAP.md]
+    evidence: [PLANNED-FEATURES.md]
     notes: Capability discovery and coordination are planned but not implemented.
     capabilities: []
     dependencies: []
@@ -60,12 +60,12 @@ platform_systems:
   policy:
     result: applicable-blocked
     version: null
-    evidence: [FEATURE-ROADMAP.md]
+    evidence: [PLANNED-FEATURES.md]
     notes: GoreeCloud Policy integration and decision evidence are not implemented.
   observability:
     result: applicable-blocked
     version: null
-    evidence: [FEATURE-ROADMAP.md]
+    evidence: [PLANNED-FEATURES.md]
     notes: Production health, telemetry, diagnostics, and Observability integration are not implemented.
 health:
   health_endpoint: null
@@ -124,6 +124,6 @@ conformance:
     - No production server, account, synchronization, backup/recovery, or administration implementation exists.
     - All nine Integral Platform System runtime integrations and acceptance remain blocked or migration-required; GoreeCloud Policy and GoreeCloud Observability have been explicitly evaluated but are not implemented.
     - GoreeCloud Sync remains separately governed; shared synchronization is planned but not implemented or accepted.
-    - Current shared Stable Glaze UI 1.6.0 is the required consumer baseline; Memos still carries 1.5.1-era presentation scaffolds and has not established V1.6 migration, conformance, or visual acceptance.
+    - Current shared Stable Glaze UI 1.6.0 is the required consumer baseline; the web Development candidate now contains substantial V1.6-oriented presentation work, but current-Stable consumer conformance and independent visual/accessibility/form-factor acceptance remain unestablished, and Android migration remains incomplete.
     - Native desktop is not implemented; the Android client is only a local Development foundation and lacks synchronization, account/Identity, attachment, reminder, share/widget, biometric-lock, platform-system acceptance, representative-device acceptance, production signing, and release qualification.
     - Production security, privacy, observability, recovery, and Stable qualification evidence do not exist.
