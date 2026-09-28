@@ -57,3 +57,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .icon-button{box-shadow:none!important}
 
 .sidebar-footer small{display:none!important}
+
+@media(max-width:900px){.nav-item{min-height:48px!important;height:48px!important}#memo-search{min-height:48px!important;height:48px!important}.search-shell{height:48px!important}}
