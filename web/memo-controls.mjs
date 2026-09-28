@@ -118,7 +118,6 @@ function enhanceLabelControl(source) {
   entry.type = "text";
   entry.className = "label-picker__entry";
   entry.autocomplete = "off";
-  entry.maxLength = MAX_LABEL_NAME_LENGTH;
   entry.placeholder = "Add a label…";
   entry.setAttribute("aria-label", source.matches("#memo-labels") ? "Add labels" : "Edit labels");
 
@@ -210,7 +209,19 @@ function enhanceLabelControl(source) {
 
   function commitEntry() {
     const incoming = parseLabels(entry.value);
-    if (incoming.length === 0) return;
+    if (incoming.length === 0) {
+      entry.setCustomValidity("");
+      return;
+    }
+
+    const overlong = incoming.find((name) => name.length > MAX_LABEL_NAME_LENGTH);
+    if (overlong) {
+      entry.setCustomValidity(`Labels must be ${MAX_LABEL_NAME_LENGTH} characters or fewer.`);
+      entry.reportValidity();
+      return;
+    }
+
+    entry.setCustomValidity("");
     entry.value = "";
     setSourceLabels(source, [...parseLabels(source.value), ...incoming]);
   }
@@ -224,6 +235,7 @@ function enhanceLabelControl(source) {
     if (event.key === "Escape" && entry.value) {
       event.preventDefault();
       entry.value = "";
+      entry.setCustomValidity("");
       render();
     }
     if (event.key === "Backspace" && entry.value === "") {
