@@ -3259,3 +3259,25 @@ button.secondary {
     min-height: 38px;
   }
 }
+
+
+/* Owner review: final desktop quick-capture compaction, 2026-09-27. */
+@media (min-width: 901px) {
+  .capture-summary {
+    min-height: 44px;
+    padding-block: 0.28rem;
+  }
+
+  .capture-body {
+    padding: 0.5rem 0.72rem 0.6rem;
+  }
+
+  #memo-form {
+    gap: 0.38rem;
+  }
+
+  #memo-form textarea {
+    height: 4.25rem;
+    min-height: 4.25rem;
+  }
+}
