@@ -3264,20 +3264,20 @@ button.secondary {
 /* Owner review: final desktop quick-capture compaction, 2026-09-27. */
 @media (min-width: 901px) {
   .capture-summary {
-    min-height: 44px;
-    padding-block: 0.28rem;
+    min-height: 40px;
+    padding-block: 0.2rem;
   }
 
   .capture-body {
-    padding: 0.5rem 0.72rem 0.6rem;
+    padding: 0.42rem 0.72rem 0.48rem;
   }
 
   #memo-form {
-    gap: 0.38rem;
+    gap: 0.3rem;
   }
 
   #memo-form textarea {
-    height: 4.25rem;
-    min-height: 4.25rem;
+    height: 3.75rem;
+    min-height: 3.75rem;
   }
 }
