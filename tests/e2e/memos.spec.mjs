@@ -536,6 +536,7 @@ test("memo click opens editing while the context menu stays secondary", async ({
   await expect(card.locator("[data-edit-field='content']")).toHaveValue("Open the memo directly");
   await expect(card.locator("[data-edit-field='content']")).toBeFocused();
   await expect(card).toHaveAttribute("aria-expanded", "true");
+  await expect(card.locator(":scope > .memo-card__header")).toBeHidden();
   const editorId = await card.locator(".memo-editor").getAttribute("id");
   expect(editorId).toBeTruthy();
   await expect(card).toHaveAttribute("aria-controls", editorId);
