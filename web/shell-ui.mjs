@@ -174,9 +174,14 @@ function syncCompactShell() {
   const compact = window.matchMedia("(max-width: 900px)").matches;
   const labelSection = managerDrawer?.closest(".sidebar-label-section");
   const sidebar = managerDrawer?.closest(".sidebar");
+  const workspaceNav = sidebar?.querySelector(".workspace-nav");
 
   if (sidebar instanceof HTMLElement) {
-    sidebar.style.gridTemplateColumns = compact ? "auto minmax(0, 1fr) auto" : "";
+    sidebar.style.gridTemplateColumns = compact ? "auto minmax(0, 1fr)" : "";
+  }
+
+  if (workspaceNav instanceof HTMLElement) {
+    workspaceNav.style.paddingInlineEnd = compact ? "3.2rem" : "";
   }
 
   if (labelSection instanceof HTMLElement) {
@@ -188,7 +193,12 @@ function syncCompactShell() {
   }
 
   if (managerDrawer instanceof HTMLElement) {
+    managerDrawer.style.position = compact ? "absolute" : "";
+    managerDrawer.style.top = compact ? "5px" : "";
+    managerDrawer.style.insetInlineEnd = compact ? "0.55rem" : "";
+    managerDrawer.style.width = compact ? "48px" : "";
     managerDrawer.style.margin = compact ? "0" : "";
+    managerDrawer.style.zIndex = compact ? "2" : "";
   }
 
   if (managerSummary instanceof HTMLElement) {
