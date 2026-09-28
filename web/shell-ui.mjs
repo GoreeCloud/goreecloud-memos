@@ -28,11 +28,11 @@ const VIEW_COPY = Object.freeze({
   active: {
     workspace: "Memos",
     board: "Memos",
-    eyebrow: "Local notes",
-    title: "Memos",
-    description: "Capture a thought, organize it if useful, and move on.",
+    eyebrow: "Quick notes",
+    title: "Capture what matters.",
+    description: "Fast capture with labels, color, Archive, and recoverable Trash in your private local GoreeCloud workspace.",
     chipIcon: "⌾",
-    chipLabel: "Local to this browser"
+    chipLabel: "Private · local"
   },
   archived: {
     workspace: "Archive",
@@ -80,7 +80,7 @@ function applyViewCopy(view) {
   if (heroChipLabel) heroChipLabel.textContent = copy.chipLabel;
   if (hero) {
     hero.dataset.viewSurface = view;
-    hero.hidden = view === "active";
+    hero.hidden = false;
   }
   if (capturePanel) capturePanel.hidden = view !== "active";
   document.body.dataset.memoView = view;
