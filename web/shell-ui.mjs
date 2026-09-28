@@ -3,6 +3,7 @@ const APPEARANCES = new Set(["system", "light", "dark", "deep-dark"]);
 
 const workspaceEyebrow = document.querySelector("#workspace-eyebrow");
 const workspaceTitle = document.querySelector("#workspace-title");
+const workspaceDescription = document.querySelector("#workspace-description");
 const boardTitle = document.querySelector("#memos-heading");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
 const hero = document.querySelector("#view-hero");
@@ -28,6 +29,7 @@ const appearanceStatus = document.querySelector("#appearance-status");
 const VIEW_COPY = Object.freeze({
   active: {
     workspace: "Capture space",
+    workspaceDescription: "Fast private notes, always within reach.",
     board: "Memos",
     eyebrow: "Quick notes",
     title: "Capture what matters.",
@@ -37,6 +39,7 @@ const VIEW_COPY = Object.freeze({
   },
   archived: {
     workspace: "Archive",
+    workspaceDescription: "Saved notes, out of the active flow.",
     board: "Archive",
     eyebrow: "Library",
     title: "Keep the active space light.",
@@ -46,6 +49,7 @@ const VIEW_COPY = Object.freeze({
   },
   trashed: {
     workspace: "Trash",
+    workspaceDescription: "Recover or delete notes explicitly.",
     board: "Trash",
     eyebrow: "Recovery",
     title: "Recover what you need.",
@@ -74,6 +78,7 @@ function applyViewCopy(view) {
   }
   if (workspaceEyebrow) workspaceEyebrow.textContent = copy.eyebrow;
   if (workspaceTitle) workspaceTitle.textContent = copy.workspace;
+  if (workspaceDescription) workspaceDescription.textContent = copy.workspaceDescription;
   if (boardTitle) boardTitle.textContent = copy.board;
   if (heroEyebrow) heroEyebrow.textContent = copy.eyebrow;
   if (heroTitle) heroTitle.textContent = copy.title;
