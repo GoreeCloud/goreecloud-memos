@@ -53,6 +53,8 @@ function enhanceColorControl(select) {
 
   select.dataset.swatchesEnhanced = "true";
   select.classList.add("control-source--enhanced");
+  select.tabIndex = -1;
+  select.setAttribute("aria-hidden", "true");
 
   const picker = document.createElement("div");
   picker.className = "color-picker";
