@@ -181,7 +181,12 @@ function syncCompactShell() {
   }
 
   if (workspaceNav instanceof HTMLElement) {
-    workspaceNav.style.paddingInlineEnd = compact ? "3.2rem" : "";
+    workspaceNav.style.paddingInlineEnd = compact ? "56px" : "";
+  }
+
+  for (const button of viewButtons) {
+    button.style.paddingInline = compact ? "4px" : "";
+    button.querySelector(".nav-count")?.toggleAttribute("hidden", compact);
   }
 
   if (labelSection instanceof HTMLElement) {
@@ -195,7 +200,7 @@ function syncCompactShell() {
   if (managerDrawer instanceof HTMLElement) {
     managerDrawer.style.position = compact ? "absolute" : "";
     managerDrawer.style.top = compact ? "5px" : "";
-    managerDrawer.style.insetInlineEnd = compact ? "0.55rem" : "";
+    managerDrawer.style.insetInlineEnd = compact ? "8px" : "";
     managerDrawer.style.width = compact ? "48px" : "";
     managerDrawer.style.margin = compact ? "0" : "";
     managerDrawer.style.zIndex = compact ? "2" : "";
