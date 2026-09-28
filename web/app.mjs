@@ -163,6 +163,13 @@ function createAction(label, action, memoId, { danger = false, disabled = false 
   return button;
 }
 
+function createActionSeparator() {
+  const separator = document.createElement("span");
+  separator.className = "memo-action-separator";
+  separator.setAttribute("aria-hidden", "true");
+  return separator;
+}
+
 function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = {}) {
   if (currentView === "active") {
     if (memo.pinned) {
@@ -175,6 +182,7 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
       container.append(createAction("Pin", "pin", memo.id));
     }
     container.append(
+      createActionSeparator(),
       createAction("Archive", "archive", memo.id),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
@@ -184,6 +192,7 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
   if (currentView === "archived") {
     container.append(
       createAction("Restore", "restore-archive", memo.id),
+      createActionSeparator(),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
     return;
@@ -191,6 +200,7 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
 
   container.append(
     createAction("Restore", "restore-trash", memo.id),
+    createActionSeparator(),
     createAction("Delete permanently", "delete-permanent", memo.id, { danger: true })
   );
 }
