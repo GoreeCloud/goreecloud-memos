@@ -65,3 +65,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 @media(min-width:1121px){.memo-list[data-presentation="comfortable"]{column-count:4!important;column-width:auto!important}.memo-list[data-presentation="compact"]{column-count:5!important;column-width:auto!important}}
 
 .topbar-create{width:auto!important;padding:0 .72rem!important}
+
+@media(min-width:1121px){.memo-list[data-presentation="comfortable"]{column-width:246px!important}.memo-list[data-presentation="compact"]{column-width:215px!important}}
