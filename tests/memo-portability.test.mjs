@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { formatMemoPlainText, memoPlainTextFilename } from "../src/app/memo-portability.mjs";
+import { formatMemoPlainText, formatMemoPlainTextSelection, memoPlainTextFilename, memoPlainTextSelectionFilename } from "../src/app/memo-portability.mjs";
 
 test("plain-text export keeps quick-capture content and local organization metadata", () => {
   const memo = {
@@ -44,4 +44,50 @@ test("format fails closed for blank memo content", () => {
     () => formatMemoPlainText({ title: "Blank", content: "   " }),
     /memo content/
   );
+});
+
+
+test("selected memo export is deterministic and preserves selection order", () => {
+  const memos = [
+    {
+      title: "First",
+      content: "Alpha body",
+      labels: ["Work"],
+      color: "blue"
+    },
+    {
+      title: "",
+      content: "Second body\nwith another line",
+      labels: [],
+      color: null
+    }
+  ];
+
+  assert.equal(
+    formatMemoPlainTextSelection(memos),
+    [
+      "Memo 1 of 2",
+      "",
+      "First",
+      "",
+      "Alpha body",
+      "",
+      "Labels: Work",
+      "Color: blue",
+      "",
+      "---",
+      "",
+      "Memo 2 of 2",
+      "",
+      "Second body",
+      "with another line",
+      ""
+    ].join("\n")
+  );
+  assert.equal(memoPlainTextSelectionFilename(2), "goreecloud-memos-selection-2.txt");
+});
+
+test("selected memo export rejects empty selections and invalid filename counts", () => {
+  assert.throws(() => formatMemoPlainTextSelection([]), /non-empty array/);
+  assert.throws(() => memoPlainTextSelectionFilename(0), /positive integer/);
 });
