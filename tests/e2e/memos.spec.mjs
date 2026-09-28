@@ -482,6 +482,11 @@ test("memo click opens editing while the context menu stays secondary", async ({
   await expect(card.locator("[data-edit-field='content']")).toHaveValue("Open the memo directly");
   await expect(card.locator("[data-edit-field='content']")).toBeFocused();
 
+  await page.keyboard.press("Escape");
+  await expect(card.locator(".memo-editor")).toBeHidden();
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
   await card.getByRole("button", { name: "Close editor" }).click();
   await expect(card.locator(".memo-editor")).toBeHidden();
 });
