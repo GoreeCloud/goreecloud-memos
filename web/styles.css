@@ -2776,12 +2776,55 @@ button.secondary {
 }
 
 .setup-actions button {
-  min-height: 44px;
+  min-height: 48px;
 }
 
 @media (max-width: 900px) {
   :root {
     --topbar-height: 70px;
+  }
+
+  /* Preserve the compact Glaze shell and coarse-input target floor after
+   * the desktop visual refinements above. */
+  .topbar {
+    top: var(--compact-nav-height);
+    grid-template-columns: 1fr;
+    min-height: var(--topbar-height);
+    gap: 0.55rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .context-title {
+    display: none;
+  }
+
+  .topbar-actions {
+    justify-content: stretch;
+  }
+
+  .search-shell {
+    max-width: none;
+    min-height: 48px;
+  }
+
+  .search-shell input {
+    height: 48px;
+  }
+
+  .nav-item,
+  .topbar-create {
+    min-height: 48px;
+  }
+
+  .manager-drawer .sidebar-link {
+    width: 48px;
+    min-height: 48px;
+  }
+
+  .icon-button {
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
   }
 
   .workspace-canvas {
@@ -2848,6 +2891,14 @@ button.secondary {
 }
 
 @media (max-width: 600px) {
+  .topbar-create {
+    flex: 0 0 48px;
+    width: 48px;
+    min-height: 48px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
   .workspace-canvas {
     width: min(100% - 0.9rem, 760px);
   }
