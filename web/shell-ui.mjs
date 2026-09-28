@@ -173,13 +173,31 @@ function isTypingTarget(target) {
 function syncCompactShell() {
   const compact = window.matchMedia("(max-width: 900px)").matches;
   const labelSection = managerDrawer?.closest(".sidebar-label-section");
+  const sidebar = managerDrawer?.closest(".sidebar");
+
+  if (sidebar instanceof HTMLElement) {
+    sidebar.style.gridTemplateColumns = compact ? "auto minmax(0, 1fr) auto" : "";
+  }
 
   if (labelSection instanceof HTMLElement) {
     labelSection.style.display = compact ? "block" : "";
+    labelSection.style.margin = compact ? "0 0 0 0.2rem" : "";
+    labelSection.style.padding = compact ? "0" : "";
+    labelSection.querySelector(".sidebar-heading-row")?.setAttribute("hidden", compact ? "" : null);
+    labelSection.querySelector(".sidebar-label-list")?.setAttribute("hidden", compact ? "" : null);
+  }
+
+  if (managerDrawer instanceof HTMLElement) {
+    managerDrawer.style.margin = compact ? "0" : "";
   }
 
   if (managerSummary instanceof HTMLElement) {
+    managerSummary.style.display = compact ? "flex" : "";
+    managerSummary.style.width = compact ? "48px" : "";
+    managerSummary.style.height = compact ? "48px" : "";
     managerSummary.style.minHeight = compact ? "48px" : "";
+    managerSummary.style.justifyContent = compact ? "center" : "";
+    managerSummary.style.padding = compact ? "0" : "";
   }
 }
 
