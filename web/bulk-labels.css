@@ -55,3 +55,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 
 .topbar-create{box-shadow:none!important}
 .icon-button{box-shadow:none!important}
+
+.sidebar-footer small{display:none!important}
