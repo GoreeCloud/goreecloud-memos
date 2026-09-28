@@ -68,6 +68,10 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
   expect(privacyIconBox).not.toBeNull();
   expect(privacyIconBox.width).toBeLessThanOrEqual(18);
 
+  const brandTitle = page.locator(".brand__copy strong");
+  await expect(brandTitle).toHaveText("GoreeCloud Memos");
+  expect(await brandTitle.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+
   const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
   expect(collapsedCaptureBox).not.toBeNull();
   expect(collapsedCaptureBox.height).toBeLessThanOrEqual(56);
