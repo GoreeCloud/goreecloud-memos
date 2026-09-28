@@ -148,8 +148,12 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
 
   await openCapture(page);
   await expect(page.locator("#memo-form .color-swatch")).toHaveCount(10);
-  await expect(page.locator("#memo-form .label-picker__entry")).toBeVisible();
+  const labelEntry = page.locator("#memo-form .label-picker__entry");
+  await expect(labelEntry).toBeVisible();
+  await labelEntry.fill("Roadmap");
+  await expect(page.getByRole("button", { name: "Use new label Roadmap" })).toBeVisible();
   screenshots.push(await shot(page, "03a-desktop-composer-light.png", { width: 1440, height: 1000 }));
+  await labelEntry.press("Escape");
   await page.locator("#capture-panel > summary").click();
 
   const menuCard = page.locator(".memo-card", { hasText: "Pinned direction" });
