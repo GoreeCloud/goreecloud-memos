@@ -533,8 +533,9 @@ test("editing autosaves organization metadata and survives reload", async ({ pag
   await expect(card.locator(".editor-status")).toHaveText("Saved.");
   await expect(card.locator(".memo-card__content")).toHaveText("After edit");
   await expect(card).toHaveAttribute("data-color", "purple");
-  await expect(card.getByText("Research", { exact: true })).toBeVisible();
-  await expect(card.getByText("Reference", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Close editor" }).click();
+  await expect(card.locator(".memo-card__meta").getByText("Research", { exact: true })).toBeVisible();
+  await expect(card.locator(".memo-card__meta").getByText("Reference", { exact: true })).toBeVisible();
 
   await page.reload();
   const reloaded = page.locator(".memo-card", { hasText: "After edit" });
