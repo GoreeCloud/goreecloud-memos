@@ -17,6 +17,7 @@ const status = document.querySelector("#setup-status");
 
 const settingsHints = document.querySelector("#contextual-hints-enabled");
 const replayButton = document.querySelector("#replay-setup");
+const resetDismissedHints = document.querySelector("#reset-dismissed-hints");
 const guidanceStatus = document.querySelector("#guidance-status");
 const contextualHint = document.querySelector("#contextual-hint");
 const dismissHint = document.querySelector("#dismiss-contextual-hint");
@@ -74,6 +75,15 @@ function safeSet(storage, key, value) {
   }
 }
 
+function safeRemove(storage, key) {
+  try {
+    storage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isComplete() {
   const stored = safeGet(localStorage, COMPLETE_KEY);
   if (stored === "true") return true;
@@ -104,8 +114,8 @@ function setHintsEnabled(enabled) {
   syncGuidance();
 }
 
-function hintDismissedThisSession() {
-  return safeGet(sessionStorage, HINT_DISMISSED_KEY) === "true";
+function hintDismissed() {
+  return safeGet(localStorage, HINT_DISMISSED_KEY) === "true";
 }
 
 function syncGuidance() {
@@ -117,7 +127,7 @@ function syncGuidance() {
     : "Contextual hints are off.";
 
   if (contextualHint) {
-    contextualHint.hidden = !enabled || !isComplete() || hintDismissedThisSession();
+    contextualHint.hidden = !enabled || !isComplete() || hintDismissed();
   }
 }
 
@@ -217,9 +227,14 @@ returnButton?.addEventListener("click", () => {
 setupHints?.addEventListener("change", () => setHintsEnabled(setupHints.checked));
 settingsHints?.addEventListener("change", () => setHintsEnabled(settingsHints.checked));
 replayButton?.addEventListener("click", () => openSetup({ replay: true }));
+resetDismissedHints?.addEventListener("click", () => {
+  safeRemove(localStorage, HINT_DISMISSED_KEY);
+  syncGuidance();
+  if (guidanceStatus) guidanceStatus.textContent = "Dismissed contextual hints reset.";
+});
 
 dismissHint?.addEventListener("click", () => {
-  safeSet(sessionStorage, HINT_DISMISSED_KEY, "true");
+  safeSet(localStorage, HINT_DISMISSED_KEY, "true");
   syncGuidance();
   document.querySelector("#capture-panel > summary")?.focus();
 });
