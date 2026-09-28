@@ -1,6 +1,7 @@
 const APPEARANCE_KEY = "goreecloud-memos:appearance:v1";
 const APPEARANCES = new Set(["system", "light", "dark", "deep-dark"]);
 
+const workspaceEyebrow = document.querySelector("#workspace-eyebrow");
 const workspaceTitle = document.querySelector("#workspace-title");
 const boardTitle = document.querySelector("#memos-heading");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
@@ -26,7 +27,7 @@ const appearanceStatus = document.querySelector("#appearance-status");
 
 const VIEW_COPY = Object.freeze({
   active: {
-    workspace: "Memos",
+    workspace: "Capture space",
     board: "Memos",
     eyebrow: "Quick notes",
     title: "Capture what matters.",
@@ -71,6 +72,7 @@ function applyViewCopy(view) {
     if (button.dataset.view === view) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   }
+  if (workspaceEyebrow) workspaceEyebrow.textContent = copy.eyebrow;
   if (workspaceTitle) workspaceTitle.textContent = copy.workspace;
   if (boardTitle) boardTitle.textContent = copy.board;
   if (heroEyebrow) heroEyebrow.textContent = copy.eyebrow;
