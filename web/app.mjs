@@ -173,11 +173,13 @@ function createActionSeparator() {
 function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = {}) {
   if (currentView === "active") {
     if (memo.pinned) {
-      container.append(
-        createAction("Unpin", "unpin", memo.id),
-        createAction("Move pin up", "pin-up", memo.id, { disabled: pinnedIndex <= 0 }),
-        createAction("Move pin down", "pin-down", memo.id, { disabled: pinnedIndex < 0 || pinnedIndex >= pinnedCount - 1 })
-      );
+      container.append(createAction("Unpin", "unpin", memo.id));
+      if (pinnedCount > 1) {
+        container.append(
+          createAction("Move pin up", "pin-up", memo.id, { disabled: pinnedIndex <= 0 }),
+          createAction("Move pin down", "pin-down", memo.id, { disabled: pinnedIndex < 0 || pinnedIndex >= pinnedCount - 1 })
+        );
+      }
     } else {
       container.append(createAction("Pin", "pin", memo.id));
     }
