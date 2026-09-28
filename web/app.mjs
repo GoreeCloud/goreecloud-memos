@@ -637,6 +637,11 @@ function openMemoEditor(card, { focus = true } = {}) {
   const editor = ensureMemoEditor(card);
   if (!editor) return null;
 
+  for (const otherCard of listElement.querySelectorAll(".memo-card--editing")) {
+    if (otherCard !== card) closeMemoEditor(otherCard, { focusCard: false });
+  }
+  closeOpenMemoMenus();
+
   editor.hidden = false;
   card.classList.add("memo-card--editing");
   card.setAttribute("aria-expanded", "true");
@@ -856,10 +861,16 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
+
   const openMenu = listElement.querySelector("details.memo-card-menu[open]");
-  if (!openMenu) return;
-  openMenu.open = false;
-  openMenu.querySelector(":scope > summary")?.focus();
+  if (openMenu) {
+    openMenu.open = false;
+    openMenu.querySelector(":scope > summary")?.focus();
+    return;
+  }
+
+  const editingCard = listElement.querySelector(".memo-card--editing");
+  if (editingCard) closeMemoEditor(editingCard);
 });
 
 listElement.addEventListener("click", async (event) => {
