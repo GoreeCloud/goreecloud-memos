@@ -49,6 +49,46 @@ test("Glaze capture shell keeps primary writing workflow prominent", async ({ pa
   await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
 });
 
+test("desktop workspace keeps capture compact and memo cards vertical", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/web/");
+
+  const heroBox = await page.locator("#view-hero").boundingBox();
+  expect(heroBox).not.toBeNull();
+  expect(heroBox.height).toBeLessThanOrEqual(110);
+
+  await openCapture(page);
+  const captureBox = await page.locator("#capture-panel").boundingBox();
+  expect(captureBox).not.toBeNull();
+  expect(captureBox.height).toBeLessThanOrEqual(330);
+
+  for (const [index, content] of [
+    "Short vertical memo.",
+    "A little more content keeps this card naturally taller without making the board wide.",
+    "Memos should scan down the page like a note wall.",
+    "Vertical cards preserve more notes above the fold."
+  ].entries()) {
+    await page.locator("#memo-title").fill(`Vertical ${index + 1}`);
+    await page.locator("#memo-content").fill(content);
+    await page.getByRole("button", { name: "Save memo" }).click();
+    if (index < 3) await openCapture(page);
+  }
+
+  const metrics = await page.locator("#memo-list").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      columnCount: style.columnCount,
+      columnWidth: parseFloat(style.columnWidth)
+    };
+  });
+  expect(metrics.columnCount).toBe("4");
+  expect(metrics.columnWidth).toBeLessThanOrEqual(260);
+
+  const cardBox = await page.locator(".memo-card").first().boundingBox();
+  expect(cardBox).not.toBeNull();
+  expect(cardBox.width).toBeLessThanOrEqual(300);
+});
+
 test("long memo cards stay compact until explicitly expanded", async ({ page }) => {
   await page.goto("/web/");
 
