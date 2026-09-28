@@ -11,6 +11,12 @@
 
 This file records meaningful changes accepted in repository history. The former Drive planning roadmap is now retired migration provenance only; it is not current authority. No dedicated `Change Log — Memos` Drive source was resolved during the bounded migration inventory, so no unidentified Drive changelog deletion is claimed.
 
+### September 28, 2026 — persistent contextual-hint dismissal and reset
+- Changed the workspace Quick tip dismissal from session-only state to browser-profile-local persistence so a dismissed optional hint stays dismissed after reload.
+- Added a **Reset dismissed hints** control in Guidance settings, independent from the global Contextual hints toggle and first-use setup replay.
+- Expanded Chromium end-to-end coverage for dismissal persistence, reload behavior, reset behavior, and reappearance after reset.
+- The feature remains local to the browser profile and adds no account, synchronization, telemetry, or network authority. Fresh exact-head validation is required for this Development candidate.
+
 ## Current repository changelog
 
 ### September 22, 2026 — Migration retirement reconciliation
