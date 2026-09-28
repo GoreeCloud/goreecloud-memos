@@ -2,3 +2,6 @@
 .hero-card[hidden]{display:none !important;}
 
 @media (max-width:900px){.memo-card__actions button{min-height:48px !important}.presentation-option{min-height:48px !important}}
+
+.board-heading .eyebrow{display:none}
+.board-heading{min-height:34px;margin-bottom:.55rem}
