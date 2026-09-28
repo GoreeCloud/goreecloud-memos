@@ -530,6 +530,9 @@ test("memo click opens editing while the context menu stays secondary", async ({
   const editorId = await card.locator(".memo-editor").getAttribute("id");
   expect(editorId).toBeTruthy();
   await expect(card).toHaveAttribute("aria-controls", editorId);
+  const editorBox = await card.boundingBox();
+  expect(editorBox).not.toBeNull();
+  expect(editorBox.width).toBeGreaterThanOrEqual(560);
 
   await page.locator("#memos-heading").click();
   await expect(card.locator(".memo-editor")).toBeHidden();
