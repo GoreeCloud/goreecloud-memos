@@ -126,13 +126,39 @@ function restoreDraft() {
   }
 }
 
+const ACTION_ICON_PATHS = Object.freeze({
+  pin: ["M8 4h8", "M10 4l-1 6-3 3h12l-3-3-1-6", "M12 13v7"],
+  unpin: ["M8 4h8", "M10 4l-.7 4.2", "M14 4l1 6 3 3h-6", "M12 13v7", "M5 5l14 14"],
+  "pin-up": ["M12 19V6", "M7 11l5-5 5 5"],
+  "pin-down": ["M12 5v13", "M7 13l5 5 5-5"],
+  archive: ["M4 7h16", "M6 7v12h12V7", "M3 4h18v3H3z", "M9 11h6"],
+  trash: ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"],
+  "restore-archive": ["M4 7h16", "M6 7v12h12V7", "M3 4h18v3H3z", "M9 13h6", "M12 10v6", "M9 13l3-3 3 3"],
+  "restore-trash": ["M5 7h14", "M9 7V4h6v3", "M7 7l1 13h8l1-13", "M12 16V10", "M9 13l3-3 3 3"],
+  "delete-permanent": ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"]
+});
+
 function createAction(label, action, memoId, { danger = false, disabled = false } = {}) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = danger ? "danger" : "secondary";
   button.dataset.action = action;
   button.dataset.memoId = memoId;
-  button.textContent = label;
+
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.classList.add("memo-action-icon");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("focusable", "false");
+  for (const pathData of ACTION_ICON_PATHS[action] ?? []) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    icon.append(path);
+  }
+
+  const text = document.createElement("span");
+  text.textContent = label;
+  button.append(icon, text);
   button.disabled = disabled;
   return button;
 }
