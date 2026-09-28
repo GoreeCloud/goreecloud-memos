@@ -226,6 +226,13 @@ test("contextual hints can be disabled and re-enabled persistently", async ({ pa
   await expect(hintsToggle).not.toBeChecked();
   await hintsToggle.check();
   await expect(page.locator("#guidance-status")).toHaveText("Contextual hints are on.");
+  await expect(hint).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(hint).toBeVisible();
+
+  await openCapture(page);
+  await expect(hint).toBeHidden();
+  await page.locator("#capture-panel > summary").click();
   await expect(hint).toBeVisible();
 });
 
@@ -514,6 +521,8 @@ test("memo click opens editing while the context menu stays secondary", async ({
 
   const card = page.locator(".memo-card", { hasText: "Open the memo directly" });
   await expect(card.locator(".memo-editor")).toHaveCount(0);
+  await expect(card.locator(".memo-card__time")).toHaveText("Just now");
+  await expect(card.locator(".memo-card__time")).not.toHaveAttribute("title", "");
 
   const menu = card.locator("details.memo-card-menu");
   await menu.locator(":scope > summary").click();
