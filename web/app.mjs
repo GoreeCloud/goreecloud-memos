@@ -6,6 +6,7 @@ import { loadPresentationMode, savePresentationMode } from "../src/app/presentat
 import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 import { parseSearchExpression } from "../src/app/search-expression.mjs";
 import { SavedViewService } from "../src/app/saved-view-service.mjs";
+import { formatMemoPlainText, memoPlainTextFilename } from "../src/app/memo-portability.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -169,7 +170,9 @@ const ACTION_ICON_PATHS = Object.freeze({
   trash: ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"],
   "restore-archive": ["M4 7h16", "M6 7v12h12V7", "M3 4h18v3H3z", "M9 13h6", "M12 10v6", "M9 13l3-3 3 3"],
   "restore-trash": ["M5 7h14", "M9 7V4h6v3", "M7 7l1 13h8l1-13", "M12 16V10", "M9 13l3-3 3 3"],
-  "delete-permanent": ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"]
+  "delete-permanent": ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"],
+  copy: ["M9 9h10v10H9z", "M5 5h10v4", "M5 5v10h4"],
+  export: ["M12 4v10", "M8 10l4 4 4-4", "M5 18h14"]
 });
 
 function createAction(label, action, memoId, { danger = false, disabled = false } = {}) {
@@ -219,6 +222,9 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
     }
     container.append(
       createActionSeparator(),
+      createAction("Copy text", "copy", memo.id),
+      createAction("Export .txt", "export", memo.id),
+      createActionSeparator(),
       createAction("Archive", "archive", memo.id),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
@@ -229,6 +235,9 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
     container.append(
       createAction("Restore", "restore-archive", memo.id),
       createActionSeparator(),
+      createAction("Copy text", "copy", memo.id),
+      createAction("Export .txt", "export", memo.id),
+      createActionSeparator(),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
     return;
@@ -236,6 +245,9 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
 
   container.append(
     createAction("Restore", "restore-trash", memo.id),
+    createActionSeparator(),
+    createAction("Copy text", "copy", memo.id),
+    createAction("Export .txt", "export", memo.id),
     createActionSeparator(),
     createAction("Delete permanently", "delete-permanent", memo.id, { danger: true })
   );
@@ -1023,6 +1035,32 @@ listElement.addEventListener("click", async (event) => {
 
   try {
     switch (button.dataset.action) {
+      case "copy": {
+        const memo = await service.get(memoId);
+        if (!navigator.clipboard?.writeText) {
+          throw new Error("Clipboard access is not available in this browser.");
+        }
+        await navigator.clipboard.writeText(formatMemoPlainText(memo));
+        button.disabled = false;
+        setStatus("Copied memo text to the clipboard.");
+        return;
+      }
+      case "export": {
+        const memo = await service.get(memoId);
+        const blob = new Blob([formatMemoPlainText(memo)], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = memoPlainTextFilename(memo);
+        anchor.hidden = true;
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        button.disabled = false;
+        setStatus("Exported this memo as a local text file.");
+        return;
+      }
       case "pin":
         await service.pin(memoId);
         break;
