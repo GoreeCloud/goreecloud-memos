@@ -11,7 +11,9 @@ async function openCapture(page) {
 async function captureMemo(page, content, labels) {
   await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await openCapture(page);
-  await page.locator("#memo-labels").fill(labels);
+  const labelEntry = page.locator("#memo-form .label-picker__entry");
+  await labelEntry.fill(labels);
+  await labelEntry.press("Enter");
   await page.locator("#memo-content").fill(content);
   await expect(page.locator("#memo-labels")).toHaveValue(labels);
   await expect(page.locator("#memo-content")).toHaveValue(content);
