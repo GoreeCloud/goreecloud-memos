@@ -206,9 +206,16 @@ function renderMemoMetadata(container, memo) {
   }
 
   if (memo.color) {
+    const colorName = `${memo.color[0].toUpperCase()}${memo.color.slice(1)}`;
     const color = document.createElement("span");
     color.className = "memo-badge memo-badge--color";
-    color.textContent = `Color: ${memo.color[0].toUpperCase()}${memo.color.slice(1)}`;
+    color.dataset.memoColor = memo.color;
+    color.setAttribute("aria-label", `Memo color: ${colorName}`);
+
+    const dot = document.createElement("span");
+    dot.className = "memo-color-dot";
+    dot.setAttribute("aria-hidden", "true");
+    color.append(dot);
     container.append(color);
   }
 
