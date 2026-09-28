@@ -855,6 +855,20 @@ savedViewDeleteButton.addEventListener("click", async () => {
   }
 });
 
+const utilityManageLabelsButton = document.querySelector("#utility-manage-labels");
+const managerDrawer = document.querySelector("details.manager-drawer");
+const utilityDrawer = document.querySelector("details.utility-drawer");
+
+utilityManageLabelsButton?.addEventListener("click", () => {
+  if (utilityDrawer) utilityDrawer.open = false;
+  if (!managerDrawer) return;
+
+  managerDrawer.open = true;
+  requestAnimationFrame(() => {
+    managerDrawer.querySelector("[data-label-name], .drawer-panel button, .drawer-panel input, .drawer-panel select")?.focus();
+  });
+});
+
 document.addEventListener("goreecloud:memos-refresh-requested", async (event) => {
   try {
     await refreshAndWait();
