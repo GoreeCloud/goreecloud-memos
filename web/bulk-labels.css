@@ -30,3 +30,7 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 
 .capture-card{width:min(690px,calc(100% - 1rem))!important;border-radius:16px!important}
 .capture-summary{min-height:48px!important}
+
+#memo-form input,#memo-form select,#memo-form textarea{border-color:transparent!important;background:transparent!important;box-shadow:none!important}
+#memo-content{min-height:86px!important;font-size:.92rem!important}
+#memo-labels{border-top:1px solid var(--v3-line)!important;border-radius:0!important}
