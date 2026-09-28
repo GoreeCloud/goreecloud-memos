@@ -68,10 +68,7 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
     "Memos should scan down the page like a note wall.",
     "Vertical cards preserve more notes above the fold."
   ].entries()) {
-    await page.locator("#memo-title").fill(`Vertical ${index + 1}`);
-    await page.locator("#memo-content").fill(content);
-    await page.getByRole("button", { name: "Save memo" }).click();
-    if (index < 3) await openCapture(page);
+    await captureMemo(page, { title: `Vertical ${index + 1}`, content });
   }
 
   const metrics = await page.locator("#memo-list").evaluate((element) => {
