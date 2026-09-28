@@ -12,7 +12,7 @@
 - Responsive Glaze-oriented browser shell with persistent Memos / Archive / Trash workspace navigation, live lifecycle counts, managed-label navigation, top-bar search, compact quick capture, and secondary workspace/label-management drawers.
 - First-use setup and replayable contextual guidance for quick capture, local privacy boundaries, workspace controls, and keyboard shortcuts.
 - Browser-local System / Light / Dark / Deep Dark appearance plus Reduced Motion, Increased Contrast, Reduced Transparency, and Forced Colors resilience handling.
-- Quick-capture form with optional title and required memo content.
+- Compact quick-capture composer with optional title, required memo content, visual memo-color swatches, removable label chips, and managed-label suggestions.
 - Local composer draft recovery using browser local storage, including draft color and label input state.
 - Saved memo persistence using browser IndexedDB.
 - Stable local memo identifiers using `crypto.randomUUID()`.
@@ -30,11 +30,11 @@
 - Memo-card label badges join memo `labelIds` to managed Label v2 metadata by stable identity, keep the canonical label name visible and accessible, optionally show icon text as a decorative cue, and use optional label color only as a supplementary accent with a Forced Colors fallback. Label descriptions remain management-only.
 - Ephemeral memo multi-selection in the currently rendered lifecycle/search/filter result set, with browser-local bulk **Apply label** and **Remove label** actions for existing managed Labels.
 - Bulk label changes validate the full selected memo set before writes, update Memo–Label relationships and memo label-name/ID projections in one IndexedDB transaction, and use one shared organization-change timestamp for changed memos. Apply respects the 20-label-per-memo limit and aborts the full bulk action before writes when a selected memo would exceed it.
-- Optional memo color metadata from a curated palette, rendered with both visual treatment and visible color-name text.
-- Per-memo label input with whitespace normalization, case-insensitive duplicate removal, and managed-identity reuse across memos.
+- Optional memo color metadata from a curated palette, rendered with a restrained visual treatment plus an accessible named color indicator so color is not the sole signal.
+- Per-memo label chips with managed-label suggestions and new-label entry, backed by whitespace normalization, case-insensitive duplicate removal, and managed-identity reuse across memos.
 - Local memo listing ordered by pin state, persisted manual pin order, and update time.
 - Direct Pin/Unpin controls plus Move pin up/Move pin down controls for active pinned memos.
-- Local memo editing with debounced autosave, including content, title, color, and labels.
+- Direct active-card editing by click or keyboard activation with one inline editor at a time, debounced autosave for content/title/color/labels, Done/Escape dismissal, and the three-dot menu reserved for secondary lifecycle/pinning actions.
 - Comfortable, Compact, List, and Dense memo presentation modes with a persisted browser-local preference and native keyboard-accessible radio controls.
 - Ephemeral local substring search across memo title, body, and current label-name projection.
 - Combinable exact memo-color, label-name, and managed Label-color filters scoped to the current Memos, Archive, or Trash lifecycle view. Label-color matching resolves current Label v2 metadata by stable `labelId` and matches when any linked managed Label has the selected palette color.
