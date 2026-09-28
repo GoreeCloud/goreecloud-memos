@@ -1,4 +1,4 @@
 /* Rebuild compatibility */
 .hero-card[hidden]{display:none !important;}
 
-@media (max-width:900px){.memo-card__actions button{min-height:48px}.presentation-option{min-height:48px}}
+@media (max-width:900px){.memo-card__actions button{min-height:48px !important}.presentation-option{min-height:48px !important}}
