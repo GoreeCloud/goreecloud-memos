@@ -938,6 +938,9 @@ test("opening database v5 preserves existing v4 managed identities and adds an e
   await seedSchemaV4ManagedState(page);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserve managed identity through v5" })).toBeVisible();
+  const workSidebarLabel = page.locator('[data-sidebar-label-name="Work"]');
+  await expect(workSidebarLabel).toBeVisible();
+  await expect(workSidebarLabel.locator(".sidebar-label-dot")).toHaveCSS("background-color", "rgb(131, 104, 201)");
 
   const snapshot = await readManagedSnapshot(page);
   expect(snapshot.version).toBe(5);
