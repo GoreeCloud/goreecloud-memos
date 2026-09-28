@@ -10,8 +10,12 @@ async function openCapture(page) {
 async function captureMemo(page, { title = "", content, color = "", labels = "" }) {
   await openCapture(page);
   if (title) await page.locator("#memo-title").fill(title);
-  if (color) await page.locator("#memo-color").selectOption(color);
-  if (labels) await page.locator("#memo-labels").fill(labels);
+  if (color) await page.locator(`#memo-form .color-swatch[data-color="${color}"]`).click();
+  if (labels) {
+    const labelEntry = page.locator("#memo-form .label-picker__entry");
+    await labelEntry.fill(labels);
+    await labelEntry.press("Enter");
+  }
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
