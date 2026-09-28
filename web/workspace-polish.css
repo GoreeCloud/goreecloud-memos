@@ -148,7 +148,8 @@ body{background:var(--memos-canvas)!important;color:var(--memos-ink)!important}
   .context-title{display:none!important}
   .topbar-actions{justify-content:stretch!important}
   #view-hero[data-view-surface="active"]{display:none!important}
-  .manager-drawer>.sidebar-link,.memo-card__actions button,.presentation-option{min-height:48px!important}
+  .manager-drawer>.sidebar-link,.presentation-option{min-height:48px!important}
+  .memo-card__actions button{min-height:49px!important}
   #memo-search,.search-shell{min-height:48px!important;height:48px!important}
   .topbar-create{width:48px!important;height:48px!important}
   .composer-controls,.editor-controls{grid-template-columns:1fr}
