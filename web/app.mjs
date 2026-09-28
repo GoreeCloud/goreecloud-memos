@@ -650,7 +650,14 @@ form.addEventListener("input", saveDraft);
 
 capturePanel?.addEventListener("toggle", () => {
   if (!capturePanel.open) return;
-  requestAnimationFrame(() => contentInput.focus());
+  requestAnimationFrame(() => {
+    if (!capturePanel.open) return;
+    const active = document.activeElement;
+    const userAlreadyEnteredComposer = active instanceof Element &&
+      active !== captureSummary &&
+      form.contains(active);
+    if (!userAlreadyEnteredComposer) contentInput.focus();
+  });
 });
 
 form.addEventListener("submit", async (event) => {
