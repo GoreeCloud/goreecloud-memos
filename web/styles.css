@@ -2924,6 +2924,50 @@ button.secondary {
 }
 
 
+
+/* Review polish: coherent line icons. */
+.nav-icon svg,
+.sidebar-line-icon svg,
+.button-line-icon svg,
+.search-icon svg,
+.capture-plus svg {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sidebar-line-icon,
+.button-line-icon,
+.search-icon {
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-line-icon svg {
+  width: 0.96rem;
+  height: 0.96rem;
+}
+
+.search-icon {
+  transform: none;
+}
+
+.search-icon svg,
+.capture-plus svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
