@@ -78,7 +78,10 @@ function applyViewCopy(view) {
   if (heroDescription) heroDescription.textContent = copy.description;
   if (heroChipIcon) heroChipIcon.textContent = copy.chipIcon;
   if (heroChipLabel) heroChipLabel.textContent = copy.chipLabel;
-  if (hero) hero.dataset.viewSurface = view;
+  if (hero) {
+    hero.dataset.viewSurface = view;
+    hero.hidden = view === "active";
+  }
   if (capturePanel) capturePanel.hidden = view !== "active";
   document.body.dataset.memoView = view;
 }
@@ -167,6 +170,19 @@ function isTypingTarget(target) {
     Boolean(target.closest("input, textarea, select, [contenteditable='true']"));
 }
 
+function syncCompactShell() {
+  const compact = window.matchMedia("(max-width: 900px)").matches;
+  const labelSection = managerDrawer?.closest(".sidebar-label-section");
+
+  if (labelSection instanceof HTMLElement) {
+    labelSection.style.display = compact ? "block" : "";
+  }
+
+  if (managerSummary instanceof HTMLElement) {
+    managerSummary.style.minHeight = compact ? "48px" : "";
+  }
+}
+
 for (const button of viewButtons) {
   button.addEventListener("click", () => {
     closeTransientUi({ restoreFocus: false });
@@ -206,5 +222,7 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+window.addEventListener("resize", syncCompactShell);
+syncCompactShell();
 applyAppearance(loadAppearance());
 applyViewCopy(currentView());
