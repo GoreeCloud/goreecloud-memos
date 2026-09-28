@@ -90,6 +90,19 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
   expect(cardBox.width).toBeLessThanOrEqual(300);
 });
 
+test("mobile active workspace keeps capture chrome compact", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/web/");
+
+  const heroBox = await page.locator("#view-hero").boundingBox();
+  expect(heroBox).not.toBeNull();
+  expect(heroBox.height).toBeLessThanOrEqual(96);
+
+  const captureBox = await page.locator("#capture-panel").boundingBox();
+  expect(captureBox).not.toBeNull();
+  expect(captureBox.height).toBeLessThanOrEqual(70);
+});
+
 test("long memo cards stay compact until explicitly expanded", async ({ page }) => {
   await page.goto("/web/");
 
