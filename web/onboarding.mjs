@@ -124,6 +124,7 @@ function syncGuidance() {
 function renderStep() {
   const step = STEPS[currentStep];
 
+  if (dialog) dialog.dataset.step = String(currentStep + 1);
   if (progress) progress.textContent = `Step ${currentStep + 1} of ${STEPS.length}`;
   if (title) title.textContent = replayMode
     ? `Review: ${step.title}`
