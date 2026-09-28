@@ -10,6 +10,7 @@
     <link rel="icon" href="./assets/memos-icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./bulk-labels.css" />
+    <link rel="stylesheet" href="./rebuild-v2.css" />
   </head>
   <body>
     <a class="skip-link" href="#memo-list">Skip to memos</a>
@@ -104,15 +105,15 @@
       <main class="main-pane">
         <header class="topbar" data-glaze-semantic-surface="protected">
           <div class="context-title">
-            <span>Quick notes</span>
-            <strong id="workspace-title">Capture space</strong>
+            <span>Local notes</span>
+            <strong id="workspace-title">Memos</strong>
           </div>
 
           <div class="topbar-actions">
             <label class="search-shell" for="memo-search">
               <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg></span>
               <span class="sr-only">Search memos</span>
-              <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Search notes" />
+              <input id="memo-search" type="search" autocomplete="off" aria-describedby="memo-search-help" placeholder="Search memos" />
               <kbd class="search-shortcut" aria-hidden="true">/</kbd>
             </label>
             <span id="memo-search-help" class="sr-only">Search text or use color:, label:, and label-color:. Quote values containing spaces.</span>
@@ -295,7 +296,7 @@
           <details id="capture-panel" class="capture-card" data-glaze-semantic-surface="protected">
             <summary class="capture-summary">
               <span class="capture-plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>
-              <span>Take a note…</span>
+              <span>Write a memo…</span>
               <span class="capture-summary__hint">Quick capture <kbd aria-hidden="true">N</kbd></span>
             </summary>
             <div class="capture-body">
