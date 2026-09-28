@@ -252,10 +252,14 @@ function applyMemoToCard(card, memo) {
     card.dataset.editable = "true";
     card.tabIndex = 0;
     card.setAttribute("aria-label", `Edit memo: ${displayTitle}`);
+    card.setAttribute("aria-expanded", String(card.classList.contains("memo-card--editing")));
+    card.setAttribute("aria-controls", `memo-editor-${memo.id}`);
   } else {
     delete card.dataset.editable;
     card.removeAttribute("tabindex");
     card.removeAttribute("aria-label");
+    card.removeAttribute("aria-expanded");
+    card.removeAttribute("aria-controls");
   }
 
   const bulkSelect = card.querySelector("[data-bulk-select]");
@@ -631,6 +635,7 @@ function ensureMemoEditor(card) {
   const fragment = editorTemplate.content.cloneNode(true);
   editor = fragment.querySelector(".memo-editor");
   editor.dataset.memoId = context.memo.id;
+  editor.id = `memo-editor-${context.memo.id}`;
   editor.querySelector("[data-edit-field='title']").value = context.memo.title;
   editor.querySelector("[data-edit-field='content']").value = context.memo.content;
   editor.querySelector("[data-edit-field='color']").value = context.memo.color ?? "";
@@ -862,8 +867,15 @@ listElement.addEventListener("toggle", (event) => {
 }, true);
 
 document.addEventListener("click", (event) => {
-  if (event.target instanceof Element && event.target.closest("details.memo-card-menu")) return;
+  if (!(event.target instanceof Element)) return;
+
+  if (event.target.closest("details.memo-card-menu")) return;
   closeOpenMemoMenus();
+
+  const editingCard = listElement.querySelector(".memo-card--editing");
+  if (editingCard && !event.target.closest(".memo-card--editing")) {
+    closeMemoEditor(editingCard, { focusCard: false });
+  }
 });
 
 document.addEventListener("keydown", (event) => {
