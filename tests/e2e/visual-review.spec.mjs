@@ -146,6 +146,18 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
   screenshots.push(await shot(page, "02-tablet-active-light.png", { width: 768, height: 1024 }));
   screenshots.push(await shot(page, "03-desktop-active-light.png", { width: 1440, height: 1000 }));
 
+  await openCapture(page);
+  await expect(page.locator("#memo-form .color-swatch")).toHaveCount(10);
+  await expect(page.locator("#memo-form .label-picker__entry")).toBeVisible();
+  screenshots.push(await shot(page, "03a-desktop-composer-light.png", { width: 1440, height: 1000 }));
+  await page.locator("#capture-panel > summary").click();
+
+  const menuCard = page.locator(".memo-card", { hasText: "Pinned direction" });
+  await menuCard.locator("details.memo-card-menu > summary").click();
+  await expect(menuCard.locator(".memo-card__actions button")).toHaveCount(3);
+  screenshots.push(await shot(page, "03b-desktop-context-menu-light.png", { width: 1440, height: 1000 }));
+  await page.keyboard.press("Escape");
+
   await openViewControls(page);
   await page.getByRole("radio", { name: "Deep Dark" }).check();
   await closeTransientPanels(page);
@@ -212,5 +224,5 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
     "utf8"
   );
 
-  expect(screenshots).toHaveLength(10);
+  expect(screenshots).toHaveLength(12);
 });
