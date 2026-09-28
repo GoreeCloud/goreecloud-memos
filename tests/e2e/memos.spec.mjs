@@ -116,7 +116,9 @@ test("mobile active workspace keeps capture chrome compact", async ({ page }) =>
   const sidebarBox = await page.locator(".sidebar").boundingBox();
   expect(sidebarBox).not.toBeNull();
   expect(sidebarBox.width).toBeGreaterThanOrEqual(380);
-  await expect(page.locator(".sidebar .sidebar-section:not(:first-of-type)")).toBeHidden();
+  await expect(page.locator(".sidebar-label-list")).toBeHidden();
+  await expect(page.locator("details.manager-drawer > summary")).toBeHidden();
+  await expect(page.locator(".sidebar-library")).toBeHidden();
 
   for (const name of ["Memos", "Archive", "Trash"]) {
     const tab = location.getByRole("button", { name, exact: true });
@@ -235,7 +237,6 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
     page.getByRole("button", { name: "Memos", exact: true }),
     page.getByRole("button", { name: "Archive", exact: true }),
     page.getByRole("button", { name: "Trash", exact: true }),
-    page.locator("details.manager-drawer > summary"),
     page.locator("#memo-search"),
     page.locator("#topbar-new-memo"),
     page.locator("details.utility-drawer > summary")
@@ -251,6 +252,16 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
   await expect(page.locator("#topbar-new-memo")).toBeVisible();
   await expect(page.locator("details.utility-drawer > summary")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  await openViewControls(page);
+  const mobileManageLabels = page.getByRole("button", { name: "Manage labels", exact: true });
+  await expect(mobileManageLabels).toBeVisible();
+  const mobileManageLabelsBox = await mobileManageLabels.boundingBox();
+  expect(mobileManageLabelsBox).not.toBeNull();
+  expect(mobileManageLabelsBox.height).toBeGreaterThanOrEqual(48);
+  await mobileManageLabels.click();
+  await expect(page.getByRole("heading", { name: "Manage labels" })).toBeVisible();
+  await page.keyboard.press("Escape");
 
   await captureMemo(page, { content: "Compact touch target memo" });
   const compactCard = page.locator(".memo-card", { hasText: "Compact touch target memo" });
