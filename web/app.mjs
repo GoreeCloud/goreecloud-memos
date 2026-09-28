@@ -16,6 +16,40 @@ const memoTimestampFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short"
 });
+const memoShortDateFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric"
+});
+const memoRelativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, {
+  numeric: "auto"
+});
+
+function formatMemoTimestamp(value, now = Date.now()) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const current = new Date(now);
+  const sameDay =
+    date.getFullYear() === current.getFullYear() &&
+    date.getMonth() === current.getMonth() &&
+    date.getDate() === current.getDate();
+
+  if (sameDay) {
+    const ageMs = Math.max(0, current.getTime() - date.getTime());
+    if (ageMs < 60_000) return "Just now";
+    if (ageMs < 3_600_000) {
+      return memoRelativeTimeFormatter.format(-Math.max(1, Math.round(ageMs / 60_000)), "minute");
+    }
+    return memoRelativeTimeFormatter.format(-Math.max(1, Math.round(ageMs / 3_600_000)), "hour");
+  }
+
+  if (date.getFullYear() === current.getFullYear()) {
+    return memoShortDateFormatter.format(date);
+  }
+
+  return memoTimestampFormatter.format(date);
+}
 
 const form = document.querySelector("#memo-form");
 const capturePanel = document.querySelector("#capture-panel");
@@ -301,8 +335,10 @@ function applyMemoToCard(card, memo) {
   }
 
   const time = card.querySelector(".memo-card__time");
+  const memoDate = new Date(memo.updatedAt);
   time.dateTime = memo.updatedAt;
-  time.textContent = memoTimestampFormatter.format(new Date(memo.updatedAt));
+  time.textContent = formatMemoTimestamp(memo.updatedAt);
+  time.title = memoTimestampFormatter.format(memoDate);
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
 }
 
