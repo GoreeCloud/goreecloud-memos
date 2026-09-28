@@ -22,22 +22,22 @@ Keyboard shortcuts available outside text-entry fields and modal setup are:
 
 - **N** — open Quick capture in Memos.
 - **/** — focus Search memos.
-- **Escape** — close an open transient settings/label/action surface and return focus to its trigger when applicable.
+- **Escape** — close an open action surface or inline memo editor and return focus to the relevant trigger/card when applicable.
 
 Contextual hints can be disabled and re-enabled from Settings.
 
 ## Capture a memo
 
 1. Optionally enter a title.
-2. Optionally choose a memo color.
-3. Optionally enter one or more labels separated by commas.
+2. Optionally choose a memo color from the visual swatches.
+3. Optionally choose existing managed labels from the suggested chips or type a new label and press **Enter**.
 4. Enter memo content.
 5. Select **Save memo**.
 6. The memo is stored in that browser's local IndexedDB database and appears in **Memos**.
 
 Text and organization fields entered into the composer are preserved locally as a draft while typing. Reloading the page restores the draft. A successfully saved memo clears the composer draft.
 
-Label input still looks like simple comma-separated names. Internally, the current Development slice maps those names to managed local Label identities with stable UUIDs and Memo–Label relationships. Names are trimmed and duplicate input is removed case-insensitively. Existing managed identity is reused for the same normalized name.
+The composer presents labels as removable chips with managed-label suggestions instead of exposing the underlying comma-separated storage field. Typing a new label and committing it adds a chip immediately. Internally, the Development slice maps those names to managed local Label identities with stable UUIDs and Memo–Label relationships. Names are trimmed and duplicate input is removed case-insensitively. Existing managed identity is reused for the same normalized name.
 
 ## Manage labels
 
@@ -71,10 +71,11 @@ Bulk actions other than label application/removal are not implemented in this sl
 
 ## Edit a memo
 
-1. In **Memos**, open the memo card's action menu and select **Edit**.
-2. Change the title, color, labels, or memo content.
+1. In **Memos**, click or keyboard-activate the memo card to open its inline editor directly.
+2. Change the title or memo content, choose a color swatch, and add or remove label chips as needed.
 3. Changes save automatically after a short pause in typing.
-4. Wait for **Saved.** before closing the page when you need confirmation that the most recent edit was written locally.
+4. Wait for **Saved.** when you need confirmation that the most recent edit was written locally.
+5. Select **Done** or press **Escape** to close the inline editor. The three-dot action menu remains reserved for secondary lifecycle and pinning actions.
 
 Memo content cannot be saved as blank.
 
@@ -90,7 +91,7 @@ Pin state and manual pin order persist across reloads in the same browser profil
 
 The current local palette includes Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, and Gray. A memo can also have no color.
 
-Color is stored as memo metadata. The card shows both a visual color treatment and visible `Color: …` text so color is not the sole carrier of meaning.
+Color is stored as memo metadata. The card uses a restrained visual treatment plus an accessible named color indicator; the visible metadata stays compact while assistive technology receives the color name, so color is not the sole carrier of meaning.
 
 ## Search and filters
 
