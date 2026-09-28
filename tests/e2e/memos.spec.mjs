@@ -522,6 +522,12 @@ test("memo click opens editing while the context menu stays secondary", async ({
 
   const card = page.locator(".memo-card", { hasText: "Open the memo directly" });
   await expect(card.locator(".memo-editor")).toHaveCount(0);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const cardBox = await card.boundingBox();
+  const timeBox = await card.locator(".memo-card__time").boundingBox();
+  expect(cardBox).not.toBeNull();
+  expect(timeBox).not.toBeNull();
+  expect(timeBox.x - cardBox.x).toBeLessThan(26);
   await expect(card.locator(".memo-card__time")).toHaveText("Just now");
   await expect(card.locator(".memo-card__time")).not.toHaveAttribute("title", "");
 
