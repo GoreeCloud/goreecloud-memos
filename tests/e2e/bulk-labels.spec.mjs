@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 async function openCapture(page) {
   const panel = page.locator("#capture-panel");
@@ -173,4 +174,32 @@ test("bulk apply aborts atomically when one selected memo is already at the labe
   const clean = snapshot.memos.find((memo) => memo.title === "Clean");
   expect(clean.labels).toEqual([]);
   expect(snapshot.memoLabels.some((relation) => relation.memoId === clean.id)).toBe(false);
+});
+
+
+test("selected memo export preserves the current ephemeral selection", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Alpha", content: "Alpha body", labels: "Work" });
+  await captureMemo(page, { title: "Beta", content: "Beta body" });
+
+  await selectMemo(page, "Alpha");
+  await selectMemo(page, "Beta");
+  await openViewControls(page);
+
+  await expect(page.getByRole("button", { name: "Copy selected", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Export selected", exact: true })).toBeEnabled();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export selected", exact: true }).click();
+  const download = await downloadPromise;
+
+  expect(download.suggestedFilename()).toBe("goreecloud-memos-selection-2.txt");
+  const downloadPath = await download.path();
+  expect(downloadPath).toBeTruthy();
+  const text = await readFile(downloadPath, "utf8");
+  expect(text).toContain("Memo 1 of 2\n\nAlpha\n\nAlpha body");
+  expect(text).toContain("Labels: Work");
+  expect(text).toContain("Memo 2 of 2\n\nBeta\n\nBeta body");
+  await expect(page.locator("#bulk-label-status")).toContainText("Exported 2 memos as one local text file.");
+  await expect(page.locator("#bulk-label-status")).toContainText("2 memos selected.");
 });
