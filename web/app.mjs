@@ -149,7 +149,6 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
       container.append(createAction("Pin", "pin", memo.id));
     }
     container.append(
-      createAction("Edit", "edit", memo.id),
       createAction("Archive", "archive", memo.id),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
@@ -215,6 +214,16 @@ function applyMemoToCard(card, memo) {
   card.dataset.color = memo.color ?? "none";
   const displayTitle = memo.title || "Untitled memo";
   card.querySelector(".memo-card__title").textContent = displayTitle;
+
+  if (currentView === "active") {
+    card.dataset.editable = "true";
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", `Edit memo: ${displayTitle}`);
+  } else {
+    delete card.dataset.editable;
+    card.removeAttribute("tabindex");
+    card.removeAttribute("aria-label");
+  }
 
   const bulkSelect = card.querySelector("[data-bulk-select]");
   if (bulkSelect) {
@@ -597,15 +606,33 @@ function ensureMemoEditor(card) {
   return editor;
 }
 
-function toggleEditor(button) {
-  const card = button.closest(".memo-card");
+function openMemoEditor(card, { focus = true } = {}) {
+  if (!card || currentView !== "active") return null;
   const editor = ensureMemoEditor(card);
+  if (!editor) return null;
+
+  editor.hidden = false;
+  card.classList.add("memo-card--editing");
+  card.setAttribute("aria-expanded", "true");
+  if (focus) {
+    requestAnimationFrame(() => editor.querySelector("[data-edit-field='content']")?.focus());
+  }
+  return editor;
+}
+
+function closeMemoEditor(card, { focusCard = true } = {}) {
+  const editor = card?.querySelector(".memo-editor");
   if (!editor) return;
 
-  editor.hidden = !editor.hidden;
-  button.textContent = editor.hidden ? "Edit" : "Close editor";
-  if (!editor.hidden) {
-    editor.querySelector("[data-edit-field='content']").focus();
+  editor.hidden = true;
+  card.classList.remove("memo-card--editing");
+  card.setAttribute("aria-expanded", "false");
+  if (focusCard) card.focus();
+}
+
+function closeOpenMemoMenus(except = null) {
+  for (const menu of listElement.querySelectorAll("details.memo-card-menu[open]")) {
+    if (menu !== except) menu.open = false;
   }
 }
 
@@ -791,10 +818,31 @@ listElement.addEventListener("input", (event) => {
 
 listElement.addEventListener("toggle", (event) => {
   const menu = event.target.closest?.("details.memo-card-menu");
-  if (menu?.open) hydrateMemoActions(menu.closest(".memo-card"));
+  if (!menu?.open) return;
+  closeOpenMemoMenus(menu);
+  hydrateMemoActions(menu.closest(".memo-card"));
 }, true);
 
+document.addEventListener("click", (event) => {
+  if (event.target instanceof Element && event.target.closest("details.memo-card-menu")) return;
+  closeOpenMemoMenus();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const openMenu = listElement.querySelector("details.memo-card-menu[open]");
+  if (!openMenu) return;
+  openMenu.open = false;
+  openMenu.querySelector(":scope > summary")?.focus();
+});
+
 listElement.addEventListener("click", async (event) => {
+  const closeEditorButton = event.target.closest("[data-editor-close]");
+  if (closeEditorButton) {
+    closeMemoEditor(closeEditorButton.closest(".memo-card"));
+    return;
+  }
+
   const expandButton = event.target.closest("[data-expand-content]");
   if (expandButton) {
     const card = expandButton.closest(".memo-card");
@@ -813,15 +861,15 @@ listElement.addEventListener("click", async (event) => {
   }
 
   const button = event.target.closest("[data-action]");
-  if (!button) return;
+  if (!button) {
+    const card = event.target.closest(".memo-card[data-editable='true']");
+    const interactiveTarget = event.target.closest("button, input, select, textarea, summary, details, label, a, .memo-editor");
+    if (card && !interactiveTarget) openMemoEditor(card);
+    return;
+  }
 
   const actionMenu = button.closest("details.memo-card-menu");
   if (actionMenu) actionMenu.open = false;
-
-  if (button.dataset.action === "edit") {
-    toggleEditor(button);
-    return;
-  }
 
   button.disabled = true;
   const memoId = button.dataset.memoId;
@@ -867,6 +915,13 @@ listElement.addEventListener("click", async (event) => {
     button.disabled = false;
     setStatus(error instanceof Error ? error.message : "Could not update memo");
   }
+});
+
+listElement.addEventListener("keydown", (event) => {
+  const card = event.target.closest?.(".memo-card[data-editable='true']");
+  if (!card || event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+  event.preventDefault();
+  openMemoEditor(card);
 });
 
 applyPresentationMode(currentPresentation);
