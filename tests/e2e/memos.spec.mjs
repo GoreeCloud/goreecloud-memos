@@ -10,8 +10,12 @@ async function openCapture(page) {
 async function captureMemo(page, { title = "", content, color = "", labels = "" }) {
   await openCapture(page);
   if (title) await page.locator("#memo-title").fill(title);
-  if (color) await page.locator("#memo-color").selectOption(color);
-  if (labels) await page.locator("#memo-labels").fill(labels);
+  if (color) await page.locator(`#memo-form .color-swatch[data-color="${color}"]`).click();
+  if (labels) {
+    const labelEntry = page.locator("#memo-form .label-picker__entry");
+    await labelEntry.fill(labels);
+    await labelEntry.press("Enter");
+  }
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
   await expect(page.locator(".memo-card__content", { hasText: content })).toBeVisible();
@@ -458,25 +462,26 @@ test("native shell shortcuts and Glaze appearance preference persist locally", a
 });
 
 // Native shell context coverage follows the primary shell tests.
-test("memo secondary controls hydrate only when requested", async ({ page }) => {
+test("memo click opens editing while the context menu stays secondary", async ({ page }) => {
   await page.goto("/web/");
-  await captureMemo(page, { title: "Lazy controls", content: "Hydrate secondary UI on demand" });
+  await captureMemo(page, { title: "Direct edit", content: "Open the memo directly" });
 
-  const card = page.locator(".memo-card", { hasText: "Hydrate secondary UI on demand" });
+  const card = page.locator(".memo-card", { hasText: "Open the memo directly" });
   await expect(card.locator(".memo-editor")).toHaveCount(0);
-  await expect(card.locator(".memo-card__actions button")).toHaveCount(0);
 
   const menu = card.locator("details.memo-card-menu");
   await menu.locator(":scope > summary").click();
-  await expect(card.locator(".memo-card__actions button")).toHaveCount(4);
-  await expect(card.locator(".memo-editor")).toHaveCount(0);
+  await expect(card.locator(".memo-card__actions button")).toHaveCount(3);
+  await expect(card.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
 
-  await card.getByRole("button", { name: "Edit", exact: true }).click();
-  await expect(card.locator(".memo-editor")).toHaveCount(1);
-  await expect(card.locator("[data-edit-field='content']")).toHaveValue("Hydrate secondary UI on demand");
+  await page.locator("#memos-heading").click();
+  await expect(menu).toHaveJSProperty("open", false);
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toHaveValue("Open the memo directly");
   await expect(card.locator("[data-edit-field='content']")).toBeFocused();
 
-  await runMemoAction(card, "Close editor");
+  await card.getByRole("button", { name: "Close editor" }).click();
   await expect(card.locator(".memo-editor")).toBeHidden();
 });
 
@@ -484,14 +489,18 @@ test("draft recovery and saved memo persistence survive reload", async ({ page }
   await page.goto("/web/");
   await openCapture(page);
   await page.locator("#memo-title").fill("Draft title");
-  await page.locator("#memo-color").selectOption("teal");
-  await page.locator("#memo-labels").fill("Work, Ideas");
+  await page.locator('#memo-form .color-swatch[data-color="teal"]').click();
+  const draftLabelEntry = page.locator("#memo-form .label-picker__entry");
+  await draftLabelEntry.fill("Work, Ideas");
+  await draftLabelEntry.press("Enter");
   await page.locator("#memo-content").fill("Recovered draft");
   await expect(page.getByText("Draft saved on this device.")).toBeVisible();
   await page.reload();
   await expect(page.locator("#memo-title")).toHaveValue("Draft title");
   await expect(page.locator("#memo-color")).toHaveValue("teal");
+  await expect(page.locator('#memo-form .color-swatch[data-color="teal"]')).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#memo-labels")).toHaveValue("Work, Ideas");
+  await expect(page.locator("#memo-form .label-chip--selected")).toHaveCount(2);
   await expect(page.locator("#memo-content")).toHaveValue("Recovered draft");
   await page.getByRole("button", { name: "Save memo" }).click();
   const card = page.locator(".memo-card", { hasText: "Recovered draft" });
@@ -515,10 +524,12 @@ test("editing autosaves organization metadata and survives reload", async ({ pag
 
   const card = page.locator(".memo-card").first();
   await expect(card.locator(".memo-card__content")).toHaveText("Before edit");
-  await runMemoAction(card, "Edit");
+  await card.locator(".memo-card__content").click();
   await card.locator("[data-edit-field='content']").fill("After edit");
-  await card.locator("[data-edit-field='color']").selectOption("purple");
-  await card.locator("[data-edit-field='labels']").fill("Research, Reference, research");
+  await card.locator('.memo-editor .color-swatch[data-color="purple"]').click();
+  const editLabelEntry = card.locator(".memo-editor .label-picker__entry");
+  await editLabelEntry.fill("Research, Reference, research");
+  await editLabelEntry.press("Enter");
   await expect(card.locator(".editor-status")).toHaveText("Saved.");
   await expect(card.locator(".memo-card__content")).toHaveText("After edit");
   await expect(card).toHaveAttribute("data-color", "purple");
