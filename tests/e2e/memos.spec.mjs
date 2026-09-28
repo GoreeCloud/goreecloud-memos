@@ -331,7 +331,7 @@ test("Glaze accessibility media modes preserve the primary shell", async ({ page
   await page.emulateMedia({ reducedMotion: "reduce", contrast: "more" });
   await page.goto("/web/");
 
-  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
 
   const mediaState = await page.evaluate(() => ({
