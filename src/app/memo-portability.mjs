@@ -48,3 +48,22 @@ export function memoPlainTextFilename(memo) {
   const stem = cleanFilenamePart(normalized.title) || cleanFilenamePart(contentLead) || "memo";
   return `${stem}.txt`;
 }
+
+
+export function formatMemoPlainTextSelection(memos) {
+  if (!Array.isArray(memos) || memos.length === 0) {
+    throw new TypeError("memos must be a non-empty array");
+  }
+
+  return memos
+    .map((memo, index) => {
+      const body = formatMemoPlainText(memo).trimEnd();
+      return `Memo ${index + 1} of ${memos.length}\n\n${body}`;
+    })
+    .join("\n\n---\n\n") + "\n";
+}
+
+export function memoPlainTextSelectionFilename(count) {
+  if (!Number.isInteger(count) || count < 1) throw new TypeError("count must be a positive integer");
+  return `goreecloud-memos-selection-${count}.txt`;
+}
