@@ -1,12 +1,15 @@
 import { LabelService } from "../src/app/label-service.mjs";
 import { MemoService } from "../src/app/memo-service.mjs";
 import { IndexedDbMemoStore } from "../src/storage/indexeddb-memo-store.mjs";
+import { formatMemoPlainTextSelection, memoPlainTextSelectionFilename } from "../src/app/memo-portability.mjs";
 
 const listElement = document.querySelector("#memo-list");
 const labelSelect = document.querySelector("#bulk-label-select");
 const applyButton = document.querySelector("#bulk-label-apply");
 const removeButton = document.querySelector("#bulk-label-remove");
 const clearButton = document.querySelector("#bulk-selection-clear");
+const copyButton = document.querySelector("#bulk-selection-copy");
+const exportButton = document.querySelector("#bulk-selection-export");
 const statusElement = document.querySelector("#bulk-label-status");
 const utilityDrawer = document.querySelector("details.utility-drawer");
 
@@ -27,6 +30,8 @@ function updateControls() {
   const ready = count > 0 && Boolean(labelSelect.value);
   applyButton.disabled = !ready;
   removeButton.disabled = !ready;
+  copyButton.disabled = count === 0;
+  exportButton.disabled = count === 0;
   clearButton.disabled = count === 0;
   statusElement.textContent = actionMessage
     ? `${actionMessage} ${memoCountText(count)} selected.`
@@ -113,6 +118,54 @@ function requestWorkspaceRefresh(source) {
   });
 }
 
+async function selectedMemoBundle() {
+  const memoIds = [...selectedMemoIds];
+  if (memoIds.length === 0) throw new Error("Select at least one memo first.");
+  const memos = await Promise.all(memoIds.map((memoId) => memoService.get(memoId)));
+  return {
+    count: memos.length,
+    text: formatMemoPlainTextSelection(memos)
+  };
+}
+
+async function copySelectedMemos() {
+  if (!navigator.clipboard?.writeText) {
+    throw new Error("Clipboard access is not available in this browser.");
+  }
+  const bundle = await selectedMemoBundle();
+  await navigator.clipboard.writeText(bundle.text);
+  actionMessage = `Copied ${memoCountText(bundle.count)} to the clipboard.`;
+  updateControls();
+}
+
+async function exportSelectedMemos() {
+  const bundle = await selectedMemoBundle();
+  const blob = new Blob([bundle.text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = memoPlainTextSelectionFilename(bundle.count);
+  anchor.hidden = true;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  actionMessage = `Exported ${memoCountText(bundle.count)} as one local text file.`;
+  updateControls();
+}
+
+async function runSelectionPortability(action) {
+  copyButton.disabled = true;
+  exportButton.disabled = true;
+  try {
+    if (action === "copy") await copySelectedMemos();
+    else await exportSelectedMemos();
+  } catch (error) {
+    actionMessage = error instanceof Error ? error.message : "Could not export selected memos";
+    updateControls();
+  }
+}
+
 async function runBulkAction(mode) {
   const memoIds = [...selectedMemoIds];
   const labelId = labelSelect.value;
@@ -149,6 +202,8 @@ labelSelect.addEventListener("change", () => {
   actionMessage = "";
   updateControls();
 });
+copyButton.addEventListener("click", () => runSelectionPortability("copy"));
+exportButton.addEventListener("click", () => runSelectionPortability("export"));
 applyButton.addEventListener("click", () => runBulkAction("apply"));
 removeButton.addEventListener("click", () => runBulkAction("remove"));
 clearButton.addEventListener("click", () => {
