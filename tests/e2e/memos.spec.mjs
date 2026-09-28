@@ -57,7 +57,8 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/web/");
 
-  await expect(page.locator("#view-hero")).toBeHidden();
+  await expect(page.locator("#view-hero")).toBeVisible();
+  await expect(page.locator("#view-hero")).toContainText("Capture what matters.");
 
   const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
   expect(collapsedCaptureBox).not.toBeNull();
