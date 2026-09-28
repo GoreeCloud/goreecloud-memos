@@ -74,6 +74,17 @@ body{background:var(--memos-canvas)!important;color:var(--memos-ink)!important}
 .memo-card__title{font-size:.9rem!important;line-height:1.3!important}.memo-card__content{margin-top:.58rem!important;color:var(--memos-ink-2)!important;font-size:.79rem!important;line-height:1.52!important}.memo-card__time{color:var(--memos-ink-3)!important;font-size:.62rem!important}.memo-badge{min-height:21px!important;border-radius:999px!important;font-size:.61rem!important}
 .memo-select{min-height:20px!important;border:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}.memo-select:has(input:checked){border:0!important;background:transparent!important}
 .memo-badge--pin{border-color:color-mix(in srgb,var(--memos-accent) 34%,var(--memos-line))!important;background:color-mix(in srgb,var(--memos-accent) 9%,var(--memos-panel))!important}
+.memo-card .memo-badge--color{width:20px;min-width:20px;min-height:20px;justify-content:center;padding:0!important}
+.memo-color-dot{display:block;width:10px;height:10px;border-radius:999px;background:var(--memos-ink-3)}
+.memo-badge--color[data-memo-color="red"] .memo-color-dot{background:#d65a5a}
+.memo-badge--color[data-memo-color="orange"] .memo-color-dot{background:#df8245}
+.memo-badge--color[data-memo-color="yellow"] .memo-color-dot{background:#cba62c}
+.memo-badge--color[data-memo-color="green"] .memo-color-dot{background:#56a36d}
+.memo-badge--color[data-memo-color="teal"] .memo-color-dot{background:#3d9c92}
+.memo-badge--color[data-memo-color="blue"] .memo-color-dot{background:#5d8fdf}
+.memo-badge--color[data-memo-color="purple"] .memo-color-dot{background:#8368c9}
+.memo-badge--color[data-memo-color="pink"] .memo-color-dot{background:#c86697}
+.memo-badge--color[data-memo-color="gray"] .memo-color-dot{background:#81858a}
 .memo-badge--label[data-label-color="red"],.memo-card[data-color="red"] .memo-badge--color{border-color:color-mix(in srgb,#d65a5a 42%,var(--memos-line))!important;background:color-mix(in srgb,#d65a5a 10%,var(--memos-panel))!important}
 .memo-badge--label[data-label-color="orange"],.memo-card[data-color="orange"] .memo-badge--color{border-color:color-mix(in srgb,#df8245 42%,var(--memos-line))!important;background:color-mix(in srgb,#df8245 10%,var(--memos-panel))!important}
 .memo-badge--label[data-label-color="yellow"],.memo-card[data-color="yellow"] .memo-badge--color{border-color:color-mix(in srgb,#cba62c 42%,var(--memos-line))!important;background:color-mix(in srgb,#cba62c 11%,var(--memos-panel))!important}
