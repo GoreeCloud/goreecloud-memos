@@ -3332,3 +3332,32 @@ button.secondary {
     margin-bottom: 0.72rem;
   }
 }
+
+
+/* Owner review: compact active workspace on tablet and mobile, 2026-09-27. */
+@media (max-width: 900px) {
+  #view-hero[data-view-surface="active"] {
+    min-height: 0;
+    gap: 0.45rem;
+    padding: 0.62rem 0.75rem;
+    border-radius: 15px;
+  }
+
+  #view-hero[data-view-surface="active"] .eyebrow,
+  #view-hero[data-view-surface="active"] #view-description {
+    display: none;
+  }
+
+  #view-hero[data-view-surface="active"] h1 {
+    margin: 0;
+    font-size: clamp(1.08rem, 5vw, 1.3rem);
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+  }
+
+  #view-hero[data-view-surface="active"] .privacy-chip {
+    min-height: 30px;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.7rem;
+  }
+}
