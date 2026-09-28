@@ -1,5 +1,11 @@
 # GoreeCloud Memos — Changelogs
 
+## 2026-09-28 — local memo portability candidate
+
+- Added Copy text and Export .txt quick actions for active, archived, and trashed memos.
+- Added deterministic plain-text formatting and filesystem-safe filename helpers with unit coverage.
+- Kept the path local-only; no sync, backup, cloud, or Everkeep authority is implied.
+
 **Record type:** Repository changelog and migration history  
 **Repository:** `GoreeCloud/memos`  
 **Lifecycle:** Development / nonconformant  
