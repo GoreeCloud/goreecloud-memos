@@ -53,9 +53,7 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/web/");
 
-  const heroBox = await page.locator("#view-hero").boundingBox();
-  expect(heroBox).not.toBeNull();
-  expect(heroBox.height).toBeLessThanOrEqual(64);
+  await expect(page.locator("#view-hero")).toBeHidden();
 
   const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
   expect(collapsedCaptureBox).not.toBeNull();
@@ -278,7 +276,7 @@ test("compact shell keeps primary controls reachable", async ({ page }) => {
     document.body.style.minHeight = "1800px";
     window.scrollTo(0, 600);
   });
-  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   const compactNavBox = await page.locator(".sidebar").boundingBox();
   const topbarBox = await page.locator(".topbar").boundingBox();
