@@ -1,3 +1,5 @@
+import { MAX_LABEL_NAME_LENGTH } from "../src/domain/label.mjs";
+
 const MEMO_COLORS = Object.freeze(["", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "gray"]);
 const COLOR_LABELS = Object.freeze({
   "": "No color", red: "Red", orange: "Orange", yellow: "Yellow", green: "Green",
@@ -116,6 +118,7 @@ function enhanceLabelControl(source) {
   entry.type = "text";
   entry.className = "label-picker__entry";
   entry.autocomplete = "off";
+  entry.maxLength = MAX_LABEL_NAME_LENGTH;
   entry.placeholder = "Add a label…";
   entry.setAttribute("aria-label", source.matches("#memo-labels") ? "Add labels" : "Edit labels");
 
@@ -153,15 +156,25 @@ function enhanceLabelControl(source) {
 
     suggestions.replaceChildren();
     const selectedKeys = new Set(labels.map((name) => name.toLocaleLowerCase()));
+    const query = entry.value.trim();
+    const queryKey = query.toLocaleLowerCase();
     const available = managedLabels
       .filter((label) => !selectedKeys.has(label.name.toLocaleLowerCase()))
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((label) => !queryKey || label.name.toLocaleLowerCase().includes(queryKey))
+      .sort((a, b) => {
+        const aStarts = queryKey && a.name.toLocaleLowerCase().startsWith(queryKey) ? 0 : 1;
+        const bStarts = queryKey && b.name.toLocaleLowerCase().startsWith(queryKey) ? 0 : 1;
+        return aStarts - bStarts || a.name.localeCompare(b.name);
+      })
       .slice(0, 8);
+
+    const exactManagedMatch = managedLabels.some((label) => label.name.toLocaleLowerCase() === queryKey);
+    const exactSelectedMatch = selectedKeys.has(queryKey);
 
     if (available.length > 0) {
       const prefix = document.createElement("span");
       prefix.className = "label-picker__suggestion-label";
-      prefix.textContent = "Choose";
+      prefix.textContent = query ? "Matches" : "Choose";
       suggestions.append(prefix);
     }
 
@@ -173,24 +186,45 @@ function enhanceLabelControl(source) {
       chip.textContent = label.name;
       chip.setAttribute("aria-label", `Add label ${label.name}`);
       chip.addEventListener("click", () => {
+        entry.value = "";
         setSourceLabels(source, [...parseLabels(source.value), label.name]);
         entry.focus();
       });
       suggestions.append(chip);
+    }
+
+    if (query && !exactManagedMatch && !exactSelectedMatch) {
+      const createChip = document.createElement("button");
+      createChip.type = "button";
+      createChip.className = "label-chip label-chip--create";
+      createChip.textContent = `New · ${query}`;
+      createChip.setAttribute("aria-label", `Use new label ${query}`);
+      createChip.addEventListener("click", () => {
+        entry.value = "";
+        setSourceLabels(source, [...parseLabels(source.value), query]);
+        entry.focus();
+      });
+      suggestions.append(createChip);
     }
   }
 
   function commitEntry() {
     const incoming = parseLabels(entry.value);
     if (incoming.length === 0) return;
-    setSourceLabels(source, [...parseLabels(source.value), ...incoming]);
     entry.value = "";
+    setSourceLabels(source, [...parseLabels(source.value), ...incoming]);
   }
 
+  entry.addEventListener("input", render);
   entry.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
       commitEntry();
+    }
+    if (event.key === "Escape" && entry.value) {
+      event.preventDefault();
+      entry.value = "";
+      render();
     }
     if (event.key === "Backspace" && entry.value === "") {
       const labels = parseLabels(source.value);
