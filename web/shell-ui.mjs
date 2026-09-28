@@ -26,11 +26,11 @@ const appearanceStatus = document.querySelector("#appearance-status");
 
 const VIEW_COPY = Object.freeze({
   active: {
-    workspace: "Capture space",
+    workspace: "Memos",
     board: "Memos",
-    eyebrow: "Quick notes",
-    title: "Capture what matters.",
-    description: "Fast local capture with labels, color, Archive, recoverable Trash, search, and saved views in your private GoreeCloud workspace.",
+    eyebrow: "Local notes",
+    title: "Memos",
+    description: "Capture a thought, organize it if useful, and move on.",
     chipIcon: "⌾",
     chipLabel: "Local to this browser"
   },
