@@ -154,7 +154,10 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
 
   const menuCard = page.locator(".memo-card", { hasText: "Pinned direction" });
   await menuCard.locator("details.memo-card-menu > summary").click();
-  await expect(menuCard.locator(".memo-card__actions button")).toHaveCount(3);
+  await expect(menuCard.getByRole("button", { name: "Unpin", exact: true })).toBeVisible();
+  await expect(menuCard.getByRole("button", { name: "Archive", exact: true })).toBeVisible();
+  await expect(menuCard.getByRole("button", { name: "Move to Trash", exact: true })).toBeVisible();
+  await expect(menuCard.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
   screenshots.push(await shot(page, "03b-desktop-context-menu-light.png", { width: 1440, height: 1000 }));
   await page.keyboard.press("Escape");
 
