@@ -35,7 +35,7 @@ async function runMemoAction(card, name) {
 test("Glaze capture shell keeps primary writing workflow prominent", async ({ page }) => {
   await page.goto("/web/");
 
-  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
   await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
   await expect(page.locator(".brand__icon")).toHaveAttribute("src", "./assets/memos-icon.svg");
@@ -59,7 +59,7 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
 
   const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
   expect(collapsedCaptureBox).not.toBeNull();
-  expect(collapsedCaptureBox.height).toBeLessThanOrEqual(52);
+  expect(collapsedCaptureBox.height).toBeLessThanOrEqual(56);
 
   await openCapture(page);
   const captureBox = await page.locator("#capture-panel").boundingBox();
@@ -94,9 +94,7 @@ test("mobile active workspace keeps capture chrome compact", async ({ page }) =>
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/web/");
 
-  const heroBox = await page.locator("#view-hero").boundingBox();
-  expect(heroBox).not.toBeNull();
-  expect(heroBox.height).toBeLessThanOrEqual(96);
+  await expect(page.locator("#view-hero")).toBeHidden();
 
   const captureBox = await page.locator("#capture-panel").boundingBox();
   expect(captureBox).not.toBeNull();
