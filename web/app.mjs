@@ -912,7 +912,11 @@ document.addEventListener("click", (event) => {
     managerDrawer.open = false;
   }
 
-  if (utilityDrawer?.open && !event.target.closest("details.utility-drawer")) {
+  if (
+    utilityDrawer?.open &&
+    !event.target.closest("details.utility-drawer") &&
+    !event.target.closest("#sidebar-settings")
+  ) {
     utilityDrawer.open = false;
   }
 });
