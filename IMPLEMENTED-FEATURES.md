@@ -2,9 +2,9 @@
 
 ## 2026-09-28 — local memo text portability candidate
 
-- Added per-memo **Copy text** and **Export .txt** quick actions across active, archived, and trashed views.
-- Added deterministic plain-text formatting that preserves title, memo body, labels, and color metadata plus filesystem-safe local export filenames.
-- Added focused unit and browser-action coverage. This is local single-memo portability only; full-library export/import round-trip, backup/recovery, synchronization, and cross-client portability remain open.
+- Added per-memo **Copy text** and **Export .txt** quick actions across active, archived, and trashed views plus **Copy selected** / **Export selected** for the current ephemeral browser selection.
+- Added deterministic plain-text formatting that preserves title, memo body, labels, and color metadata, deterministic selected-memo ordering, and filesystem-safe local export filenames.
+- Exact candidate head `9f6b9e75fe1e04a5758cc4ebdd8e429182e1b703` passed Platform Contract, repository-record, Chromium/unit/source validation, and Android Development Foundation workflows. This remains bounded local text portability only; full-library export/import round-trip, backup/recovery, synchronization, and cross-client portability remain open.
 
 
 **Record type:** Repository implemented-feature inventory  
@@ -63,7 +63,7 @@ Authoritative `main` does not establish:
 - connected/synchronized Android behavior or accepted native desktop client behavior;
 - attachments, checklists, reminders, version history, or locked memos;
 - complete smart-filter/search coverage or synchronized Saved Views;
-- import/export, round-trip portability, operational backup, or tested recovery;
+- full-library import/export round-trip portability, operational backup, or tested recovery;
 - multi-user self-hosting, optional sharing, Notes handoff, or server administration;
 - accepted Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability runtime integration;
 - accepted whole-application GLAZE UI V1.6 conformance, representative-device accessibility/performance acceptance, production signing/provenance, Release Candidate, production, or Stable qualification.
