@@ -1,1 +1,2 @@
-/* Legacy stylesheet placeholder retained for compatibility during the Memos web rebuild. */
+/* Rebuild compatibility */
+.hero-card[hidden]{display:none !important;}
