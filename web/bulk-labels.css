@@ -23,3 +23,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .nav-item,.sidebar-link,.sidebar-label-button{min-height:38px!important;border-radius:10px!important;padding:.33rem .42rem!important;color:var(--v3-ink2)!important;font-size:.8rem!important}
 .nav-icon{width:27px!important;height:27px!important;border:0!important;background:transparent!important;color:var(--v3-ink3)!important}
 .sidebar-empty{font-size:.7rem!important;color:var(--v3-ink3)!important}
+
+.topbar{min-height:58px!important;grid-template-columns:minmax(0,1fr)!important;padding:.42rem .85rem!important}
