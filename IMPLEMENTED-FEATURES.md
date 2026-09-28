@@ -14,18 +14,19 @@ This record contains capabilities verified in accepted repository state. The ret
 ## Implemented Development capabilities
 
 ### Quick capture and local persistence
-- Browser quick capture supports optional title plus required memo content.
+- Browser quick capture supports optional title plus required memo content, visual memo-color swatches, removable label chips, and managed-label suggestions.
 - Browser composer drafts are preserved locally, including current color and label input state.
 - Saved browser memos persist in IndexedDB and support debounced local autosave.
 - Native Android provides a first-party local quick-capture Development application with optional title/body editing and no WebView wrapper.
 - Android memo and draft persistence use explicit versioned local formats, fsync-backed replacement, and a retained previous readable generation for bounded corruption fallback.
 
 ### Local organization and lifecycle
-- Optional memo colors use a curated palette with visible text so color is not the only signal.
+- Optional memo colors use a curated palette with restrained card treatment plus an accessible named color indicator so color is not the only signal.
 - Managed Label v2 identities use stable UUIDs, case-insensitive names, optional curated color, optional icon text, and optional description.
 - Memo–Label relationships are explicit and label rename/delete/merge operations are transactional.
 - Bulk Apply label / Remove label operations exist for the current browser-local selection and fail atomically on invalid/over-limit input.
 - Pin/unpin and persisted manual pin ordering are implemented for active memos.
+- Active memo cards open an inline editor directly by click or keyboard activation; edits autosave locally, Done or Escape closes the editor, and the action menu remains for secondary lifecycle and pinning actions.
 - Archive and Trash are recoverable local lifecycle states; permanent deletion is restricted to Trash and requires explicit destructive action.
 - Comfortable, Compact, List, and Dense presentation modes persist as a browser-local preference.
 
