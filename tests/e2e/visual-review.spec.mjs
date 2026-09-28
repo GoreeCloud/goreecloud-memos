@@ -165,6 +165,12 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
   screenshots.push(await shot(page, "03b-desktop-context-menu-light.png", { width: 1440, height: 1000 }));
   await page.keyboard.press("Escape");
 
+  const editCard = page.locator(".memo-card", { hasText: "Glaze design notes" });
+  await editCard.locator(".memo-card__content").click();
+  await expect(editCard.locator(".memo-editor")).toBeVisible();
+  screenshots.push(await shot(page, "03c-desktop-inline-editor-light.png", { width: 1440, height: 1000 }));
+  await editCard.getByRole("button", { name: "Close editor" }).click();
+
   await openViewControls(page);
   await page.getByRole("radio", { name: "Deep Dark" }).check();
   await closeTransientPanels(page);
@@ -231,5 +237,5 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
     "utf8"
   );
 
-  expect(screenshots).toHaveLength(12);
+  expect(screenshots).toHaveLength(13);
 });
