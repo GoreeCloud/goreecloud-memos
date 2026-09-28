@@ -19,3 +19,7 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .sidebar{width:210px!important;padding:.72rem .68rem .6rem!important;border-inline-end:1px solid var(--v3-line)!important;background:var(--v3-panel)!important;backdrop-filter:none!important}
 .brand{min-height:46px!important;padding:.05rem .3rem .65rem!important}.brand__icon{width:34px!important;height:34px!important;flex-basis:34px!important}.brand__copy strong{font-size:.9rem!important}.brand__copy span{font-size:.55rem!important}
 .sidebar-section{padding:.58rem 0!important}.sidebar-heading{font-size:.57rem!important;color:var(--v3-ink3)!important}.workspace-nav{gap:.16rem!important}
+
+.nav-item,.sidebar-link,.sidebar-label-button{min-height:38px!important;border-radius:10px!important;padding:.33rem .42rem!important;color:var(--v3-ink2)!important;font-size:.8rem!important}
+.nav-icon{width:27px!important;height:27px!important;border:0!important;background:transparent!important;color:var(--v3-ink3)!important}
+.sidebar-empty{font-size:.7rem!important;color:var(--v3-ink3)!important}
