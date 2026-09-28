@@ -234,6 +234,18 @@ test("contextual hints can be disabled and re-enabled persistently", async ({ pa
   await expect(hint).toBeHidden();
   await page.locator("#capture-panel > summary").click();
   await expect(hint).toBeVisible();
+
+  await page.locator("#dismiss-contextual-hint").click();
+  await expect(hint).toBeHidden();
+  await page.reload();
+  await expect(hint).toBeHidden();
+
+  await page.locator("#sidebar-settings").click();
+  await page.locator("#reset-dismissed-hints").click();
+  await expect(page.locator("#guidance-status"))
+    .toHaveText("Dismissed contextual hints reset.");
+  await page.keyboard.press("Escape");
+  await expect(hint).toBeVisible();
 });
 
 test("compact shell keeps primary controls reachable", async ({ page }) => {
