@@ -75,3 +75,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
   .memo-list[data-presentation="compact"]{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:masonry;gap:.58rem!important}
   .memo-list[data-presentation="comfortable"]>.memo-card,.memo-list[data-presentation="compact"]>.memo-card{display:block!important;width:auto!important;margin:0!important}
 }
+
+@media(max-width:900px){.topbar-create{width:48px!important}}
