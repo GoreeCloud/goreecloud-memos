@@ -2,9 +2,10 @@
 
 ## 2026-09-28 — local memo text portability candidate
 
-- Added per-memo **Copy text** and **Export .txt** quick actions across active, archived, and trashed views.
-- Added deterministic plain-text formatting that preserves title, memo body, labels, and color metadata plus filesystem-safe local export filenames.
-- Added focused unit and browser-action coverage. This is local single-memo portability only; full-library export/import round-trip, backup/recovery, synchronization, and cross-client portability remain open.
+- Added per-memo **Copy text** and **Export .txt** quick actions plus **Copy selected** / **Export selected** for the current ephemeral selection.
+- Added deterministic selected-memo text bundles that preserve selection order and existing memo metadata, with filesystem-safe filenames and unit/browser coverage.
+- Hardened compact memo action geometry to 49 CSS px after Chromium exposed sub-pixel rounding below the 48 px acceptance floor.
+- Exact candidate head `9f6b9e75fe1e04a5758cc4ebdd8e429182e1b703` passed all configured Memos workflow families. Full-library export/import round-trip, backup/recovery, synchronization, and cross-client portability remain open.
 
 
 **Record type:** Repository changelog and migration history  
