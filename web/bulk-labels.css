@@ -50,3 +50,5 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 #sidebar-new-memo{display:none!important}
 .topbar-actions{justify-content:center!important}
 .capture-card{box-shadow:0 12px 36px rgba(28,31,40,.07)!important}
+
+.empty-state::before{content:"✦";display:block;margin:0 auto .6rem;color:var(--v3-ink3);font-size:1rem}
