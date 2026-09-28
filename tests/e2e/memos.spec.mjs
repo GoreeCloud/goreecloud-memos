@@ -356,7 +356,7 @@ test("Glaze accessibility media modes preserve the primary shell", async ({ page
   expect(mediaState.hasReducedTransparencyFallback).toBe(true);
 
   await page.emulateMedia({ forcedColors: "active" });
-  await expect(page.getByRole("heading", { name: "Capture what matters." })).toBeVisible();
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
   expect(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)).toBe(true);
 });
 
