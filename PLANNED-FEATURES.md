@@ -1,5 +1,9 @@
 # GoreeCloud Memos — Planned Features
 
+## 2026-09-28 candidate continuation
+
+PR #27 now carries device-local memo portability quick actions: Copy text and Export .txt. Formatting/filename behavior is isolated behind tested helpers and does not create sync, backup, cloud, or cross-device authority. The export capability remains candidate-only until the exact revision is accepted on authoritative main.
+
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/memos`  
 **Lifecycle:** Development / nonconformant  
