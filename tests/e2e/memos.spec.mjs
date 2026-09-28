@@ -508,7 +508,17 @@ test("memo click opens editing while the context menu stays secondary", async ({
   await card.locator(".memo-card__content").click();
   await expect(card.locator("[data-edit-field='content']")).toHaveValue("Open the memo directly");
   await expect(card.locator("[data-edit-field='content']")).toBeFocused();
+  await expect(card).toHaveAttribute("aria-expanded", "true");
+  const editorId = await card.locator(".memo-editor").getAttribute("id");
+  expect(editorId).toBeTruthy();
+  await expect(card).toHaveAttribute("aria-controls", editorId);
 
+  await page.locator("#memos-heading").click();
+  await expect(card.locator(".memo-editor")).toBeHidden();
+  await expect(card).toHaveAttribute("aria-expanded", "false");
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(card.locator(".memo-editor")).toBeHidden();
 
@@ -549,6 +559,37 @@ test("draft recovery and saved memo persistence survive reload", async ({ page }
   expect(saved.labelIds).toHaveLength(2);
   expect(snapshot.labels.map((label) => label.name).sort()).toEqual(["Ideas", "Work"]);
   expect(snapshot.memoLabels.filter((relation) => relation.memoId === saved.id)).toHaveLength(2);
+});
+
+test("label chips filter managed labels and make new labels explicit", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Managed labels", content: "Seed labels", labels: "Work, Ideas, Research" });
+
+  await openCapture(page);
+  const entry = page.locator("#memo-form .label-picker__entry");
+  await expect(entry).toHaveAttribute("maxlength", "60");
+
+  await entry.fill("wo");
+  await expect(page.getByRole("button", { name: "Add label Work" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add label Ideas" })).toHaveCount(0);
+
+  await entry.press("Escape");
+  await expect(entry).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Add label Ideas" })).toBeVisible();
+
+  await entry.fill("Fresh label");
+  const newLabel = page.getByRole("button", { name: "Use new label Fresh label" });
+  await expect(newLabel).toBeVisible();
+  await newLabel.click();
+
+  await expect(page.locator("#memo-labels")).toHaveValue("Fresh label");
+  await expect(page.locator("#memo-form .label-chip--selected")).toContainText("Fresh label");
+
+  await page.locator("#memo-content").fill("Create the new label with this memo");
+  await page.getByRole("button", { name: "Save memo" }).click();
+
+  const snapshot = await readManagedSnapshot(page);
+  expect(snapshot.labels.some((label) => label.name === "Fresh label")).toBe(true);
 });
 
 test("editing autosaves organization metadata and survives reload", async ({ page }) => {
