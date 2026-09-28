@@ -5,3 +5,8 @@
 
 .board-heading .eyebrow{display:none}
 .board-heading{min-height:34px;margin-bottom:.55rem}
+
+/* Glaze visual reset v3 */
+#view-hero[data-view-surface="active"]{display:none!important}
+.context-title{display:none!important}
+.workspace-canvas{width:min(1260px,calc(100% - 2rem))!important;padding-top:.9rem!important}
