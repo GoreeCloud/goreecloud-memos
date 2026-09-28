@@ -3231,3 +3231,31 @@ button.secondary {
     min-height: 5.5rem;
   }
 }
+
+
+/* Owner review: compact quick-capture field rhythm, 2026-09-27. */
+@media (min-width: 901px) {
+  #memo-form label {
+    gap: 0.22rem;
+    font-size: 0.74rem;
+  }
+
+  #memo-form label > span {
+    font-size: 0.7rem;
+  }
+
+  #memo-form input,
+  #memo-form select {
+    min-height: 36px;
+    padding-block: 0.42rem;
+  }
+
+  #memo-form textarea {
+    min-height: 4.5rem;
+    line-height: 1.42;
+  }
+
+  #memo-form .composer-actions button {
+    min-height: 38px;
+  }
+}
