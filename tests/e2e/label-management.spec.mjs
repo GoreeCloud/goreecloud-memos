@@ -30,6 +30,11 @@ async function openLabelManager(page) {
   if (!(await drawer.evaluate((element) => element.open))) {
     await drawer.locator(":scope > summary").click();
   }
+
+  await expect(drawer).toHaveJSProperty("open", true);
+  const panel = drawer.locator(".drawer-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel).toBeInViewport({ ratio: 0.5 });
 }
 
 async function readManagedSnapshot(page) {
