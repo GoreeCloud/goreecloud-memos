@@ -60,6 +60,14 @@ test("desktop workspace keeps capture compact and memo cards vertical", async ({
   await expect(page.locator("#view-hero")).toBeVisible();
   await expect(page.locator("#view-hero")).toContainText("Capture what matters.");
 
+  const privacyBox = await page.locator(".topbar-privacy").boundingBox();
+  expect(privacyBox).not.toBeNull();
+  expect(privacyBox.width).toBeLessThanOrEqual(120);
+  expect(privacyBox.height).toBeLessThanOrEqual(40);
+  const privacyIconBox = await page.locator(".topbar-privacy svg").boundingBox();
+  expect(privacyIconBox).not.toBeNull();
+  expect(privacyIconBox.width).toBeLessThanOrEqual(18);
+
   const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
   expect(collapsedCaptureBox).not.toBeNull();
   expect(collapsedCaptureBox.height).toBeLessThanOrEqual(56);
@@ -98,6 +106,7 @@ test("mobile active workspace keeps capture chrome compact", async ({ page }) =>
   await page.goto("/web/");
 
   await expect(page.locator("#view-hero")).toBeHidden();
+  await expect(page.locator(".topbar-privacy")).toBeHidden();
 
   const captureBox = await page.locator("#capture-panel").boundingBox();
   expect(captureBox).not.toBeNull();
