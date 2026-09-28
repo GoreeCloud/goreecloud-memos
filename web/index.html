@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./bulk-labels.css" />
     <link rel="stylesheet" href="./rebuild-v2.css" />
+    <link rel="stylesheet" href="./workspace-polish.css" />
   </head>
   <body>
     <a class="skip-link" href="#memo-list">Skip to memos</a>
@@ -302,12 +303,24 @@
             <div class="capture-body">
               <form id="memo-form">
                 <div class="composer-title-row">
-                  <label for="memo-title">
+                  <label class="composer-title-field" for="memo-title">
                     <span class="sr-only">Title (optional)</span>
                     <input id="memo-title" name="title" maxlength="240" autocomplete="off" placeholder="Title (optional)" />
                   </label>
-                  <label for="memo-color">
-                    <span class="sr-only">Color</span>
+                  <span class="composer-privacy" title="This memo stays local to this browser">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                    Private · local
+                  </span>
+                </div>
+
+                <label class="composer-body-field" for="memo-content">
+                  <span class="sr-only">Memo</span>
+                  <textarea id="memo-content" name="content" rows="2" required placeholder="Take a note…"></textarea>
+                </label>
+
+                <div class="composer-controls">
+                  <div class="composer-control" data-color-control>
+                    <span class="composer-control__label">Color</span>
                     <select id="memo-color" name="color" aria-label="Memo color">
                       <option value="">No color</option>
                       <option value="red">Red</option>
@@ -320,18 +333,15 @@
                       <option value="pink">Pink</option>
                       <option value="gray">Gray</option>
                     </select>
-                  </label>
+                    <div class="color-picker-host" data-color-picker-host></div>
+                  </div>
+
+                  <div class="composer-control composer-control--labels" data-label-control>
+                    <span class="composer-control__label">Labels</span>
+                    <input id="memo-labels" name="labels" autocomplete="off" aria-label="Memo labels" placeholder="Labels — comma separated" />
+                    <div class="label-picker-host" data-label-picker-host></div>
+                  </div>
                 </div>
-
-                <label for="memo-content">
-                  <span class="sr-only">Memo</span>
-                  <textarea id="memo-content" name="content" rows="2" required placeholder="Take a note…"></textarea>
-                </label>
-
-                <label for="memo-labels">
-                  <span class="sr-only">Labels (comma separated)</span>
-                  <input id="memo-labels" name="labels" autocomplete="off" placeholder="Labels — comma separated" />
-                </label>
 
                 <div class="composer-actions">
                   <span id="draft-state" class="muted">Drafts stay on this device.</span>
@@ -377,7 +387,13 @@
             <h3 class="memo-card__title"></h3>
           </div>
           <details class="memo-card-menu">
-            <summary aria-label="Memo actions" title="Memo actions">•••</summary>
+            <summary aria-label="Memo actions" title="Memo actions">
+              <svg class="memo-menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="5" r="1.6"></circle>
+                <circle cx="12" cy="12" r="1.6"></circle>
+                <circle cx="12" cy="19" r="1.6"></circle>
+              </svg>
+            </summary>
             <div class="memo-card__actions"></div>
           </details>
         </div>
@@ -388,13 +404,21 @@
     </template>
 
     <template id="memo-editor-template">
-      <form class="memo-editor" hidden>
-        <label>Title <span>(optional)</span>
+      <form class="memo-editor" hidden aria-label="Edit memo">
+        <div class="memo-editor__topline">
+          <span class="memo-editor__eyebrow">Edit memo</span>
+          <button class="memo-editor__close secondary" type="button" data-editor-close aria-label="Close editor">Done</button>
+        </div>
+        <label class="memo-editor__title">Title <span>(optional)</span>
           <input data-edit-field="title" maxlength="240" autocomplete="off" />
         </label>
-        <div class="field-grid">
-          <label>Color
-            <select data-edit-field="color">
+        <label class="memo-editor__body">Memo
+          <textarea data-edit-field="content" rows="5" required></textarea>
+        </label>
+        <div class="editor-controls">
+          <div class="composer-control" data-color-control>
+            <span class="composer-control__label">Color</span>
+            <select data-edit-field="color" aria-label="Memo color">
               <option value="">No color</option>
               <option value="red">Red</option>
               <option value="orange">Orange</option>
@@ -406,15 +430,17 @@
               <option value="pink">Pink</option>
               <option value="gray">Gray</option>
             </select>
-          </label>
-          <label>Labels <span>(comma separated)</span>
-            <input data-edit-field="labels" autocomplete="off" />
-          </label>
+            <div class="color-picker-host" data-color-picker-host></div>
+          </div>
+          <div class="composer-control composer-control--labels" data-label-control>
+            <span class="composer-control__label">Labels</span>
+            <input data-edit-field="labels" autocomplete="off" aria-label="Memo labels" placeholder="Labels — comma separated" />
+            <div class="label-picker-host" data-label-picker-host></div>
+          </div>
         </div>
-        <label>Memo
-          <textarea data-edit-field="content" rows="5" required></textarea>
-        </label>
-        <div class="editor-status muted" aria-live="polite">Changes save automatically.</div>
+        <div class="memo-editor__footer">
+          <div class="editor-status muted" aria-live="polite">Changes save automatically.</div>
+        </div>
       </form>
     </template>
 
@@ -453,6 +479,7 @@
 
     <script type="module" src="./onboarding.mjs"></script>
     <script type="module" src="./app.mjs"></script>
+    <script type="module" src="./memo-controls.mjs"></script>
     <script type="module" src="./label-admin.mjs"></script>
     <script type="module" src="./bulk-labels.mjs"></script>
     <script type="module" src="./shell-ui.mjs"></script>
