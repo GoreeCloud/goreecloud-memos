@@ -972,11 +972,11 @@ kbd {
 }
 
 .memo-list[data-presentation="comfortable"] {
-  column-width: 246px;
+  columns: 246px 4;
 }
 
 .memo-list[data-presentation="compact"] {
-  column-width: 215px;
+  columns: 215px 5;
   column-gap: 0.65rem;
 }
 
