@@ -113,12 +113,19 @@ test("mobile active workspace keeps capture chrome compact", async ({ page }) =>
   await expect(page.locator(".topbar-privacy")).toBeHidden();
 
   const location = page.getByRole("navigation", { name: "Memo location" });
+  const sidebarBox = await page.locator(".sidebar").boundingBox();
+  expect(sidebarBox).not.toBeNull();
+  expect(sidebarBox.width).toBeGreaterThanOrEqual(380);
+  await expect(page.locator(".sidebar .sidebar-section:not(:first-of-type)")).toBeHidden();
+
   for (const name of ["Memos", "Archive", "Trash"]) {
     const tab = location.getByRole("button", { name, exact: true });
     await expect(tab).toBeVisible();
     const box = await tab.boundingBox();
     expect(box).not.toBeNull();
-    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(48);
+    const labelFits = await tab.locator(".nav-label").evaluate((element) => element.scrollWidth <= element.clientWidth);
+    expect(labelFits, `${name} label should not be clipped`).toBe(true);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
