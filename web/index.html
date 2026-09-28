@@ -302,11 +302,13 @@
             <div class="capture-body">
               <form id="memo-form">
                 <div class="composer-title-row">
-                  <label for="memo-title">Title <span>(optional)</span>
-                    <input id="memo-title" name="title" maxlength="240" autocomplete="off" placeholder="Give this memo a title" />
+                  <label for="memo-title">
+                    <span class="sr-only">Title (optional)</span>
+                    <input id="memo-title" name="title" maxlength="240" autocomplete="off" placeholder="Title (optional)" />
                   </label>
-                  <label for="memo-color">Color
-                    <select id="memo-color" name="color">
+                  <label for="memo-color">
+                    <span class="sr-only">Color</span>
+                    <select id="memo-color" name="color" aria-label="Memo color">
                       <option value="">No color</option>
                       <option value="red">Red</option>
                       <option value="orange">Orange</option>
@@ -321,12 +323,14 @@
                   </label>
                 </div>
 
-                <label for="memo-content">Memo
-                  <textarea id="memo-content" name="content" rows="3" required placeholder="Write something before it is forgotten…"></textarea>
+                <label for="memo-content">
+                  <span class="sr-only">Memo</span>
+                  <textarea id="memo-content" name="content" rows="2" required placeholder="Take a note…"></textarea>
                 </label>
 
-                <label for="memo-labels">Labels <span>(comma separated)</span>
-                  <input id="memo-labels" name="labels" autocomplete="off" placeholder="Work, Ideas" />
+                <label for="memo-labels">
+                  <span class="sr-only">Labels (comma separated)</span>
+                  <input id="memo-labels" name="labels" autocomplete="off" placeholder="Labels — comma separated" />
                 </label>
 
                 <div class="composer-actions">
