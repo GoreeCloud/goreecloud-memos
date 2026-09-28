@@ -2,7 +2,7 @@
 
 ## 2026-09-28 candidate continuation
 
-PR #27 now carries device-local memo portability quick actions: Copy text and Export .txt. Formatting/filename behavior is isolated behind tested helpers and does not create sync, backup, cloud, or cross-device authority. The export capability remains candidate-only until the exact revision is accepted on authoritative main.
+PR #27 now carries device-local text portability quick actions: per-memo Copy text / Export .txt plus Copy selected / Export selected for the current ephemeral browser selection. Deterministic formatting and filename behavior are isolated behind tested helpers and create no sync, backup, cloud, or cross-device authority. Exact candidate head `9f6b9e75fe1e04a5758cc4ebdd8e429182e1b703` passed all configured Memos workflow families; integration to authoritative `main` and broader portability/recovery acceptance remain open.
 
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/memos`  
@@ -39,7 +39,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 15. Attachments | Planned | No attachment storage, upload, preview, quota, or client attachment flow is established. |
 | 16. Link Recognition | Planned | No governed link-recognition/preview feature is established. |
 | 17. Reminders | Planned | No reminder model, recurrence, or notification behavior is established. |
-| 18. Quick Actions | Partial | Pin, color, label, archive, delete, and bulk label actions exist locally. Reminder/copy/share/export and broader bulk actions remain open. |
+| 18. Quick Actions | Partial | Pin, color, label, archive, delete, bulk label actions, per-memo Copy/Export, and selected-memo Copy/Export exist locally in the PR #27 candidate. Reminder/share and broader mutating bulk actions remain open. |
 | 19. Desktop Application | Planned | No accepted native desktop client is established. |
 | 20. Mobile Application | Partial | Native Android local-only quick capture/persistence exists. Synchronization, sharing, widgets, camera/voice attachments, notifications, biometric lock, and production acceptance remain open. |
 | 21. Web Application | Partial | Responsive browser-local experience, keyboard-accessible controls, local draft protection, and browser persistence exist. Server-backed administration, synchronized/offline web behavior, attachments, and full roadmap parity remain open. |
@@ -48,7 +48,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 24. Conflict Handling | Planned | No cross-device conflict engine or merge UI is established. |
 | 25. Version History | Planned | No memo revision-history product feature is established. |
 | 26. Imports | Planned | No product import pipeline or preview is established. |
-| 27. Exports | Planned | No product export/full-library archive pipeline is established. |
+| 27. Exports | Partial | PR #27 implements bounded local plain-text export for one memo or the current ephemeral selection. Full-library archive/export, format-versioned portability, cross-client round-trip acceptance, and server-side export jobs remain open. |
 | 28. Import/Export Round-Trip Guarantee | Planned | No round-trip portability acceptance evidence is established. |
 | 29. Backups | Planned | No operational Memos backup system is established. |
 | 30. Tested Recovery | Planned | No accepted clean-target restore/recovery proof is established. |
