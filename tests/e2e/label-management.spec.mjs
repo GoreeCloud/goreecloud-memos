@@ -5,6 +5,7 @@ async function openCapture(page) {
   if (!(await panel.evaluate((element) => element.open))) {
     await panel.locator(":scope > summary").click();
   }
+  await expect(panel).toHaveJSProperty("open", true);
 }
 
 async function captureMemo(page, content, labels) {
@@ -12,6 +13,8 @@ async function captureMemo(page, content, labels) {
   await openCapture(page);
   await page.locator("#memo-labels").fill(labels);
   await page.locator("#memo-content").fill(content);
+  await expect(page.locator("#memo-labels")).toHaveValue(labels);
+  await expect(page.locator("#memo-content")).toHaveValue(content);
   await page.getByRole("button", { name: "Save memo" }).click();
   await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
   await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
