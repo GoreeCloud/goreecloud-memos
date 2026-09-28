@@ -46,3 +46,7 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .contextual-hint{width:340px!important;padding:.4rem!important;border-radius:13px!important}
 .contextual-hint__copy{font-size:.66rem!important}
 .development-note{margin-top:1.4rem!important;padding-top:.68rem!important;font-size:.58rem!important}
+
+#sidebar-new-memo{display:none!important}
+.topbar-actions{justify-content:center!important}
+.capture-card{box-shadow:0 12px 36px rgba(28,31,40,.07)!important}
