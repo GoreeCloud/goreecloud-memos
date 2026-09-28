@@ -112,6 +112,16 @@ test("mobile active workspace keeps capture chrome compact", async ({ page }) =>
   await expect(page.locator("#view-hero")).toBeHidden();
   await expect(page.locator(".topbar-privacy")).toBeHidden();
 
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  for (const name of ["Memos", "Archive", "Trash"]) {
+    const tab = location.getByRole("button", { name, exact: true });
+    await expect(tab).toBeVisible();
+    const box = await tab.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
   const captureBox = await page.locator("#capture-panel").boundingBox();
   expect(captureBox).not.toBeNull();
   expect(captureBox.height).toBeLessThanOrEqual(70);
