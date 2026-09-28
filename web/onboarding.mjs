@@ -46,8 +46,8 @@ const STEPS = Object.freeze([
     body: "Use labels, color, Saved Views, presentation density, and Glaze appearance controls without changing the underlying memo content.",
     points: [
       "Choose System, Light, Dark, or Deep Dark appearance from Workspace settings.",
-      "Use the memo action menu for pin, edit, archive, restore, and deletion actions.",
-      "Contextual hints can stay on, be disabled globally, or be re-enabled later."
+      "Click an active memo to edit it directly; use its action menu for pinning, Archive, Trash, restore, and deletion.",
+      "Pick memo colors from visual swatches and add labels as chips while capturing or editing."
     ]
   }
 ]);
