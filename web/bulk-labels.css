@@ -27,3 +27,6 @@ body{background:var(--v3-bg)!important;color:var(--v3-ink)!important}
 .topbar{min-height:58px!important;grid-template-columns:minmax(0,1fr)!important;padding:.42rem .85rem!important}
 
 .search-shell{height:40px!important;box-shadow:none!important}
+
+.capture-card{width:min(690px,calc(100% - 1rem))!important;border-radius:16px!important}
+.capture-summary{min-height:48px!important}
