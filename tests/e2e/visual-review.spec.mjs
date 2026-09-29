@@ -215,8 +215,16 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
   });
   const clippedLifecycleLabels = await page.locator(".workspace-nav .nav-label").evaluateAll((labels) =>
     labels
-      .filter((label) => label.scrollWidth > label.clientWidth + 1 || label.scrollHeight > label.clientHeight + 1)
-      .map((label) => label.textContent?.trim() ?? "")
+      .map((label) => ({
+        text: label.textContent?.trim() ?? "",
+        clientWidth: label.clientWidth,
+        scrollWidth: label.scrollWidth,
+        clientHeight: label.clientHeight,
+        scrollHeight: label.scrollHeight
+      }))
+      .filter(({ clientWidth, scrollWidth, clientHeight, scrollHeight }) =>
+        scrollWidth > clientWidth + 1 || scrollHeight > clientHeight + 1
+      )
   );
   expect(clippedLifecycleLabels).toEqual([]);
   screenshots.push(await shot(page, "09-mobile-active-200-percent-text.png", { width: 390, height: 844 }));
