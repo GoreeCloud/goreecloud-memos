@@ -1,5 +1,15 @@
 # GoreeCloud Memos — Changelogs
 
+## 2026-09-29 — local memo duplication candidate
+
+- Added **Duplicate** to active memo actions.
+- Duplication creates a new browser-local Active memo with copied title, content, color, and labels while leaving the source memo unchanged.
+- The duplicate intentionally starts unpinned with a new identifier and new creation timestamp; archive/trash state and pin ordering are not copied.
+- Added focused service coverage for source preservation and duplicate lifecycle defaults.
+- No schema, account, synchronization, server, backup, cloud, or cross-device authority was added.
+
+**Acceptance boundary:** Development candidate on PR #27. Fresh exact-head workflow validation and the existing integration/review/device/release gates remain required.
+
 ## 2026-09-29 — versioned local-library export candidate
 
 - Added **Export library JSON** to the browser-local Workspace settings.
