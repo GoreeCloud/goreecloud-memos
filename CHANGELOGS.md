@@ -1,5 +1,17 @@
 # GoreeCloud Memos — Changelogs
 
+
+## 2026-09-28 — recoverable bulk memo lifecycle candidate
+
+- Extended the existing ephemeral browser selection with **Archive selected**, **Move to Trash**, and **Restore selected**.
+- Added one-transaction IndexedDB lifecycle updates that validate the full selection before writing, preventing partial mutation when one selected memo cannot perform the requested transition.
+- Preserved each trashed memo's prior Active or Archived location when restoring.
+- Kept bulk permanent deletion unavailable; permanent deletion remains an explicit single-memo Trash action.
+- Added service/unit and Chromium end-to-end coverage for reversible bulk lifecycle behavior.
+- No schema, account, synchronization, server, backup, or cross-device authority was added.
+- Fresh exact-head validation remains required for this continuation.
+
+
 ## 2026-09-28 — local memo text portability candidate
 
 - Added per-memo **Copy text** and **Export .txt** quick actions plus **Copy selected** / **Export selected** for the current ephemeral selection.
