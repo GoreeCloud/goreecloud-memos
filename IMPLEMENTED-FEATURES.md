@@ -1,5 +1,13 @@
 # GoreeCloud Memos — Implemented Features
 
+
+## 2026-09-28 — recoverable bulk lifecycle candidate
+
+PR #27 now extends the existing ephemeral browser selection with **Archive selected**, **Move to Trash**, and **Restore selected**. The IndexedDB path validates every selected memo before committing one transaction, so an invalid mixed selection fails without partially changing other memos. Restoring from Trash preserves each memo's prior Active or Archived location. Bulk permanent deletion is deliberately not exposed; permanent deletion remains a single-memo Trash-only destructive action.
+
+Unit coverage verifies multi-memo archive/trash/restore behavior plus pre-mutation failure, and Chromium acceptance exercises Active → Archive → Trash → Archive recovery through the real selection controls. This is a schema-neutral, browser-local Development candidate and adds no account, synchronization, server, backup, or cross-device authority. Fresh exact-head validation is required before this candidate is treated as verified.
+
+
 ## 2026-09-28 — local memo text portability candidate
 
 - Added per-memo **Copy text** and **Export .txt** quick actions across active, archived, and trashed views plus **Copy selected** / **Export selected** for the current ephemeral browser selection.
@@ -31,7 +39,7 @@ This record contains capabilities verified in accepted repository state. The ret
 - Optional memo colors use a curated palette with restrained card treatment plus an accessible named color indicator so color is not the only signal.
 - Managed Label v2 identities use stable UUIDs, case-insensitive names, optional curated color, optional icon text, and optional description.
 - Memo–Label relationships are explicit and label rename/delete/merge operations are transactional.
-- Bulk Apply label / Remove label operations exist for the current browser-local selection and fail atomically on invalid/over-limit input.
+- Bulk Apply label / Remove label plus recoverable Archive / Trash / Restore operations exist for the current browser-local selection and fail before partial mutation when the selection is invalid.
 - Pin/unpin and persisted manual pin ordering are implemented for active memos.
 - Active memo cards open an inline editor directly by click or keyboard activation; edits autosave locally, Done, Escape, or an outside click closes the editor, editor/card accessibility state stays synchronized, and the action menu remains for secondary lifecycle and pinning actions.
 - Archive and Trash are recoverable local lifecycle states; permanent deletion is restricted to Trash and requires explicit destructive action.
