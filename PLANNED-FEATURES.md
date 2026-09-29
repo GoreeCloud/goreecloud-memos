@@ -2,7 +2,7 @@
 
 ## 2026-09-28 candidate continuation
 
-PR #27 now carries device-local text portability plus recoverable multi-selection lifecycle actions. In addition to per-memo and selected-memo Copy/Export, the current candidate adds atomic **Archive selected**, **Move to Trash**, and **Restore selected** behavior while preserving prior Active/Archived restore state and deliberately keeping permanent deletion single-memo and Trash-only. These changes remain browser-local and create no sync, backup, cloud, or cross-device authority. Fresh exact-head validation is required after this continuation before the new lifecycle slice is treated as verified; integration to authoritative `main` and broader portability/recovery acceptance remain open.
+PR #27 now carries device-local text portability plus recoverable multi-selection lifecycle actions. In addition to per-memo and selected-memo Copy/Export, the current candidate adds atomic **Archive selected**, **Move to Trash**, and **Restore selected** behavior while preserving prior Active/Archived restore state and deliberately keeping permanent deletion single-memo and Trash-only. These changes remain browser-local and create no sync, backup, cloud, or cross-device authority. Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed all four configured workflow families (Platform Contract #82, feature records #358, Validate #405, Android Development Foundation #255). Integration to authoritative `main` and broader portability/recovery acceptance remain open.
 
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/memos`  
