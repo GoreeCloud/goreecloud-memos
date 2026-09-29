@@ -187,6 +187,17 @@
                     <output id="filter-status" class="muted" aria-live="polite">Search and filters are not saved.</output>
                     <button id="clear-filters" type="button" class="secondary" aria-label="Clear search and filters" disabled>Clear filters</button>
                   </div>
+                  <section id="recent-searches-panel" class="recent-searches" aria-labelledby="recent-searches-heading" hidden>
+                    <div class="recent-searches__header">
+                      <div>
+                        <span class="drawer-kicker">Local history</span>
+                        <h3 id="recent-searches-heading">Recent searches</h3>
+                      </div>
+                      <button id="clear-recent-searches" type="button" class="secondary">Clear recent searches</button>
+                    </div>
+                    <div id="recent-searches-list" class="recent-searches__list" aria-label="Recent memo searches"></div>
+                    <output id="recent-searches-status" class="muted" aria-live="polite">Only searches submitted with Enter are remembered on this device.</output>
+                  </section>
                 </div>
 
                 <div class="filter-panel" aria-labelledby="saved-view-heading">
