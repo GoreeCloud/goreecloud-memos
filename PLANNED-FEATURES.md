@@ -1,5 +1,9 @@
 # GoreeCloud Memos — Planned Features
 
+## 2026-09-29 full-library export continuation
+
+PR #27 now also carries a versioned browser-local library export containing Memo lifecycle records, managed Labels, and Saved Views. It deliberately excludes drafts, recent-search history, and UI preferences and does not claim backup/recovery. Full-library import preview, strict validation, round-trip preservation, operational backup, clean-target recovery, and cross-client/server portability remain open.
+
 ## 2026-09-29 recent-search continuation
 
 PR #27 now also carries bounded browser-local recent-search history. It records only explicitly submitted valid queries, retains at most eight entries, and exposes an independent clear action; normal search-as-you-type input remains unpersisted. Broader date/attachment/checklist/full-metadata search, synchronized search history, and search portability remain open. Fresh exact-head validation is required before treating this candidate as verified Development evidence.
@@ -52,7 +56,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 24. Conflict Handling | Planned | No cross-device conflict engine or merge UI is established. |
 | 25. Version History | Planned | No memo revision-history product feature is established. |
 | 26. Imports | Planned | No product import pipeline or preview is established. |
-| 27. Exports | Partial | PR #27 implements bounded local plain-text export for one memo or the current ephemeral selection. Full-library archive/export, format-versioned portability, cross-client round-trip acceptance, and server-side export jobs remain open. |
+| 27. Exports | Partial | PR #27 implements bounded plain-text export for one memo/selection plus a versioned browser-local full-library JSON export of memos, labels, and Saved Views. Import/round-trip acceptance, cross-client preservation, and server-side export jobs remain open. |
 | 28. Import/Export Round-Trip Guarantee | Planned | No round-trip portability acceptance evidence is established. |
 | 29. Backups | Planned | No operational Memos backup system is established. |
 | 30. Tested Recovery | Planned | No accepted clean-target restore/recovery proof is established. |
@@ -87,7 +91,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 - Keep local-only browser/Android evidence from being represented as synchronized or server-authoritative.
 
 ### P0 — Portability, backup, and recovery
-- Implement user-owned imports/exports, import preview, full-library export, round-trip validation, operational backups, integrity validation, retention, off-device copies, and tested clean-target recovery.
+- Integrate and validate the PR #27 full-library export candidate; then add fail-closed import preview/validation, round-trip preservation, operational backups, integrity validation, retention, off-device copies, and tested clean-target recovery.
 - Keep export portability distinct from operational backup/recovery.
 
 ### P0 — Privacy, security, and multi-user self-hosting
