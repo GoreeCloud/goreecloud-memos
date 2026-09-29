@@ -1,5 +1,9 @@
 # GoreeCloud Memos — Planned Features
 
+## 2026-09-29 recent-search continuation
+
+PR #27 now also carries bounded browser-local recent-search history. It records only explicitly submitted valid queries, retains at most eight entries, and exposes an independent clear action; normal search-as-you-type input remains unpersisted. Broader date/attachment/checklist/full-metadata search, synchronized search history, and search portability remain open. Fresh exact-head validation is required before treating this candidate as verified Development evidence.
+
 ## 2026-09-28 candidate continuation
 
 PR #27 now carries device-local text portability plus recoverable multi-selection lifecycle actions. In addition to per-memo and selected-memo Copy/Export, the current candidate adds atomic **Archive selected**, **Move to Trash**, and **Restore selected** behavior while preserving prior Active/Archived restore state and deliberately keeping permanent deletion single-memo and Trash-only. These changes remain browser-local and create no sync, backup, cloud, or cross-device authority. Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed all four configured workflow families (Platform Contract #82, feature records #358, Validate #405, Android Development Foundation #255). Integration to authoritative `main` and broader portability/recovery acceptance remain open.
@@ -31,7 +35,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 7. Labels | Partial | Managed local labels, rename/delete/merge, color/icon/description metadata, search/filter, and bulk apply/remove exist. Ownership/synchronization and complete cross-client behavior remain open. |
 | 8. Smart Filters | Partial | Current local filters cover memo color, label name, managed Label color, lifecycle scoping, and bounded expressions. The full roadmap filter set remains open. |
 | 9. Saved Views | Partial | Browser-local named Saved View v1 snapshots exist. Synchronization, pin/order/icon/color/default-view behavior remains open. |
-| 10. Search | Partial | Local text/title/label search and three bounded expression fields exist. Attachment/checklist/date/full metadata search and recent searches remain open. |
+| 10. Search | Partial | Local text/title/label search, three bounded expression fields, and PR #27 browser-local explicit recent-search history exist. Attachment/checklist/date/full metadata search, synchronized history, and search portability remain open. |
 | 11. Pinning | Partial | Local pin/unpin and manual ordering exist. Cross-device synchronization/context-menu parity remains open. |
 | 12. Archive | Partial | Local archive/restore exists, and PR #27 now carries atomic selected-memo archive/restore as a Development candidate. Full archive search/filter/export and cross-device behavior remain open. |
 | 13. Trash | Partial | Local trash/restore/permanent deletion exists, and PR #27 now carries selected-memo Move to Trash / Restore while preserving prior lifecycle location. Bulk permanent deletion remains deliberately absent; retention policy and synchronized trash remain open. |
