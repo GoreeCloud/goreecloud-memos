@@ -167,6 +167,56 @@ test("local search and filters combine within the current lifecycle view and res
 });
 
 
+test("recent searches retain only explicit local submissions and can be cleared independently", async ({ page }) => {
+  await page.goto("/web/");
+
+  await captureMemo(page, {
+    title: "Recent Alpha",
+    content: "First recent-search target"
+  });
+  await captureMemo(page, {
+    title: "Recent Garden",
+    content: "Second recent-search target"
+  });
+
+  await openViewControls(page);
+  const search = page.getByRole("searchbox", { name: "Search memos" });
+  const recentPanel = page.locator("#recent-searches-panel");
+
+  await expect(recentPanel).toBeHidden();
+
+  await search.fill("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+  await expect(recentPanel).toBeHidden();
+
+  await search.press("Enter");
+  await expect(recentPanel).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search again for alpha", exact: true })).toBeVisible();
+
+  await search.fill("garden");
+  await search.press("Enter");
+  const recentButtons = page.locator("#recent-searches-list .recent-searches__query");
+  await expect(recentButtons).toHaveCount(2);
+  await expect(recentButtons.nth(0)).toHaveText("garden");
+  await expect(recentButtons.nth(1)).toHaveText("alpha");
+
+  await page.reload();
+  await openViewControls(page);
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Search again for alpha", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search again for garden", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Search again for alpha", exact: true }).click();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Recent Garden" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Clear recent searches", exact: true }).click();
+  await expect(recentPanel).toBeHidden();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+});
+
 test("advanced search expressions combine verified local dimensions and surface deterministic errors", async ({ page }) => {
   await page.goto("/web/");
 
