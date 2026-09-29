@@ -1,5 +1,13 @@
 # GoreeCloud Memos — Implemented Features
 
+## 2026-09-29 — versioned local-library export candidate
+
+PR #27 now also provides an explicit browser-local **Export library JSON** action. The versioned `goreecloud-memos-library-export` v1 document contains every current Memo record across Active, Archive, and Trash, managed Label records, and Saved View records. Export normalizes the current domain schemas and sorts records deterministically before download.
+
+Draft composer text, explicit recent-search history, appearance/presentation settings, and guidance preferences are deliberately excluded. Export is user-initiated and browser-local, changes no data, and adds no server, account, synchronization, Everkeep, backup, restore, or import authority. Unit coverage locks format/version/order/filename behavior, and Chromium coverage exercises a mixed Active/Archived library through the real download control.
+
+This remains unmerged Development candidate evidence pending fresh exact-head validation, integration, and broader import/round-trip/recovery acceptance.
+
 ## 2026-09-29 — explicit recent-search history candidate
 
 PR #27 now includes a privacy-minimized browser-local recent-search history. Live typing continues to filter memos without being retained. A query enters history only after explicit Enter submission or reuse from the recent-search list, and only when the bounded search expression is valid. History is limited to eight entries of at most 256 characters, deduplicated case-insensitively, and can be cleared independently of the active query, Saved Views, filters, or memo records.
@@ -77,7 +85,7 @@ Authoritative `main` does not establish:
 - connected/synchronized Android behavior or accepted native desktop client behavior;
 - attachments, checklists, reminders, version history, or locked memos;
 - complete smart-filter/search coverage or synchronized Saved Views;
-- full-library import/export round-trip portability, operational backup, or tested recovery;
+- accepted full-library import/export round-trip portability, operational backup, or tested recovery; PR #27 carries a versioned export-only candidate but no import/restore authority;
 - multi-user self-hosting, optional sharing, Notes handoff, or server administration;
 - accepted Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability runtime integration;
 - accepted whole-application GLAZE UI V1.6 conformance, representative-device accessibility/performance acceptance, production signing/provenance, Release Candidate, production, or Stable qualification.
