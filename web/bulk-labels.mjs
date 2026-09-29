@@ -10,6 +10,9 @@ const removeButton = document.querySelector("#bulk-label-remove");
 const clearButton = document.querySelector("#bulk-selection-clear");
 const copyButton = document.querySelector("#bulk-selection-copy");
 const exportButton = document.querySelector("#bulk-selection-export");
+const archiveButton = document.querySelector("#bulk-selection-archive");
+const restoreButton = document.querySelector("#bulk-selection-restore");
+const trashButton = document.querySelector("#bulk-selection-trash");
 const statusElement = document.querySelector("#bulk-label-status");
 const utilityDrawer = document.querySelector("details.utility-drawer");
 
@@ -20,6 +23,7 @@ let selectedMemoIds = new Set();
 let actionMessage = "";
 let labelOptionsGeneration = 0;
 let latestWorkspaceLabels = null;
+let latestWorkspaceView = "active";
 
 function memoCountText(count) {
   return `${count} ${count === 1 ? "memo" : "memos"}`;
@@ -32,6 +36,14 @@ function updateControls() {
   removeButton.disabled = !ready;
   copyButton.disabled = count === 0;
   exportButton.disabled = count === 0;
+  const activeView = latestWorkspaceView === "active";
+  const trashView = latestWorkspaceView === "trashed";
+  archiveButton.hidden = !activeView;
+  restoreButton.hidden = activeView;
+  trashButton.hidden = trashView;
+  archiveButton.disabled = count === 0 || !activeView;
+  restoreButton.disabled = count === 0 || activeView;
+  trashButton.disabled = count === 0 || trashView;
   clearButton.disabled = count === 0;
   statusElement.textContent = actionMessage
     ? `${actionMessage} ${memoCountText(count)} selected.`
@@ -101,6 +113,9 @@ async function refreshLabelOptions(labelsSnapshot = null) {
 
 function syncFromWorkspaceRender(event) {
   selectedMemoIds = new Set();
+  latestWorkspaceView = ["active", "archived", "trashed"].includes(event?.detail?.view)
+    ? event.detail.view
+    : "active";
   enhanceVisibleCards();
   const labels = Array.isArray(event?.detail?.labels) ? event.detail.labels : null;
   if (labels) latestWorkspaceLabels = labels;
@@ -166,6 +181,30 @@ async function runSelectionPortability(action) {
   }
 }
 
+async function runBulkLifecycle(action) {
+  const memoIds = [...selectedMemoIds];
+  if (memoIds.length === 0) return;
+  archiveButton.disabled = true;
+  restoreButton.disabled = true;
+  trashButton.disabled = true;
+
+  try {
+    const result = action === "archive"
+      ? await memoService.archiveMany(memoIds)
+      : action === "restore"
+        ? await memoService.restoreMany(memoIds)
+        : await memoService.trashMany(memoIds);
+    clearSelection();
+    await requestWorkspaceRefresh(`bulk-${action}`);
+    const verb = action === "archive" ? "Archived" : action === "restore" ? "Restored" : "Moved to Trash";
+    actionMessage = `${verb} ${memoCountText(result.length)}.`;
+    updateControls();
+  } catch (error) {
+    actionMessage = error instanceof Error ? error.message : "Could not update selected memos";
+    updateControls();
+  }
+}
+
 async function runBulkAction(mode) {
   const memoIds = [...selectedMemoIds];
   const labelId = labelSelect.value;
@@ -204,6 +243,9 @@ labelSelect.addEventListener("change", () => {
 });
 copyButton.addEventListener("click", () => runSelectionPortability("copy"));
 exportButton.addEventListener("click", () => runSelectionPortability("export"));
+archiveButton.addEventListener("click", () => runBulkLifecycle("archive"));
+restoreButton.addEventListener("click", () => runBulkLifecycle("restore"));
+trashButton.addEventListener("click", () => runBulkLifecycle("trash"));
 applyButton.addEventListener("click", () => runBulkAction("apply"));
 removeButton.addEventListener("click", () => runBulkAction("remove"));
 clearButton.addEventListener("click", () => {
