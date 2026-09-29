@@ -1424,6 +1424,43 @@ button.danger {
   line-height: 1.4;
 }
 
+.recent-searches {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.recent-searches[hidden] {
+  display: none;
+}
+
+.recent-searches__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.recent-searches__header h3 {
+  margin: 0.16rem 0 0;
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+.recent-searches__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin: 0.7rem 0 0.55rem;
+}
+
+.recent-searches__query {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .presentation-picker {
   margin: 1rem 0 0;
   padding: 0.9rem;
@@ -2112,6 +2149,15 @@ button.danger {
   .saved-view-actions,
   .bulk-label-actions {
     justify-content: flex-start;
+  }
+
+  .recent-searches__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .recent-searches__header button {
+    align-self: flex-start;
   }
 
   .memo-list[data-presentation="comfortable"],
