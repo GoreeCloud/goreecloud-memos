@@ -54,20 +54,21 @@ Memo cards use the managed Label identity to show the current canonical label na
 
 Ownership, authorization, and synchronization are not implemented yet.
 
-## Apply or remove a label from multiple memos
+## Work with multiple selected memos
 
-The bulk-label controls work with managed labels that already exist in the browser.
+Selection is browser-local and temporary. In **Memos**, **Archive**, or **Trash**, use each memo's **Select** checkbox, then open **Workspace settings** to act on the current selection.
 
-1. In the current **Memos**, **Archive**, or **Trash** view, select the **Select** checkbox on each memo you want to change.
-2. Choose a managed label from **Bulk label**.
-3. Select **Apply label** to add that label to every selected memo that does not already have it, or **Remove label** to remove it from every selected memo that currently has it.
-4. After a successful bulk action, Memos refreshes the affected workspace in place, clears the temporary selection, and shows the resulting label state.
+- **Copy selected** and **Export selected** produce local plain text without changing memo state.
+- **Apply label** and **Remove label** operate on an existing managed label.
+- In **Memos**, **Archive selected** moves every selected active memo into Archive.
+- In **Memos** or **Archive**, **Move to Trash** moves every selected memo into recoverable Trash.
+- In **Archive** or **Trash**, **Restore selected** restores each selected memo. A memo restored from Trash returns to the lifecycle location it came from, so an archived memo returns to Archive rather than being silently promoted to Memos.
 
-Bulk selection is intentionally temporary. It is cleared whenever the memo list rerenders, including when search/filter results or lifecycle location change, and it is not stored across reloads.
+After a successful mutating bulk action, Memos refreshes the affected workspace in place and clears the selection. Selection is also cleared whenever the memo list rerenders, including when search/filter results or lifecycle location change, and it is not stored across reloads.
 
-Each bulk label action validates the selected memo set before writing and then updates Memo–Label relationships plus memo label-name/ID projections in one IndexedDB transaction. Changed memos receive the same organization-change timestamp. Applying a label still respects the current 20-label-per-memo limit; if any selected memo would exceed that limit, the bulk apply is rejected before any selected memo is changed.
+Bulk label and lifecycle mutations validate the selected memo set before writing and use one IndexedDB transaction for the operation. If any selected memo cannot perform the requested transition, the operation is rejected before any selected memo is changed. Applying a label still respects the current 20-label-per-memo limit.
 
-Bulk actions other than label application/removal are not implemented in this slice.
+There is no bulk permanent-delete action. **Delete permanently** remains a single-memo Trash-only destructive action with explicit confirmation.
 
 ## Edit a memo
 
@@ -130,11 +131,11 @@ Appearance is also browser-local and offers **System**, **Light**, **Dark**, and
 
 ## Archive and restore
 
-Open an active memo's action menu and select **Archive** to remove it from the main Memos view without deleting it. Open **Archive** to view archived memos, then use a card's action menu to **Restore** it to **Memos**.
+Open an active memo's action menu and select **Archive** to remove it from the main Memos view without deleting it. Open **Archive** to view archived memos, then use a card's action menu to **Restore** it to **Memos**. For multiple active memos, select them and use **Archive selected**; multiple archived memos can be restored together with **Restore selected**.
 
 ## Trash and recovery
 
-Use **Move to Trash** from a memo card's action menu in Memos or Archive. Open **Trash** to view trashed memos. Use **Restore** in the card action menu to return the memo to the location it came from. **Delete permanently** is available only in Trash and requires explicit confirmation.
+Use **Move to Trash** from a memo card's action menu in Memos or Archive, or select multiple memos and use **Move to Trash**. Open **Trash** to view trashed memos. Use **Restore** on one memo or **Restore selected** for the current selection to return each memo to the location it came from. **Delete permanently** is available only for an individual memo in Trash and requires explicit confirmation.
 
 ## Data migration
 
@@ -174,4 +175,4 @@ npm run test:e2e
 
 ## Current limitations
 
-Accounts, synchronization, attachments, bulk actions beyond label application/removal, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, Saved View synchronization/order/pin/icon/color/default-view behavior beyond named local filter snapshots, checklists, reminders, import/export, backups, a native desktop client, connected/synchronized Android behavior beyond the current local Development foundation, administration beyond the local label-management slice, and Stable release qualification are not implemented.
+Accounts, synchronization, attachments, bulk permanent deletion and broader bulk operations beyond the current label/lifecycle actions, label ownership/authorization/synchronization metadata, managed Label icon/description search/filter dimensions, advanced expression fields beyond the current bounded local dimensions, full-roadmap search, smart filters, Saved View synchronization/order/pin/icon/color/default-view behavior beyond named local filter snapshots, checklists, reminders, format-versioned import/export round trips, backups, a native desktop client, connected/synchronized Android behavior beyond the current local Development foundation, administration beyond the local label-management slice, and Stable release qualification are not implemented.
