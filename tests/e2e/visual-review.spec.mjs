@@ -213,6 +213,12 @@ test("capture exact-head rendered visual review evidence", async ({ page }) => {
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
+  const clippedLifecycleLabels = await page.locator(".workspace-nav .nav-label").evaluateAll((labels) =>
+    labels
+      .filter((label) => label.scrollWidth > label.clientWidth + 1 || label.scrollHeight > label.clientHeight + 1)
+      .map((label) => label.textContent?.trim() ?? "")
+  );
+  expect(clippedLifecycleLabels).toEqual([]);
   screenshots.push(await shot(page, "09-mobile-active-200-percent-text.png", { width: 390, height: 844 }));
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "";
