@@ -65,6 +65,20 @@ export class MemoService {
     return memo;
   }
 
+  async duplicate(id) {
+    const source = await this.get(id);
+    const duplicate = createMemo({
+      id: this.#idFactory(),
+      title: source.title,
+      content: source.content,
+      color: source.color,
+      labels: source.labels,
+      createdAt: this.#clock()
+    });
+    await this.#store.put(duplicate);
+    return (await this.#store.get(duplicate.id)) ?? duplicate;
+  }
+
   async listAll() {
     return (await this.#store.list()).sort(compareMemosForDisplay);
   }
