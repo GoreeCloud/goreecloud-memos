@@ -15,6 +15,7 @@
 - Compact quick-capture composer with optional title, required memo content, visual memo-color swatches, removable label chips, and managed-label suggestions.
 - Local composer draft recovery using browser local storage, including draft color and label input state.
 - Saved memo persistence using browser IndexedDB.
+- Active memos can be duplicated locally into a new Active, unpinned memo without changing the source.
 - Stable local memo identifiers using `crypto.randomUUID()`.
 - Memo timestamps and explicit schema-version metadata.
 - Local Memo schema v4 / Label schema v2 / Saved View schema v1 on IndexedDB database v5, with migration coverage from v1, v2, v3, and preservation coverage for existing v4 managed-label state.
