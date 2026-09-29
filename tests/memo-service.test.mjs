@@ -68,6 +68,30 @@ test("capture persists memo organization metadata and active list returns it", a
   assert.deepEqual(memos[0].labels, ["Work"]);
 });
 
+test("duplicate creates a new active unpinned memo without mutating the source", async () => {
+  const service = createService();
+  await service.capture({
+    title: "Reusable",
+    content: "Keep this text",
+    color: "teal",
+    labels: ["Work", "Reference"]
+  });
+  await service.pin("memo-1");
+
+  const duplicate = await service.duplicate("memo-1");
+  const source = await service.get("memo-1");
+
+  assert.equal(duplicate.id, "memo-2");
+  assert.equal(duplicate.title, source.title);
+  assert.equal(duplicate.content, source.content);
+  assert.equal(duplicate.color, source.color);
+  assert.deepEqual(duplicate.labels, source.labels);
+  assert.equal(duplicate.state, "active");
+  assert.equal(duplicate.pinned, false);
+  assert.equal(duplicate.pinOrder, null);
+  assert.equal(source.pinned, true);
+});
+
 test("listAll returns every lifecycle state in display order from one snapshot", async () => {
   const service = createService();
   await service.capture({ content: "Active one" });
