@@ -1,5 +1,11 @@
 # GoreeCloud Memos — Implemented Features
 
+## 2026-09-29 — local memo duplication candidate
+
+PR #27 now includes an explicit **Duplicate** action for Active memos. The service copies title, content, color, and labels into a new browser-local memo with a fresh cryptographic identifier and timestamp. The new memo starts Active and unpinned, while the original memo is left unchanged.
+
+This is a local convenience operation over the existing Memo schema and IndexedDB authority. It adds no account, synchronization, server, backup, cloud, or cross-device behavior. Focused unit coverage locks source preservation and duplicate lifecycle defaults. This remains unmerged Development candidate evidence pending fresh exact-head validation.
+
 ## 2026-09-29 — versioned local-library export candidate
 
 PR #27 now also provides an explicit browser-local **Export library JSON** action. The versioned `goreecloud-memos-library-export` v1 document contains every current Memo record across Active, Archive, and Trash, managed Label records, and Saved View records. Export normalizes the current domain schemas and sorts records deterministically before download.
