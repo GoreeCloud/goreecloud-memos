@@ -567,9 +567,9 @@ test("memo click opens editing while the context menu stays secondary", async ({
   const menu = card.locator("details.memo-card-menu");
   await menu.locator(":scope > summary").click();
   await expect(card.locator(".memo-select")).toHaveCSS("opacity", "0");
-  await expect(card.locator(".memo-card__actions button")).toHaveCount(5);
-  await expect(card.getByRole("button", { name: "Copy text", exact: true })).toBeVisible();
-  await expect(card.getByRole("button", { name: "Export .txt", exact: true })).toBeVisible();
+  for (const action of ["Pin", "Duplicate", "Copy text", "Export .txt", "Archive", "Move to Trash"]) {
+    await expect(card.getByRole("button", { name: action, exact: true })).toBeVisible();
+  }
   await expect(card.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
 
   await page.locator("#memos-heading").click();
