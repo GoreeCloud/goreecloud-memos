@@ -1,5 +1,15 @@
 # GoreeCloud Memos — Changelogs
 
+## 2026-09-29 — versioned local-library export candidate
+
+- Added **Export library JSON** to the browser-local Workspace settings.
+- Added `goreecloud-memos-library-export` schema v1 with deterministic normalized Memo, Label, and Saved View records.
+- Includes Active, Archived, and Trashed memo lifecycle state; excludes drafts, recent-search history, appearance/presentation state, and guidance preferences.
+- Added stable UTC-date filenames plus unit coverage for deterministic serialization and Chromium coverage for the user-visible download path.
+- Preserved the authority boundary: export changes no data and does not claim import, round-trip restore, operational backup, synchronization, cloud, or Everkeep authority.
+
+**Acceptance boundary:** Development candidate on PR #27. Fresh exact-head workflow validation, integration, import/round-trip/recovery work, representative-browser accessibility/performance review, protection/review, release, production, Stable, Seal, and Anchor gates remain open.
+
 ## 2026-09-29 — privacy-minimized recent searches candidate
 
 - Added a browser-local recent-search history that records a query only after the user explicitly submits it with Enter or reuses an existing recent search; ordinary search-as-you-type input remains ephemeral.
