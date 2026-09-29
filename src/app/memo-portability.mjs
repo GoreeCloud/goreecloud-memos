@@ -1,3 +1,7 @@
+import { migrateMemoRecord } from "../domain/memo.mjs";
+import { migrateLabelRecord } from "../domain/label.mjs";
+import { migrateSavedViewRecord } from "../domain/saved-view.mjs";
+
 function requireMemo(memo) {
   if (!memo || typeof memo !== "object") throw new TypeError("memo must be an object");
   if (typeof memo.content !== "string" || memo.content.trim().length === 0) {
@@ -66,4 +70,55 @@ export function formatMemoPlainTextSelection(memos) {
 export function memoPlainTextSelectionFilename(count) {
   if (!Number.isInteger(count) || count < 1) throw new TypeError("count must be a positive integer");
   return `goreecloud-memos-selection-${count}.txt`;
+}
+
+
+export const MEMOS_LIBRARY_EXPORT_FORMAT = "goreecloud-memos-library-export";
+export const MEMOS_LIBRARY_EXPORT_SCHEMA_VERSION = 1;
+
+function normalizeExportTimestamp(value) {
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new TypeError("exportedAt must be a valid date");
+  return date.toISOString();
+}
+
+function requireArray(value, name) {
+  if (!Array.isArray(value)) throw new TypeError(`${name} must be an array`);
+  return value;
+}
+
+function byTimestampThenId(left, right) {
+  const time = String(left.createdAt).localeCompare(String(right.createdAt));
+  return time || left.id.localeCompare(right.id);
+}
+
+function byNameThenId(left, right) {
+  const name = String(left.nameKey ?? left.name).localeCompare(
+    String(right.nameKey ?? right.name),
+    undefined,
+    { sensitivity: "base" }
+  );
+  return name || left.id.localeCompare(right.id);
+}
+
+export function formatMemosLibraryJson({
+  memos,
+  labels = [],
+  savedViews = [],
+  exportedAt = new Date()
+}) {
+  const snapshot = {
+    format: MEMOS_LIBRARY_EXPORT_FORMAT,
+    schemaVersion: MEMOS_LIBRARY_EXPORT_SCHEMA_VERSION,
+    exportedAt: normalizeExportTimestamp(exportedAt),
+    memos: requireArray(memos, "memos").map(migrateMemoRecord).sort(byTimestampThenId),
+    labels: requireArray(labels, "labels").map(migrateLabelRecord).sort(byNameThenId),
+    savedViews: requireArray(savedViews, "savedViews").map(migrateSavedViewRecord).sort(byNameThenId)
+  };
+
+  return `${JSON.stringify(snapshot, null, 2)}\n`;
+}
+
+export function memosLibraryJsonFilename(exportedAt = new Date()) {
+  return `goreecloud-memos-${normalizeExportTimestamp(exportedAt).slice(0, 10)}.json`;
 }
