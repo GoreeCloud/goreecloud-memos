@@ -1,5 +1,12 @@
 # GoreeCloud Memos — Changelogs
 
+## 2026-09-29 — privacy-minimized recent searches candidate
+
+- Added a browser-local recent-search history that records a query only after the user explicitly submits it with Enter or reuses an existing recent search; ordinary search-as-you-type input remains ephemeral.
+- Bounded history to eight valid queries of at most 256 characters, with newest-first ordering and case-insensitive deduplication.
+- Added **Clear recent searches** without changing the current query, filters, Saved Views, or memo data.
+- Added malformed-storage recovery, unit tests, and Chromium coverage for non-persistence while typing, explicit submission, reload persistence, reuse, and clearing.
+- Added no account, synchronization, telemetry, network, server, or memo-schema authority. Fresh exact-head validation remains required.
 
 ## 2026-09-28 — recoverable bulk memo lifecycle candidate
 
