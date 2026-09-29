@@ -203,3 +203,58 @@ test("selected memo export preserves the current ephemeral selection", async ({ 
   await expect(page.locator("#bulk-label-status")).toContainText("Exported 2 memos as one local text file.");
   await expect(page.locator("#bulk-label-status")).toContainText("2 memos selected.");
 });
+
+
+test("bulk lifecycle actions preserve recoverable archive and trash state", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Alpha", content: "Alpha body" });
+  await captureMemo(page, { title: "Beta", content: "Beta body" });
+  await captureMemo(page, { title: "Gamma", content: "Gamma body" });
+
+  await selectMemo(page, "Alpha");
+  await selectMemo(page, "Beta");
+  await openViewControls(page);
+  await expect(page.getByRole("button", { name: "Archive selected", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore selected", exact: true })).toBeHidden();
+  await page.getByRole("button", { name: "Archive selected", exact: true }).click();
+  await expect(page.locator("#bulk-label-status")).toContainText("Archived 2 memos.");
+  await expect(memoCard(page, "Gamma")).toBeVisible();
+  await expect(memoCard(page, "Alpha")).toHaveCount(0);
+  await expect(memoCard(page, "Beta")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(memoCard(page, "Alpha")).toBeVisible();
+  await expect(memoCard(page, "Beta")).toBeVisible();
+  await selectMemo(page, "Alpha");
+  await selectMemo(page, "Beta");
+  await openViewControls(page);
+  await expect(page.getByRole("button", { name: "Archive selected", exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Restore selected", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Move to Trash", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await expect(page.locator("#bulk-label-status")).toContainText("Moved to Trash 2 memos.");
+  await expect(page.locator(".memo-card")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Trash", exact: true }).click();
+  await expect(memoCard(page, "Alpha")).toBeVisible();
+  await expect(memoCard(page, "Beta")).toBeVisible();
+  await selectMemo(page, "Alpha");
+  await selectMemo(page, "Beta");
+  await openViewControls(page);
+  await expect(page.getByRole("button", { name: "Move to Trash", exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Restore selected", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Restore selected", exact: true }).click();
+  await expect(page.locator("#bulk-label-status")).toContainText("Restored 2 memos.");
+  await expect(page.locator(".memo-card")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(memoCard(page, "Alpha")).toBeVisible();
+  await expect(memoCard(page, "Beta")).toBeVisible();
+
+  const snapshot = await readSnapshot(page);
+  const byTitle = new Map(snapshot.memos.map((memo) => [memo.title, memo]));
+  expect(byTitle.get("Alpha").state).toBe("archived");
+  expect(byTitle.get("Beta").state).toBe("archived");
+  expect(byTitle.get("Gamma").state).toBe("active");
+  expect(snapshot.memos).toHaveLength(3);
+});
