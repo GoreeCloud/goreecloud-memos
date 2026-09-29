@@ -5,7 +5,7 @@
 
 PR #27 now extends the existing ephemeral browser selection with **Archive selected**, **Move to Trash**, and **Restore selected**. The IndexedDB path validates every selected memo before committing one transaction, so an invalid mixed selection fails without partially changing other memos. Restoring from Trash preserves each memo's prior Active or Archived location. Bulk permanent deletion is deliberately not exposed; permanent deletion remains a single-memo Trash-only destructive action.
 
-Unit coverage verifies multi-memo archive/trash/restore behavior plus pre-mutation failure, and Chromium acceptance exercises Active → Archive → Trash → Archive recovery through the real selection controls. This is a schema-neutral, browser-local Development candidate and adds no account, synchronization, server, backup, or cross-device authority. Fresh exact-head validation is required before this candidate is treated as verified.
+Unit coverage verifies multi-memo archive/trash/restore behavior plus pre-mutation failure, and Chromium acceptance exercises Active → Archive → Trash → Archive recovery through the real selection controls. This is a schema-neutral, browser-local Development candidate and adds no account, synchronization, server, backup, or cross-device authority. Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed Platform Contract #82 / `36507814457`, Repository feature records #358 / `36507813845`, Validate #405 / `36507813840`, and Android Development Foundation #255 / `36507813844`, including Android 16 local-only runtime acceptance.
 
 
 ## 2026-09-28 — local memo text portability candidate
