@@ -1,4 +1,10 @@
-import { migrateMemoRecord } from "../domain/memo.mjs";
+import {
+  archiveMemo,
+  migrateMemoRecord,
+  restoreArchivedMemo,
+  restoreTrashedMemo,
+  trashMemo
+} from "../domain/memo.mjs";
 import {
   createSavedView as buildSavedView,
   migrateSavedViewRecord
@@ -314,6 +320,42 @@ export class IndexedDbMemoStore {
     store.delete(id.trim());
     await transactionComplete(transaction);
     return migrateSavedViewRecord(current);
+  }
+
+  async bulkUpdateState(memoIds, mode, changedAt = this.#clock()) {
+    if (!["archive", "restore", "trash"].includes(mode)) {
+      throw new TypeError("mode must be archive, restore, or trash");
+    }
+    const ids = normalizeMemoIds(memoIds);
+    const timestamp = normalizeChangedAt(changedAt);
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(MEMO_STORE_NAME, "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const planned = [];
+
+    try {
+      for (const id of ids) {
+        const rawMemo = await requestResult(memoStore.get(id));
+        if (!rawMemo) throw new Error(`memo not found: ${id}`);
+        const memo = migrateMemoRecord(rawMemo);
+        const changedAtDate = new Date(timestamp);
+        const updated = mode === "archive"
+          ? archiveMemo(memo, changedAtDate)
+          : mode === "trash"
+            ? trashMemo(memo, changedAtDate)
+            : memo.state === "archived"
+              ? restoreArchivedMemo(memo, changedAtDate)
+              : restoreTrashedMemo(memo, changedAtDate);
+        planned.push(updated);
+      }
+
+      for (const memo of planned) memoStore.put(memo);
+      await transactionComplete(transaction);
+      return planned.map((memo) => structuredClone(memo));
+    } catch (error) {
+      if (transaction.readyState === "active") transaction.abort();
+      throw error;
+    }
   }
 
   async bulkUpdateLabel(memoIds, labelId, mode, changedAt = this.#clock()) {
