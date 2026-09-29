@@ -211,6 +211,7 @@ test("recent searches retain only explicit local submissions and can be cleared 
   await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Recent Garden" })).toHaveCount(0);
 
+  await openViewControls(page);
   await page.getByRole("button", { name: "Clear recent searches", exact: true }).click();
   await expect(recentPanel).toBeHidden();
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("alpha");
