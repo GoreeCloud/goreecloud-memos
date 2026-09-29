@@ -7,6 +7,7 @@ import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "
 import { parseSearchExpression } from "../src/app/search-expression.mjs";
 import { SavedViewService } from "../src/app/saved-view-service.mjs";
 import { formatMemoPlainText, memoPlainTextFilename } from "../src/app/memo-portability.mjs";
+import { clearRecentSearches, loadRecentSearches, rememberRecentSearch } from "../src/app/recent-searches.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
@@ -77,6 +78,10 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const filterLabelColorInput = document.querySelector("#memo-filter-label-color");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const filterStatus = document.querySelector("#filter-status");
+const recentSearchesPanel = document.querySelector("#recent-searches-panel");
+const recentSearchesList = document.querySelector("#recent-searches-list");
+const recentSearchesStatus = document.querySelector("#recent-searches-status");
+const clearRecentSearchesButton = document.querySelector("#clear-recent-searches");
 const savedViewNameInput = document.querySelector("#saved-view-name");
 const savedViewSaveButton = document.querySelector("#saved-view-save");
 const savedViewSelect = document.querySelector("#saved-view-select");
@@ -94,6 +99,7 @@ let currentPresentation = loadPresentationMode(localStorage);
 let refreshGeneration = 0;
 let managedLabels = [];
 let savedViews = [];
+let recentSearches = loadRecentSearches(localStorage);
 let renderedMemoContexts = new Map();
 let progressiveMemos = [];
 let progressiveRenderIndex = 0;
@@ -102,6 +108,51 @@ let progressivePinnedCount = 0;
 
 function setStatus(message) {
   status.textContent = message;
+}
+
+function renderRecentSearches() {
+  if (!recentSearchesPanel || !recentSearchesList || !clearRecentSearchesButton) return;
+
+  recentSearchesList.replaceChildren();
+  for (const query of recentSearches) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary recent-searches__query";
+    button.textContent = query;
+    button.title = query;
+    button.setAttribute("aria-label", `Search again for ${query}`);
+    button.addEventListener("click", () => {
+      searchInput.value = query;
+      rememberSubmittedSearch(query);
+      refreshFromFilterControl();
+      searchInput.focus();
+    });
+    recentSearchesList.append(button);
+  }
+
+  recentSearchesPanel.hidden = recentSearches.length === 0;
+  clearRecentSearchesButton.disabled = recentSearches.length === 0;
+}
+
+function rememberSubmittedSearch(value) {
+  const query = value.trim();
+  if (!query) return false;
+
+  try {
+    parseSearchExpression(query);
+  } catch {
+    return false;
+  }
+
+  const result = rememberRecentSearch(localStorage, query);
+  recentSearches = result.searches;
+  renderRecentSearches();
+  if (recentSearchesStatus) {
+    recentSearchesStatus.textContent = result.saved
+      ? "Recent searches stay only in this browser."
+      : "This browser could not store the recent search.";
+  }
+  return result.saved;
 }
 
 function applyPresentationMode(mode, { persist = false } = {}) {
@@ -828,6 +879,11 @@ for (const input of presentationInputs) {
 }
 
 searchInput.addEventListener("input", refreshFromFilterControl);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  rememberSubmittedSearch(searchInput.value);
+});
 filterColorInput.addEventListener("change", refreshFromFilterControl);
 filterLabelInput.addEventListener("change", refreshFromFilterControl);
 filterLabelColorInput.addEventListener("change", refreshFromFilterControl);
@@ -837,6 +893,19 @@ clearFiltersButton.addEventListener("click", () => {
   filterLabelInput.value = "all";
   filterLabelColorInput.value = ALL_LABEL_COLORS;
   refreshFromFilterControl();
+  searchInput.focus();
+});
+
+clearRecentSearchesButton?.addEventListener("click", () => {
+  const cleared = clearRecentSearches(localStorage);
+  if (cleared) recentSearches = [];
+  else recentSearches = loadRecentSearches(localStorage);
+  renderRecentSearches();
+  if (recentSearchesStatus) {
+    recentSearchesStatus.textContent = cleared
+      ? "Recent searches cleared. The current search and memo data were not changed."
+      : "This browser could not clear recent searches.";
+  }
   searchInput.focus();
 });
 
@@ -1111,6 +1180,7 @@ listElement.addEventListener("keydown", (event) => {
 
 applyPresentationMode(currentPresentation);
 updateFilterStatus();
+renderRecentSearches();
 restoreDraft();
 Promise.all([refresh(), refreshSavedViews()]).catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load local memos");
