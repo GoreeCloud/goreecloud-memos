@@ -26,10 +26,10 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open → type �
 - Browser-local managed-label administration for transactional rename, explicit delete, and merge. These operations update affected Memo–Label relations and memo label-name/ID projections atomically; deleting a label does not delete its memos.
 - Browser-local managed-label metadata editing for an optional curated color, optional icon text, and optional description. Existing Label v1 records normalize to Label schema v2 without a Label-specific database-version migration.
 - Memo cards join stable Label identities to current Label v2 metadata and present optional icon/color as supplementary cues while always keeping the canonical label name visible; descriptions remain in Manage labels.
-- Ephemeral memo multi-selection with browser-local bulk Apply label / Remove label actions for existing managed Labels. Each bulk action validates the full selection before one atomic IndexedDB transaction and updates changed memo organization timestamps together.
+- Ephemeral memo multi-selection with browser-local bulk Apply/Remove label plus recoverable Archive/Trash/Restore actions. Each mutating bulk action validates the full selection before one atomic IndexedDB transaction; trashed memos retain their prior Active/Archived restore location.
 - Per-memo label input with trimming, case-insensitive deduplication, and identity reuse by normalized name.
 - Pin/unpin controls with persisted manual ordering for active pinned memos.
-- Recoverable Archive and Trash flows, including explicit permanent deletion from Trash.
+- Recoverable Archive and Trash flows, including explicit single-memo permanent deletion from Trash; bulk permanent deletion is intentionally unavailable.
 - Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
 - Ephemeral browser-local substring search across memo title, body, and label-name projection, plus combinable exact memo-color, label-name, and managed Label-color filters within the current lifecycle view. The same search box also supports bounded advanced expressions for `color:`, `label:`, and `label-color:`, including quoted label values, with explicit validation errors for malformed recognized expressions.
 - User-named browser-local Saved View v1 records that persist and restore the current raw search text plus direct memo-color, label-name, and managed Label-color controls. Saved views are unique by case-insensitive name, do not change lifecycle location, and can be explicitly deleted.
