@@ -107,7 +107,7 @@ The current Development experience supports browser-local filtering within the s
 
 Managed Label color now provides one bounded metadata-aware filter dimension through stable Label identity. The advanced-expression slice exposes only already verified local dimensions: memo color, exact label name, and managed Label color. Supported memo colors are Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, Gray, plus `color:none`; managed Label color expressions use the nine palette colors. A recognized field with no value, an unsupported color, a duplicate recognized field, or an unterminated quote produces an explicit search-expression error instead of silently changing meaning. Unknown colon-containing text such as a URL remains ordinary text search. Label icon and description do not add search/filter dimensions. Label color/icon may appear on memo cards as supplementary presentation, and descriptions remain management-only.
 
-Search terms and active filter selections are intentionally not persisted automatically or added to recent-search history. Reloading the page returns the active controls to their defaults unless you explicitly apply a Saved View.
+Search terms and active filter selections are not persisted automatically. Live typing remains ephemeral. To keep a query in **Recent searches**, press **Enter** in Search memos; Memos stores up to eight valid submitted queries in the current browser profile. Selecting a recent query reapplies it and moves it to the front. **Clear recent searches** removes only that local history; it does not clear the active query, filters, Saved Views, or memo data. Reloading the page still returns the active controls to their defaults unless you explicitly apply a Saved View.
 
 ## Saved views
 
@@ -121,7 +121,7 @@ Saved views let you explicitly preserve the current search/filter state in this 
 
 Saved View names are unique case-insensitively. A Saved View stores the raw Search memos value plus the direct memo-color, label-name, and managed Label-color selections. The search expression must be valid before it can be saved. Saved Views do **not** store the current lifecycle location, presentation mode, ordering, pinning, icon/color decoration, or a default-view setting, and they do not synchronize to another browser or device. If a Saved View requires an exact label that is not available in the current lifecycle location, applying it fails explicitly rather than silently removing that filter.
 
-Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, synchronized Saved Views, saved-view ordering/pinning/styling/default behavior, and recent-search history are not implemented yet.
+Advanced expression fields beyond the three documented local dimensions, date/attachment/checklist/other metadata search, smart filters, synchronized Saved Views, saved-view ordering/pinning/styling/default behavior, synchronized recent-search history, and search-history portability are not implemented yet.
 
 ## Presentation and appearance
 
@@ -156,7 +156,7 @@ When more than 200 memos match the current lifecycle/search state, Memos materia
 
 ## Data boundary
 
-This Development experience has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, Saved Views, drafts, presentation/appearance preferences, onboarding state, and contextual-hint preferences. Active search terms, active filter selections, and bulk memo selection are not persisted automatically; only explicitly created Saved Views preserve filter-state snapshots. Operational backup and restore are not implemented.
+This Development experience has no server or synchronization service. Data stored in one browser profile is not available from another browser, device, or profile. Clearing site data can remove local memos, managed-label metadata, Saved Views, drafts, presentation/appearance preferences, onboarding state, and contextual-hint preferences. Active search terms, active filter selections, and bulk memo selection are not persisted automatically. Explicitly created Saved Views preserve filter-state snapshots, and only explicitly submitted valid searches can enter the bounded browser-local Recent searches list. Operational backup and restore are not implemented.
 
 ## Validation commands
 
