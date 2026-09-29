@@ -2,7 +2,7 @@
 
 ## 2026-09-28 candidate continuation
 
-PR #27 now carries device-local text portability quick actions: per-memo Copy text / Export .txt plus Copy selected / Export selected for the current ephemeral browser selection. Deterministic formatting and filename behavior are isolated behind tested helpers and create no sync, backup, cloud, or cross-device authority. Exact candidate head `9f6b9e75fe1e04a5758cc4ebdd8e429182e1b703` passed all configured Memos workflow families; integration to authoritative `main` and broader portability/recovery acceptance remain open.
+PR #27 now carries device-local text portability plus recoverable multi-selection lifecycle actions. In addition to per-memo and selected-memo Copy/Export, the current candidate adds atomic **Archive selected**, **Move to Trash**, and **Restore selected** behavior while preserving prior Active/Archived restore state and deliberately keeping permanent deletion single-memo and Trash-only. These changes remain browser-local and create no sync, backup, cloud, or cross-device authority. Fresh exact-head validation is required after this continuation before the new lifecycle slice is treated as verified; integration to authoritative `main` and broader portability/recovery acceptance remain open.
 
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/memos`  
@@ -33,13 +33,13 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 9. Saved Views | Partial | Browser-local named Saved View v1 snapshots exist. Synchronization, pin/order/icon/color/default-view behavior remains open. |
 | 10. Search | Partial | Local text/title/label search and three bounded expression fields exist. Attachment/checklist/date/full metadata search and recent searches remain open. |
 | 11. Pinning | Partial | Local pin/unpin and manual ordering exist. Cross-device synchronization/context-menu parity remains open. |
-| 12. Archive | Partial | Local archive/restore exists. Bulk archive, full archive search/filter/export and cross-device behavior remain open. |
-| 13. Trash | Partial | Local trash/restore/permanent deletion exists. Bulk operations, retention policy, and synchronized trash remain open. |
+| 12. Archive | Partial | Local archive/restore exists, and PR #27 now carries atomic selected-memo archive/restore as a Development candidate. Full archive search/filter/export and cross-device behavior remain open. |
+| 13. Trash | Partial | Local trash/restore/permanent deletion exists, and PR #27 now carries selected-memo Move to Trash / Restore while preserving prior lifecycle location. Bulk permanent deletion remains deliberately absent; retention policy and synchronized trash remain open. |
 | 14. Checklists and Lightweight Tasks | Planned | No checklist data model or UI is established on accepted `main`. |
 | 15. Attachments | Planned | No attachment storage, upload, preview, quota, or client attachment flow is established. |
 | 16. Link Recognition | Planned | No governed link-recognition/preview feature is established. |
 | 17. Reminders | Planned | No reminder model, recurrence, or notification behavior is established. |
-| 18. Quick Actions | Partial | Pin, color, label, archive, delete, bulk label actions, per-memo Copy/Export, and selected-memo Copy/Export exist locally in the PR #27 candidate. Reminder/share and broader mutating bulk actions remain open. |
+| 18. Quick Actions | Partial | Pin, color, label, archive, delete, bulk label actions, per-memo/selected-memo Copy/Export, and recoverable selected-memo Archive/Trash/Restore exist locally in the PR #27 candidate. Reminder/share and destructive bulk deletion remain open. |
 | 19. Desktop Application | Planned | No accepted native desktop client is established. |
 | 20. Mobile Application | Partial | Native Android local-only quick capture/persistence exists. Synchronization, sharing, widgets, camera/voice attachments, notifications, biometric lock, and production acceptance remain open. |
 | 21. Web Application | Partial | Responsive browser-local experience, keyboard-accessible controls, local draft protection, and browser persistence exist. Server-backed administration, synchronized/offline web behavior, attachments, and full roadmap parity remain open. |
