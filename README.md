@@ -4,7 +4,7 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open â†’ type â†
 
 ## Status
 
-**Development.** The current repository implements a browser-local Memos Core slice plus a first native Android local-capture foundation. It is not a Stable release and does not yet provide a production server, synchronization, account system, desktop client, accepted mobile synchronization, backup/recovery system, import/export pipeline, or accepted Glaze UI conformance.
+**Development.** The current repository implements a browser-local Memos Core slice plus a first native Android local-capture foundation. It is not a Stable release and does not yet provide a production server, synchronization, account system, desktop client, accepted mobile synchronization, backup/recovery system, accepted import/round-trip recovery pipeline, or accepted Glaze UI conformance. The active PR #27 candidate includes bounded local export-only portability.
 
 ### Implemented in this slice
 
@@ -28,6 +28,7 @@ GoreeCloud Memos is the GoreeCloud quick-capture application: **Open â†’ type â†
 - Memo cards join stable Label identities to current Label v2 metadata and present optional icon/color as supplementary cues while always keeping the canonical label name visible; descriptions remain in Manage labels.
 - Ephemeral memo multi-selection with browser-local bulk Apply/Remove label plus recoverable Archive/Trash/Restore actions. Each mutating bulk action validates the full selection before one atomic IndexedDB transaction; trashed memos retain their prior Active/Archived restore location.
 - Per-memo label input with trimming, case-insensitive deduplication, and identity reuse by normalized name.
+- Browser-local text export for one memo/current selection plus a versioned full-library JSON export candidate covering memos, managed labels, and Saved Views without import/restore authority.
 - Pin/unpin controls with persisted manual ordering for active pinned memos.
 - Recoverable Archive and Trash flows, including explicit single-memo permanent deletion from Trash; bulk permanent deletion is intentionally unavailable.
 - Comfortable, Compact, List, and Dense memo presentation modes with a browser-local persisted preference.
