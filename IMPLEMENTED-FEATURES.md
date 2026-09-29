@@ -1,5 +1,10 @@
 # GoreeCloud Memos — Implemented Features
 
+## 2026-09-29 — explicit recent-search history candidate
+
+PR #27 now includes a privacy-minimized browser-local recent-search history. Live typing continues to filter memos without being retained. A query enters history only after explicit Enter submission or reuse from the recent-search list, and only when the bounded search expression is valid. History is limited to eight entries of at most 256 characters, deduplicated case-insensitively, and can be cleared independently of the active query, Saved Views, filters, or memo records.
+
+The feature uses a dedicated browser-local preference rather than changing the Memo/Label/Saved View IndexedDB schema. Unit and Chromium coverage lock its bounded persistence and explicit-submission behavior. This remains unmerged Development candidate evidence until fresh exact-head validation passes.
 
 ## 2026-09-28 — recoverable bulk lifecycle candidate
 
@@ -50,6 +55,7 @@ This record contains capabilities verified in accepted repository state. The ret
 - Exact memo-color, label-name, and managed Label-color filters are combinable within the current lifecycle view.
 - Bounded advanced expressions support `color:`, `label:`, and `label-color:` including quoted label values and deterministic validation errors.
 - Saved View v1 records persist user-named snapshots of the current raw search plus those supported direct filters.
+- Explicitly submitted recent searches can persist up to eight validated queries in the current browser profile; ordinary live typing is not recorded, and recent history has an independent clear action.
 - Active search/filter state, selection, and unsupported Saved View metadata remain intentionally local/ephemeral.
 
 ### Data model and migration foundation
