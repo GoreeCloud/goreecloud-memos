@@ -353,7 +353,11 @@ export class IndexedDbMemoStore {
       await transactionComplete(transaction);
       return planned.map((memo) => structuredClone(memo));
     } catch (error) {
-      if (transaction.readyState === "active") transaction.abort();
+      try {
+        transaction.abort();
+      } catch {
+        // The transaction may already have completed or aborted.
+      }
       throw error;
     }
   }
