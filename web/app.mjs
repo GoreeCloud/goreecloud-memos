@@ -6,7 +6,12 @@ import { loadPresentationMode, savePresentationMode } from "../src/app/presentat
 import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 import { parseSearchExpression } from "../src/app/search-expression.mjs";
 import { SavedViewService } from "../src/app/saved-view-service.mjs";
-import { formatMemoPlainText, memoPlainTextFilename } from "../src/app/memo-portability.mjs";
+import {
+  formatMemoPlainText,
+  formatMemosLibraryJson,
+  memoPlainTextFilename,
+  memosLibraryJsonFilename
+} from "../src/app/memo-portability.mjs";
 import { clearRecentSearches, loadRecentSearches, rememberRecentSearch } from "../src/app/recent-searches.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
@@ -88,6 +93,8 @@ const savedViewSelect = document.querySelector("#saved-view-select");
 const savedViewApplyButton = document.querySelector("#saved-view-apply");
 const savedViewDeleteButton = document.querySelector("#saved-view-delete");
 const savedViewStatus = document.querySelector("#saved-view-status");
+const libraryExportButton = document.querySelector("#library-export");
+const libraryExportStatus = document.querySelector("#library-export-status");
 
 const store = new IndexedDbMemoStore();
 const service = new MemoService(store);
@@ -969,6 +976,48 @@ savedViewDeleteButton.addEventListener("click", async () => {
     savedViewStatus.textContent = error instanceof Error ? error.message : "Could not delete saved view";
   } finally {
     updateSavedViewActions();
+  }
+});
+
+libraryExportButton?.addEventListener("click", async () => {
+  libraryExportButton.disabled = true;
+  if (libraryExportStatus) libraryExportStatus.textContent = "Preparing local export…";
+
+  try {
+    const exportedAt = new Date();
+    const [memos, labels, views] = await Promise.all([
+      service.listAll(),
+      labelService.list(),
+      savedViewService.list()
+    ]);
+    const payload = formatMemosLibraryJson({
+      memos,
+      labels,
+      savedViews: views,
+      exportedAt
+    });
+    const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = memosLibraryJsonFilename(exportedAt);
+    download.hidden = true;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+
+    if (libraryExportStatus) {
+      libraryExportStatus.textContent =
+        `Exported ${memos.length} memos, ${labels.length} labels, and ${views.length} saved views. No local data was changed.`;
+    }
+  } catch {
+    if (libraryExportStatus) {
+      libraryExportStatus.textContent =
+        "Could not prepare the local library export. No local data was changed.";
+    }
+  } finally {
+    libraryExportButton.disabled = false;
   }
 });
 
