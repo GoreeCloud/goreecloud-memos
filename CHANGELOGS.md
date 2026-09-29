@@ -9,7 +9,7 @@
 - Kept bulk permanent deletion unavailable; permanent deletion remains an explicit single-memo Trash action.
 - Added service/unit and Chromium end-to-end coverage for reversible bulk lifecycle behavior.
 - No schema, account, synchronization, server, backup, or cross-device authority was added.
-- Fresh exact-head validation remains required for this continuation.
+- Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed Platform Contract #82, Repository feature records #358, Validate #405, and Android Development Foundation #255.
 
 
 ## 2026-09-28 — local memo text portability candidate
