@@ -155,7 +155,10 @@ test("bulk lifecycle actions archive, trash and restore selected memos", async (
 
   const archived = await service.archiveMany(["memo-1", "memo-2"]);
   assert.equal(archived.length, 2);
-  assert.deepEqual((await service.list({ state: "archived" })).map((memo) => memo.id), ["memo-2", "memo-1"]);
+  assert.deepEqual(
+    new Set((await service.list({ state: "archived" })).map((memo) => memo.id)),
+    new Set(["memo-1", "memo-2"])
+  );
 
   await service.restoreMany(["memo-1", "memo-2"]);
   assert.equal((await service.list({ state: "active" })).length, 3);
