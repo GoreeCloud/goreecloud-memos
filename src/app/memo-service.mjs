@@ -145,6 +145,25 @@ export class MemoService {
     await this.#store.remove(validateId(id));
   }
 
+  async archiveMany(memoIds) {
+    return this.#bulkState(memoIds, "archive");
+  }
+
+  async restoreMany(memoIds) {
+    return this.#bulkState(memoIds, "restore");
+  }
+
+  async trashMany(memoIds) {
+    return this.#bulkState(memoIds, "trash");
+  }
+
+  async #bulkState(memoIds, mode) {
+    if (typeof this.#store.bulkUpdateState !== "function") {
+      throw new TypeError("store.bulkUpdateState must be a function");
+    }
+    return this.#store.bulkUpdateState(validateIdList(memoIds), mode, this.#clock());
+  }
+
   async #bulkLabel(memoIds, labelId, mode) {
     if (typeof this.#store.bulkUpdateLabel !== "function") {
       throw new TypeError("store.bulkUpdateLabel must be a function");
