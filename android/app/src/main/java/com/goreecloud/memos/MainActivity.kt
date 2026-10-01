@@ -19,11 +19,14 @@ class MainActivity : Activity() {
     private lateinit var glaze: MemosGlazeStyle
     private lateinit var memoRepository: LocalMemoRepository
     private lateinit var draftRepository: LocalDraftRepository
+    private lateinit var onboardingPreferences: MemosOnboardingPreferences
 
     private lateinit var titleEditor: EditText
     private lateinit var bodyEditor: EditText
     private lateinit var statusText: TextView
     private lateinit var memoList: LinearLayout
+    private lateinit var contextualHint: TextView
+    private lateinit var hintsToggleButton: Button
 
     private var suppressDraftWrites = false
 
@@ -34,16 +37,28 @@ class MainActivity : Activity() {
         glaze.applyWindow(this)
         memoRepository = LocalMemoRepository(filesDir)
         draftRepository = LocalDraftRepository(filesDir)
+        onboardingPreferences = MemosOnboardingPreferences(this)
 
-        buildSurface()
-        restoreDraft()
-        attachDraftPersistence()
-        renderMemos()
+        if (onboardingPreferences.isComplete()) {
+            showWorkspace()
+        } else {
+            renderSetupWizard(
+                step = onboardingPreferences.currentStep(),
+                replay = false,
+            )
+        }
     }
 
     override fun onPause() {
         persistDraft()
         super.onPause()
+    }
+
+    private fun showWorkspace() {
+        buildSurface()
+        restoreDraft()
+        attachDraftPersistence()
+        renderMemos()
     }
 
     private fun buildSurface() {
@@ -85,6 +100,15 @@ class MainActivity : Activity() {
         }
         glaze.styleStatus(localBoundary)
         root.addView(localBoundary, matchWrap(top = 8))
+
+        contextualHint = TextView(this).apply {
+            text = "Hint: Start typing immediately. Your unfinished draft is preserved locally as you type."
+            contentDescription = "Contextual Memos hint"
+        }
+        glaze.styleStatus(contextualHint)
+        root.addView(contextualHint, matchWrap(top = 8))
+        contextualHint.visibility =
+            if (onboardingPreferences.hintsEnabled()) View.VISIBLE else View.GONE
 
         val composer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -129,6 +153,49 @@ class MainActivity : Activity() {
         glaze.styleStatus(statusText)
         composer.addView(statusText, matchWrap(top = 10))
 
+        val guidance = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+        }
+        glaze.styleSurface(guidance)
+        root.addView(guidance, matchWrap(top = 18))
+
+        val guidanceHeading = TextView(this).apply {
+            text = "Guidance"
+            isAccessibilityHeading = true
+        }
+        glaze.styleSubheading(guidanceHeading)
+        guidance.addView(guidanceHeading)
+
+        val guidanceSummary = TextView(this).apply {
+            text = "Ordinary contextual hints are optional. Safety, recovery, and error messages remain visible."
+        }
+        glaze.styleBody(guidanceSummary)
+        guidance.addView(guidanceSummary, matchWrap(top = 6))
+
+        hintsToggleButton = Button(this).apply {
+            contentDescription = "Toggle contextual hints"
+            setOnClickListener {
+                onboardingPreferences.setHintsEnabled(!onboardingPreferences.hintsEnabled())
+                updateHintsPresentation()
+            }
+        }
+        glaze.stylePrimaryButton(hintsToggleButton)
+        guidance.addView(hintsToggleButton, matchWrap(top = 10))
+
+        val replaySetup = Button(this).apply {
+            text = "Replay setup"
+            contentDescription = "Replay Memos setup"
+            setOnClickListener {
+                persistDraft()
+                renderSetupWizard(step = 0, replay = true)
+            }
+        }
+        glaze.stylePrimaryButton(replaySetup)
+        guidance.addView(replaySetup, matchWrap(top = 10))
+
+        updateHintsPresentation()
+
         val savedHeading = TextView(this).apply {
             text = "Saved locally"
             isAccessibilityHeading = true
@@ -142,6 +209,158 @@ class MainActivity : Activity() {
         root.addView(memoList, matchWrap(top = 10))
 
         setContentView(scroll)
+    }
+
+
+    private fun renderSetupWizard(step: Int, replay: Boolean) {
+        val resolvedStep = step.coerceIn(0, MemosOnboardingPreferences.STEP_COUNT - 1)
+        if (!replay) {
+            onboardingPreferences.setCurrentStep(resolvedStep)
+        }
+
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            contentDescription = "GoreeCloud Memos first-use setup"
+        }
+        glaze.styleCanvas(scroll)
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(22), dp(18), dp(28))
+        }
+        scroll.addView(
+            root,
+            android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            ),
+        )
+
+        val heading = TextView(this).apply {
+            text = if (replay) "Review Memos setup" else "Set up Memos"
+            contentDescription = text
+            isAccessibilityHeading = true
+        }
+        glaze.styleHeading(heading)
+        root.addView(heading)
+
+        val progress = TextView(this).apply {
+            text = "Step ${resolvedStep + 1} of ${MemosOnboardingPreferences.STEP_COUNT}"
+            contentDescription = text
+        }
+        glaze.styleStatus(progress)
+        root.addView(progress, matchWrap(top = 6))
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+        }
+        glaze.styleSurface(card, strong = true)
+        root.addView(card, matchWrap(top = 18))
+
+        val stepTitle = TextView(this).apply {
+            text = when (resolvedStep) {
+                0 -> "Quick capture, kept local"
+                1 -> "Know the privacy boundary"
+                else -> "Choose your guidance"
+            }
+            isAccessibilityHeading = true
+        }
+        glaze.styleSubheading(stepTitle)
+        card.addView(stepTitle)
+
+        val stepBody = TextView(this).apply {
+            text = when (resolvedStep) {
+                0 ->
+                    "Memos is for fast capture: open, type, and save. A title is optional, and unfinished text is preserved as a local draft."
+                1 ->
+                    "This Development build has no Internet permission, account, or synchronization. Memos and drafts stay on this device. No permission is required to begin."
+                else ->
+                    "Contextual hints explain useful behavior near the workspace. You can turn ordinary hints off now or later, re-enable them at any time, and replay this setup from the Guidance section."
+            }
+        }
+        glaze.styleBody(stepBody)
+        card.addView(stepBody, matchWrap(top = 8))
+
+        if (resolvedStep == 2) {
+            val toggle = Button(this).apply {
+                fun refreshLabel() {
+                    text = if (onboardingPreferences.hintsEnabled()) {
+                        "Contextual hints: On"
+                    } else {
+                        "Contextual hints: Off"
+                    }
+                    contentDescription = "Toggle setup contextual hints"
+                }
+                setOnClickListener {
+                    onboardingPreferences.setHintsEnabled(!onboardingPreferences.hintsEnabled())
+                    refreshLabel()
+                }
+                refreshLabel()
+            }
+            glaze.stylePrimaryButton(toggle)
+            card.addView(toggle, matchWrap(top = 14))
+        }
+
+        if (resolvedStep > 0) {
+            val back = Button(this).apply {
+                text = "Back"
+                contentDescription = "Back in Memos setup"
+                setOnClickListener {
+                    renderSetupWizard(
+                        step = resolvedStep - 1,
+                        replay = replay,
+                    )
+                }
+            }
+            glaze.stylePrimaryButton(back)
+            root.addView(back, matchWrap(top = 16))
+        } else if (replay) {
+            val returnToMemos = Button(this).apply {
+                text = "Return to Memos"
+                contentDescription = "Return from Memos setup"
+                setOnClickListener { showWorkspace() }
+            }
+            glaze.stylePrimaryButton(returnToMemos)
+            root.addView(returnToMemos, matchWrap(top = 16))
+        }
+
+        val next = Button(this).apply {
+            val isLast = resolvedStep == MemosOnboardingPreferences.STEP_COUNT - 1
+            text = if (isLast) "Finish" else "Continue"
+            contentDescription =
+                if (isLast) "Finish Memos setup" else "Continue Memos setup"
+            setOnClickListener {
+                if (isLast) {
+                    if (!replay) onboardingPreferences.markComplete()
+                    showWorkspace()
+                } else {
+                    renderSetupWizard(
+                        step = resolvedStep + 1,
+                        replay = replay,
+                    )
+                }
+            }
+        }
+        glaze.stylePrimaryButton(next)
+        root.addView(next, matchWrap(top = 10))
+
+        setContentView(scroll)
+    }
+
+    private fun updateHintsPresentation() {
+        if (::contextualHint.isInitialized) {
+            contextualHint.visibility =
+                if (onboardingPreferences.hintsEnabled()) View.VISIBLE else View.GONE
+        }
+        if (::hintsToggleButton.isInitialized) {
+            hintsToggleButton.text =
+                if (onboardingPreferences.hintsEnabled()) {
+                    "Contextual hints: On"
+                } else {
+                    "Contextual hints: Off"
+                }
+        }
     }
 
     private fun restoreDraft() {

@@ -19,11 +19,15 @@ internal object MemoCodec {
         }
 
     fun decode(raw: String): List<MemoRecord> {
-        if (raw.isBlank()) return emptyList()
+        if (raw.isEmpty()) return emptyList()
 
+        // A blank row may be a truncated record. Never silently omit it and risk
+        // persisting a partial library over the only readable previous generation.
         return raw.lineSequence()
-            .filter { it.isNotBlank() }
-            .mapIndexed { index, line -> decodeLine(index + 1, line) }
+            .mapIndexed { index, line ->
+                require(line.isNotBlank()) { "Empty memo record at line ${index + 1}." }
+                decodeLine(index + 1, line)
+            }
             .toList()
     }
 

@@ -17,8 +17,13 @@ class LocalDraftRepository(root: File) {
             return if (backup == null) {
                 DraftLoadResult(MemoDraft(), recoveredFromBackup = false)
             } else {
+                check(backup.isNotBlank()) { "Previous draft generation is empty; refusing unsafe recovery." }
                 DraftLoadResult(DraftCodec.decode(backup), recoveredFromBackup = true)
             }
+        }
+
+        if (primary.isBlank()) {
+            return recoverFromBackup(IllegalStateException("Primary draft generation is empty."))
         }
 
         return try {
@@ -40,6 +45,7 @@ class LocalDraftRepository(root: File) {
         )
 
         return try {
+            check(backup.isNotBlank()) { "Previous draft generation is empty." }
             DraftLoadResult(DraftCodec.decode(backup), recoveredFromBackup = true)
         } catch (backupFailure: Exception) {
             primaryFailure.addSuppressed(backupFailure)
