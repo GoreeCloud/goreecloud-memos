@@ -1,4 +1,10 @@
-import { migrateMemoRecord } from "../domain/memo.mjs";
+import {
+  archiveMemo,
+  migrateMemoRecord,
+  restoreArchivedMemo,
+  restoreTrashedMemo,
+  trashMemo
+} from "../domain/memo.mjs";
 import {
   createSavedView as buildSavedView,
   migrateSavedViewRecord
@@ -177,7 +183,12 @@ function mergeMemoLabelProjection(memo, sourceId, targetId, targetName) {
 function applyLabelToMemo(memo, label, changedAt) {
   const normalized = migrateMemoRecord(memo);
   if (normalized.labelIds.includes(label.id)) return { memo: normalized, changed: false };
-  if (normalized.labelIds.length >= MAX_LABELS_PER_MEMO) {
+
+  // Memo label names are a portable projection while labelIds carry managed
+  // identity. Recovery/migration-safe records may temporarily disagree, so
+  // capacity must honor whichever projection already represents more labels.
+  const currentLabelCount = Math.max(normalized.labels.length, normalized.labelIds.length);
+  if (currentLabelCount >= MAX_LABELS_PER_MEMO) {
     throw new RangeError(`a memo can have at most ${MAX_LABELS_PER_MEMO} labels`);
   }
   return {
@@ -311,6 +322,46 @@ export class IndexedDbMemoStore {
     return migrateSavedViewRecord(current);
   }
 
+  async bulkUpdateState(memoIds, mode, changedAt = this.#clock()) {
+    if (!["archive", "restore", "trash"].includes(mode)) {
+      throw new TypeError("mode must be archive, restore, or trash");
+    }
+    const ids = normalizeMemoIds(memoIds);
+    const timestamp = normalizeChangedAt(changedAt);
+    const database = await this.#databasePromise;
+    const transaction = database.transaction(MEMO_STORE_NAME, "readwrite");
+    const memoStore = transaction.objectStore(MEMO_STORE_NAME);
+    const planned = [];
+
+    try {
+      for (const id of ids) {
+        const rawMemo = await requestResult(memoStore.get(id));
+        if (!rawMemo) throw new Error(`memo not found: ${id}`);
+        const memo = migrateMemoRecord(rawMemo);
+        const changedAtDate = new Date(timestamp);
+        const updated = mode === "archive"
+          ? archiveMemo(memo, changedAtDate)
+          : mode === "trash"
+            ? trashMemo(memo, changedAtDate)
+            : memo.state === "archived"
+              ? restoreArchivedMemo(memo, changedAtDate)
+              : restoreTrashedMemo(memo, changedAtDate);
+        planned.push(updated);
+      }
+
+      for (const memo of planned) memoStore.put(memo);
+      await transactionComplete(transaction);
+      return planned.map((memo) => structuredClone(memo));
+    } catch (error) {
+      try {
+        transaction.abort();
+      } catch {
+        // The transaction may already have completed or aborted.
+      }
+      throw error;
+    }
+  }
+
   async bulkUpdateLabel(memoIds, labelId, mode, changedAt = this.#clock()) {
     if (mode !== "apply" && mode !== "remove") throw new TypeError("mode must be apply or remove");
     if (typeof labelId !== "string" || labelId.trim().length === 0) {
@@ -332,6 +383,22 @@ export class IndexedDbMemoStore {
     for (const id of ids) {
       const rawMemo = await requestResult(memoStore.get(id));
       if (!rawMemo) throw new Error(`memo not found: ${id}`);
+
+      if (mode === "apply") {
+        const normalizedMemo = migrateMemoRecord(rawMemo);
+        const relations = await requestResult(memoLabelStore.index("memoId").getAll(id));
+        const relationLabelIds = new Set(relations.map((relation) => relation.labelId));
+        const alreadyApplied = normalizedMemo.labelIds.includes(label.id) || relationLabelIds.has(label.id);
+        const currentLabelCount = Math.max(
+          normalizedMemo.labels.length,
+          normalizedMemo.labelIds.length,
+          relationLabelIds.size
+        );
+        if (!alreadyApplied && currentLabelCount >= MAX_LABELS_PER_MEMO) {
+          throw new RangeError(`a memo can have at most ${MAX_LABELS_PER_MEMO} labels`);
+        }
+      }
+
       const result = mode === "apply"
         ? applyLabelToMemo(rawMemo, label, timestamp)
         : removeLabelFromMemo(rawMemo, label.id, timestamp);

@@ -1,7 +1,19 @@
 # GoreeCloud Memos — Planned Features
 
+## 2026-09-29 full-library export continuation
+
+PR #27 now also carries a versioned browser-local library export containing Memo lifecycle records, managed Labels, and Saved Views. It deliberately excludes drafts, recent-search history, and UI preferences and does not claim backup/recovery. Full-library import preview, strict validation, round-trip preservation, operational backup, clean-target recovery, and cross-client/server portability remain open.
+
+## 2026-09-29 recent-search continuation
+
+PR #27 now also carries bounded browser-local recent-search history. It records only explicitly submitted valid queries, retains at most eight entries, and exposes an independent clear action; normal search-as-you-type input remains unpersisted. Broader date/attachment/checklist/full-metadata search, synchronized search history, and search portability remain open. Fresh exact-head validation is required before treating this candidate as verified Development evidence.
+
+## 2026-09-28 candidate continuation
+
+PR #27 now carries device-local text portability plus recoverable multi-selection lifecycle actions. In addition to per-memo and selected-memo Copy/Export, the current candidate adds atomic **Archive selected**, **Move to Trash**, and **Restore selected** behavior while preserving prior Active/Archived restore state and deliberately keeping permanent deletion single-memo and Trash-only. These changes remain browser-local and create no sync, backup, cloud, or cross-device authority. Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed all four configured workflow families (Platform Contract #82, feature records #358, Validate #405, Android Development Foundation #255). Integration to authoritative `main` and broader portability/recovery acceptance remain open.
+
 **Record type:** Repository planned/open feature inventory  
-**Repository:** `GoreeCloud/goreecloud-memos`  
+**Repository:** `GoreeCloud/memos`  
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete and authoritative on `main`; PR #20 merged as `7985fed0bad91b5a04e8a586aefda6089086a120`, exact-head and exact-main validation passed, root `FEATURE-ROADMAP.md` is absent, and the mapped legacy Drive roadmap was permanently retired and verified absent on September 22, 2026.  
 **Runtime evidence baseline:** `d86dfb981830dc9941ab7b009fbbe18d818c3a63`; repository feature/changelog migration and retirement reconciliation do not promote runtime state.  
@@ -27,15 +39,15 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 7. Labels | Partial | Managed local labels, rename/delete/merge, color/icon/description metadata, search/filter, and bulk apply/remove exist. Ownership/synchronization and complete cross-client behavior remain open. |
 | 8. Smart Filters | Partial | Current local filters cover memo color, label name, managed Label color, lifecycle scoping, and bounded expressions. The full roadmap filter set remains open. |
 | 9. Saved Views | Partial | Browser-local named Saved View v1 snapshots exist. Synchronization, pin/order/icon/color/default-view behavior remains open. |
-| 10. Search | Partial | Local text/title/label search and three bounded expression fields exist. Attachment/checklist/date/full metadata search and recent searches remain open. |
+| 10. Search | Partial | Local text/title/label search, three bounded expression fields, and PR #27 browser-local explicit recent-search history exist. Attachment/checklist/date/full metadata search, synchronized history, and search portability remain open. |
 | 11. Pinning | Partial | Local pin/unpin and manual ordering exist. Cross-device synchronization/context-menu parity remains open. |
-| 12. Archive | Partial | Local archive/restore exists. Bulk archive, full archive search/filter/export and cross-device behavior remain open. |
-| 13. Trash | Partial | Local trash/restore/permanent deletion exists. Bulk operations, retention policy, and synchronized trash remain open. |
+| 12. Archive | Partial | Local archive/restore exists, and PR #27 now carries atomic selected-memo archive/restore as a Development candidate. Full archive search/filter/export and cross-device behavior remain open. |
+| 13. Trash | Partial | Local trash/restore/permanent deletion exists, and PR #27 now carries selected-memo Move to Trash / Restore while preserving prior lifecycle location. Bulk permanent deletion remains deliberately absent; retention policy and synchronized trash remain open. |
 | 14. Checklists and Lightweight Tasks | Planned | No checklist data model or UI is established on accepted `main`. |
 | 15. Attachments | Planned | No attachment storage, upload, preview, quota, or client attachment flow is established. |
 | 16. Link Recognition | Planned | No governed link-recognition/preview feature is established. |
 | 17. Reminders | Planned | No reminder model, recurrence, or notification behavior is established. |
-| 18. Quick Actions | Partial | Pin, color, label, archive, delete, and bulk label actions exist locally. Reminder/copy/share/export and broader bulk actions remain open. |
+| 18. Quick Actions | Partial | Pin, color, label, archive, delete, bulk label actions, per-memo/selected-memo Copy/Export, and recoverable selected-memo Archive/Trash/Restore exist locally in the PR #27 candidate. Reminder/share and destructive bulk deletion remain open. |
 | 19. Desktop Application | Planned | No accepted native desktop client is established. |
 | 20. Mobile Application | Partial | Native Android local-only quick capture/persistence exists. Synchronization, sharing, widgets, camera/voice attachments, notifications, biometric lock, and production acceptance remain open. |
 | 21. Web Application | Partial | Responsive browser-local experience, keyboard-accessible controls, local draft protection, and browser persistence exist. Server-backed administration, synchronized/offline web behavior, attachments, and full roadmap parity remain open. |
@@ -44,7 +56,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 | 24. Conflict Handling | Planned | No cross-device conflict engine or merge UI is established. |
 | 25. Version History | Planned | No memo revision-history product feature is established. |
 | 26. Imports | Planned | No product import pipeline or preview is established. |
-| 27. Exports | Planned | No product export/full-library archive pipeline is established. |
+| 27. Exports | Partial | PR #27 implements bounded plain-text export for one memo/selection plus a versioned browser-local full-library JSON export of memos, labels, and Saved Views. Import/round-trip acceptance, cross-client preservation, and server-side export jobs remain open. |
 | 28. Import/Export Round-Trip Guarantee | Planned | No round-trip portability acceptance evidence is established. |
 | 29. Backups | Planned | No operational Memos backup system is established. |
 | 30. Tested Recovery | Planned | No accepted clean-target restore/recovery proof is established. |
@@ -79,7 +91,7 @@ The product boundary remains **Open → type → done.** Memos is quick capture;
 - Keep local-only browser/Android evidence from being represented as synchronized or server-authoritative.
 
 ### P0 — Portability, backup, and recovery
-- Implement user-owned imports/exports, import preview, full-library export, round-trip validation, operational backups, integrity validation, retention, off-device copies, and tested clean-target recovery.
+- Integrate and validate the PR #27 full-library export candidate; then add fail-closed import preview/validation, round-trip preservation, operational backups, integrity validation, retention, off-device copies, and tested clean-target recovery.
 - Keep export portability distinct from operational backup/recovery.
 
 ### P0 — Privacy, security, and multi-user self-hosting

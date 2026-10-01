@@ -65,9 +65,27 @@ export class MemoService {
     return memo;
   }
 
+  async duplicate(id) {
+    const source = await this.get(id);
+    const duplicate = createMemo({
+      id: this.#idFactory(),
+      title: source.title,
+      content: source.content,
+      color: source.color,
+      labels: source.labels,
+      createdAt: this.#clock()
+    });
+    await this.#store.put(duplicate);
+    return (await this.#store.get(duplicate.id)) ?? duplicate;
+  }
+
+  async listAll() {
+    return (await this.#store.list()).sort(compareMemosForDisplay);
+  }
+
   async list({ state = "active" } = {}) {
     if (!MEMO_STATES.includes(state)) throw new TypeError("state must be active, archived, or trashed");
-    return (await this.#store.list()).filter((memo) => memo.state === state).sort(compareMemosForDisplay);
+    return (await this.listAll()).filter((memo) => memo.state === state);
   }
 
   async edit(id, changes) {
@@ -139,6 +157,25 @@ export class MemoService {
     const memo = await this.get(id);
     if (memo.state !== "trashed") throw new Error("only trashed memos can be permanently deleted");
     await this.#store.remove(validateId(id));
+  }
+
+  async archiveMany(memoIds) {
+    return this.#bulkState(memoIds, "archive");
+  }
+
+  async restoreMany(memoIds) {
+    return this.#bulkState(memoIds, "restore");
+  }
+
+  async trashMany(memoIds) {
+    return this.#bulkState(memoIds, "trash");
+  }
+
+  async #bulkState(memoIds, mode) {
+    if (typeof this.#store.bulkUpdateState !== "function") {
+      throw new TypeError("store.bulkUpdateState must be a function");
+    }
+    return this.#store.bulkUpdateState(validateIdList(memoIds), mode, this.#clock());
   }
 
   async #bulkLabel(memoIds, labelId, mode) {

@@ -1,25 +1,623 @@
 import { test, expect } from "@playwright/test";
 
+async function openCapture(page) {
+  const panel = page.locator("#capture-panel");
+  if (!(await panel.evaluate((element) => element.open))) {
+    await panel.locator(":scope > summary").click();
+  }
+}
+
 async function captureMemo(page, { title = "", content, color = "", labels = "" }) {
+  await openCapture(page);
   if (title) await page.locator("#memo-title").fill(title);
-  if (color) await page.locator("#memo-color").selectOption(color);
-  if (labels) await page.locator("#memo-labels").fill(labels);
+  if (color) await page.locator(`#memo-form .color-swatch[data-color="${color}"]`).click();
+  if (labels) {
+    const labelEntry = page.locator("#memo-form .label-picker__entry");
+    await labelEntry.fill(labels);
+    await labelEntry.press("Enter");
+  }
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
   await expect(page.locator(".memo-card__content", { hasText: content })).toBeVisible();
 }
 
+async function openViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function runMemoAction(card, name) {
+  const menu = card.locator("details.memo-card-menu");
+  if (!(await menu.evaluate((element) => element.open))) {
+    await menu.locator(":scope > summary").click();
+  }
+  await card.getByRole("button", { name, exact: true }).click();
+}
+
+test("Glaze capture shell keeps primary writing workflow prominent", async ({ page }) => {
+  await page.goto("/web/");
+
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
+  await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+  await expect(page.locator(".brand__icon")).toHaveAttribute("src", "./assets/memos-icon.svg");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
+  await expect(page.locator("details.manager-drawer")).toHaveJSProperty("open", false);
+  await page.locator("#capture-panel > summary").click();
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#memo-content")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save memo" })).toBeVisible();
+});
+
+test("desktop workspace keeps capture compact and memo cards vertical", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/web/");
+
+  await expect(page.locator("#view-hero")).toBeVisible();
+  await expect(page.locator("#view-hero")).toContainText("Capture what matters.");
+
+  const privacyBox = await page.locator(".topbar-privacy").boundingBox();
+  expect(privacyBox).not.toBeNull();
+  expect(privacyBox.width).toBeLessThanOrEqual(120);
+  expect(privacyBox.height).toBeLessThanOrEqual(40);
+  const privacyIconBox = await page.locator(".topbar-privacy svg").boundingBox();
+  expect(privacyIconBox).not.toBeNull();
+  expect(privacyIconBox.width).toBeLessThanOrEqual(18);
+
+  const brandTitle = page.locator(".brand__copy strong");
+  await expect(brandTitle).toHaveText("GoreeCloud Memos");
+  expect(await brandTitle.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+
+  const collapsedCaptureBox = await page.locator("#capture-panel").boundingBox();
+  expect(collapsedCaptureBox).not.toBeNull();
+  expect(collapsedCaptureBox.height).toBeLessThanOrEqual(56);
+
+  await openCapture(page);
+  const captureBox = await page.locator("#capture-panel").boundingBox();
+  expect(captureBox).not.toBeNull();
+  expect(captureBox.height).toBeLessThanOrEqual(330);
+
+  for (const [index, content] of [
+    "Short vertical memo.",
+    "A little more content keeps this card naturally taller without making the board wide.",
+    "Memos should scan down the page like a note wall.",
+    "Vertical cards preserve more notes above the fold."
+  ].entries()) {
+    await captureMemo(page, { title: `Vertical ${index + 1}`, content });
+  }
+
+  const metrics = await page.locator("#memo-list").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      columnCount: style.columnCount,
+      columnWidth: parseFloat(style.columnWidth)
+    };
+  });
+  expect(metrics.columnCount).toBe("4");
+  expect(metrics.columnWidth).toBeLessThanOrEqual(260);
+
+  const cardBox = await page.locator(".memo-card").first().boundingBox();
+  expect(cardBox).not.toBeNull();
+  expect(cardBox.width).toBeLessThanOrEqual(300);
+});
+
+test("mobile active workspace keeps capture chrome compact", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/web/");
+
+  await expect(page.locator("#view-hero")).toBeHidden();
+  await expect(page.locator(".topbar-privacy")).toBeHidden();
+
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  const sidebarBox = await page.locator(".sidebar").boundingBox();
+  expect(sidebarBox).not.toBeNull();
+  expect(sidebarBox.width).toBeGreaterThanOrEqual(380);
+  await expect(page.locator(".sidebar-label-list")).toBeHidden();
+  await expect(page.locator("details.manager-drawer > summary")).toBeHidden();
+  await expect(page.locator(".sidebar-library")).toBeHidden();
+
+  for (const name of ["Memos", "Archive", "Trash"]) {
+    const tab = location.getByRole("button", { name, exact: true });
+    await expect(tab).toBeVisible();
+    const box = await tab.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+    const labelFits = await tab.locator(".nav-label").evaluate((element) => element.scrollWidth <= element.clientWidth);
+    expect(labelFits, `${name} label should not be clipped`).toBe(true);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  const captureBox = await page.locator("#capture-panel").boundingBox();
+  expect(captureBox).not.toBeNull();
+  expect(captureBox.height).toBeLessThanOrEqual(70);
+});
+
+test("long memo cards stay compact until explicitly expanded", async ({ page }) => {
+  await page.goto("/web/");
+
+  const longContent = Array.from(
+    { length: 14 },
+    (_, index) => `Long memo preview line ${index + 1}: details remain fully local and available when expanded.`
+  ).join("\n");
+
+  await captureMemo(page, { title: "Long preview", content: longContent });
+
+  const card = page.locator(".memo-card", { hasText: "Long preview" });
+  const content = card.locator(".memo-card__content");
+  const expand = card.locator("[data-expand-content]");
+
+  await expect(card).toHaveClass(/memo-card--content-collapsed/);
+  await expect(expand).toBeVisible();
+  await expect(expand).toHaveText("Show more");
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+
+  const collapsedBox = await content.boundingBox();
+  expect(collapsedBox).not.toBeNull();
+
+  await expand.click();
+  await expect(card).toHaveClass(/memo-card--content-expanded/);
+  await expect(expand).toHaveText("Show less");
+  await expect(expand).toHaveAttribute("aria-expanded", "true");
+
+  const expandedBox = await content.boundingBox();
+  expect(expandedBox).not.toBeNull();
+  expect(expandedBox.height).toBeGreaterThan(collapsedBox.height);
+
+  await expand.click();
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+});
+
+test("first-use setup resumes and remains replayable", async ({ page }) => {
+  await page.goto("/web/");
+  await page.evaluate(() => {
+    localStorage.removeItem("goreecloud-memos:setup-complete:v1");
+    localStorage.removeItem("goreecloud-memos:setup-step:v1");
+  });
+  await page.reload();
+
+  const dialog = page.locator("#setup-dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+  const setupNextBox = await page.locator("#setup-next").boundingBox();
+  expect(setupNextBox).not.toBeNull();
+  expect(setupNextBox.height).toBeGreaterThanOrEqual(48);
+  await page.keyboard.press("n");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
+  await page.keyboard.press("/");
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).not.toBeFocused();
+
+  await page.locator("#setup-next").click();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 2 of 3");
+  await page.reload();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 2 of 3");
+
+  await page.locator("#setup-next").click();
+  await page.locator("#setup-next").click();
+  await expect(dialog).not.toBeVisible();
+
+  await page.locator("#sidebar-settings").click();
+  await page.locator("#replay-setup").click();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#setup-progress")).toHaveText("Step 1 of 3");
+});
+
+test("contextual hints can be disabled and re-enabled persistently", async ({ page }) => {
+  await page.goto("/web/");
+
+  const hint = page.locator("#contextual-hint");
+  await expect(hint).toBeVisible();
+
+  await page.locator("#sidebar-settings").click();
+  const hintsToggle = page.locator("#contextual-hints-enabled");
+  await expect(hintsToggle).toBeChecked();
+  await hintsToggle.uncheck();
+  await expect(page.locator("#guidance-status")).toHaveText("Contextual hints are off.");
+  await expect(hint).toBeHidden();
+
+  await page.reload();
+  await expect(hint).toBeHidden();
+  await page.locator("#sidebar-settings").click();
+  await expect(hintsToggle).not.toBeChecked();
+  await hintsToggle.check();
+  await expect(page.locator("#guidance-status")).toHaveText("Contextual hints are on.");
+  await expect(hint).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(hint).toBeVisible();
+
+  await openCapture(page);
+  await expect(hint).toBeHidden();
+  await page.locator("#capture-panel > summary").click();
+  await expect(hint).toBeVisible();
+
+  await page.locator("#dismiss-contextual-hint").click();
+  await expect(hint).toBeHidden();
+  await page.reload();
+  await expect(hint).toBeHidden();
+
+  await page.locator("#sidebar-settings").click();
+  await page.locator("#reset-dismissed-hints").click();
+  await expect(page.locator("#guidance-status"))
+    .toHaveText("Dismissed contextual hints reset.");
+  await page.keyboard.press("Escape");
+  await expect(hint).toBeVisible();
+});
+
+test("compact shell keeps primary controls reachable", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/web/");
+
+  const targets = [
+    page.getByRole("button", { name: "Memos", exact: true }),
+    page.getByRole("button", { name: "Archive", exact: true }),
+    page.getByRole("button", { name: "Trash", exact: true }),
+    page.locator("#memo-search"),
+    page.locator("#topbar-new-memo"),
+    page.locator("details.utility-drawer > summary")
+  ];
+
+  for (const target of targets) {
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+  await expect(page.locator("#contextual-hint")).toBeHidden();
+  await expect(page.locator("#topbar-new-memo")).toBeVisible();
+  await expect(page.locator("details.utility-drawer > summary")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  await openViewControls(page);
+  const mobileManageLabels = page.getByRole("button", { name: "Manage labels", exact: true });
+  await expect(mobileManageLabels).toBeVisible();
+  const mobileManageLabelsBox = await mobileManageLabels.boundingBox();
+  expect(mobileManageLabelsBox).not.toBeNull();
+  expect(mobileManageLabelsBox.height).toBeGreaterThanOrEqual(48);
+  await mobileManageLabels.click();
+  await expect(page.getByRole("heading", { name: "Manage labels" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await captureMemo(page, { content: "Compact touch target memo" });
+  const compactCard = page.locator(".memo-card", { hasText: "Compact touch target memo" });
+  const memoSelectBox = await compactCard.locator(".memo-select").boundingBox();
+  expect(memoSelectBox).not.toBeNull();
+  expect(memoSelectBox.height).toBeGreaterThanOrEqual(48);
+
+  const memoMenuTrigger = compactCard.locator("details.memo-card-menu > summary");
+  const menuBox = await memoMenuTrigger.boundingBox();
+  expect(menuBox).not.toBeNull();
+  expect(menuBox.height).toBeGreaterThanOrEqual(48);
+  await memoMenuTrigger.click();
+  const actionButtons = compactCard.locator(".memo-card__actions button");
+  const actionCount = await actionButtons.count();
+  expect(actionCount).toBeGreaterThan(0);
+  for (let index = 0; index < actionCount; index += 1) {
+    const box = await actionButtons.nth(index).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+  await page.keyboard.press("Escape");
+
+  await openViewControls(page);
+  const presentationTarget = await page.getByRole("radio", { name: "Comfortable" }).locator("..").boundingBox();
+  expect(presentationTarget).not.toBeNull();
+  expect(presentationTarget.height).toBeGreaterThanOrEqual(48);
+  await page.keyboard.press("Escape");
+
+  await page.setViewportSize({ width: 768, height: 1024 });
+  for (const target of targets) {
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  const compactNav = page.locator(".sidebar");
+  const compactTopbar = page.locator(".topbar");
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  for (const viewName of ["Memos", "Archive", "Trash"]) {
+    await location.getByRole("button", { name: viewName, exact: true }).click();
+    const navBox = await compactNav.boundingBox();
+    const topbarBox = await compactTopbar.boundingBox();
+    expect(navBox).not.toBeNull();
+    expect(topbarBox).not.toBeNull();
+    expect(
+      topbarBox.y,
+      `${viewName} top bar should remain attached to the compact navigation at document top`
+    ).toBeLessThanOrEqual(navBox.y + navBox.height + 1);
+  }
+  await location.getByRole("button", { name: "Memos", exact: true }).click();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+    document.body.style.minHeight = "1800px";
+    window.scrollTo(0, 600);
+  });
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  const compactNavBox = await page.locator(".sidebar").boundingBox();
+  const topbarBox = await page.locator(".topbar").boundingBox();
+  expect(compactNavBox).not.toBeNull();
+  expect(topbarBox).not.toBeNull();
+  expect(topbarBox.y).toBeGreaterThanOrEqual(compactNavBox.y + compactNavBox.height - 1);
+});
+
+test("RTL layout direction preserves shell hierarchy and bounded overlays", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/web/");
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("dir", "rtl");
+  });
+
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(page.getByRole("navigation", { name: "Memo location" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+
+  const sidebarBox = await page.locator(".sidebar").boundingBox();
+  const canvasBox = await page.locator(".workspace-canvas").boundingBox();
+  expect(sidebarBox).not.toBeNull();
+  expect(canvasBox).not.toBeNull();
+  expect(sidebarBox.x).toBeGreaterThan(canvasBox.x);
+
+  await captureMemo(page, { title: "RTL memo", content: "RTL resilience check" });
+  const card = page.locator(".memo-card", { hasText: "RTL memo" });
+  const menu = card.locator("details.memo-card-menu");
+  await menu.locator(":scope > summary").click();
+  await expect(menu).toHaveJSProperty("open", true);
+
+  const actionsBox = await card.locator(".memo-card__actions").boundingBox();
+  expect(actionsBox).not.toBeNull();
+  expect(actionsBox.x).toBeGreaterThanOrEqual(0);
+  expect(actionsBox.x + actionsBox.width).toBeLessThanOrEqual(1280);
+
+  await page.keyboard.press("Escape");
+  await openViewControls(page);
+  const utilityBox = await page.locator(".utility-panel").boundingBox();
+  expect(utilityBox).not.toBeNull();
+  expect(utilityBox.x).toBeGreaterThanOrEqual(0);
+  expect(utilityBox.x + utilityBox.width).toBeLessThanOrEqual(1280);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth
+  )).toBe(true);
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+});
+
+test("Glaze accessibility media modes preserve the primary shell", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce", contrast: "more" });
+  await page.goto("/web/");
+
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeVisible();
+
+  const mediaState = await page.evaluate(() => ({
+    reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+    increasedContrast: matchMedia("(prefers-contrast: more)").matches,
+    heroBorderWidth: Number.parseFloat(getComputedStyle(document.querySelector(".hero-card")).borderTopWidth),
+    captureTransition: getComputedStyle(document.querySelector("#capture-panel")).transitionDuration,
+    hasReducedTransparencyFallback: [...document.styleSheets]
+      .flatMap((sheet) => {
+        try {
+          return [...sheet.cssRules];
+        } catch {
+          return [];
+        }
+      })
+      .some((rule) => rule.cssText.includes("prefers-reduced-transparency"))
+  }));
+
+  expect(mediaState.reducedMotion).toBe(true);
+  expect(mediaState.increasedContrast).toBe(true);
+  expect(mediaState.heroBorderWidth).toBeGreaterThanOrEqual(2);
+  expect(mediaState.hasReducedTransparencyFallback).toBe(true);
+
+  await page.emulateMedia({ forcedColors: "active" });
+  await expect(page.locator("#memos-heading")).toHaveText("Memos");
+  expect(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)).toBe(true);
+});
+
+test("workspace lifecycle counts stay exact across filters and state changes", async ({ page }) => {
+  await page.goto("/web/");
+
+  const activeCount = page.locator('[data-view-count="active"]').first();
+  const archivedCount = page.locator('[data-view-count="archived"]').first();
+  const trashedCount = page.locator('[data-view-count="trashed"]').first();
+
+  await expect(activeCount).toHaveText("0");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("0");
+
+  await captureMemo(page, { title: "Count One", content: "First count memo" });
+  await captureMemo(page, { title: "Count Two", content: "Second count memo" });
+  await expect(activeCount).toHaveText("2");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("0");
+
+  const search = page.locator("#memo-search");
+  await search.fill("Count One");
+  await expect(page.locator(".memo-card")).toHaveCount(1);
+  await expect(activeCount).toHaveText("2");
+  await search.fill("");
+  await expect(page.locator(".memo-card")).toHaveCount(2);
+
+  let card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Archive");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("1");
+  await expect(trashedCount).toHaveText("0");
+
+  const location = page.getByRole("navigation", { name: "Memo location" });
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
+  card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Move to Trash");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("0");
+  await expect(trashedCount).toHaveText("1");
+
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
+  card = page.locator(".memo-card", { hasText: "First count memo" });
+  await runMemoAction(card, "Restore");
+  await expect(activeCount).toHaveText("1");
+  await expect(archivedCount).toHaveText("1");
+  await expect(trashedCount).toHaveText("0");
+});
+
+test("Archive and Trash keep lifecycle context explicit", async ({ page }) => {
+  await page.goto("/web/");
+
+  const location = page.getByRole("navigation", { name: "Memo location" });
+
+  await location.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(location.getByRole("button", { name: "Archive", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(location.getByRole("button", { name: "Memos", exact: true })).not.toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "archived");
+  await expect(page.getByRole("heading", { name: "Keep the active space light." })).toBeVisible();
+  await expect(page.locator("#workspace-title")).toHaveText("Archive");
+  await expect(page.locator("#workspace-description")).toHaveText("Saved notes, out of the active flow.");
+  await expect(page.locator("#capture-panel")).toBeHidden();
+
+  await location.getByRole("button", { name: "Trash", exact: true }).click();
+  await expect(page.locator("#view-hero")).toHaveAttribute("data-view-surface", "trashed");
+  await expect(page.getByRole("heading", { name: "Recover what you need." })).toBeVisible();
+  await expect(page.locator("#workspace-title")).toHaveText("Trash");
+  await expect(page.locator("#workspace-description")).toHaveText("Recover or delete notes explicitly.");
+  await expect(page.locator("#capture-panel")).toBeHidden();
+
+  await page.locator("#topbar-new-memo").click();
+  await expect(location.getByRole("button", { name: "Memos", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#memo-content")).toBeFocused();
+});
+
+test("full local library export includes lifecycle data without mutating the workspace", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Active export", content: "Keep active", labels: "Export" });
+  await captureMemo(page, { title: "Archive export", content: "Keep archived" });
+
+  const archivedCard = page.locator(".memo-card", { hasText: "Keep archived" });
+  await runMemoAction(archivedCard, "Archive");
+
+  await openViewControls(page);
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export library JSON" }).click();
+  const download = await downloadPromise;
+
+  expect(download.suggestedFilename()).toMatch(/^goreecloud-memos-\d{4}-\d{2}-\d{2}\.json$/);
+  await expect(page.locator("#library-export-status")).toContainText("Exported 2 memos");
+  await expect(page.locator("#library-export-status")).toContainText("No local data was changed");
+
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(page.locator(".memo-card", { hasText: "Keep archived" })).toBeVisible();
+});
+
+test("native shell shortcuts and Glaze appearance preference persist locally", async ({ page }) => {
+  await page.goto("/web/");
+
+  await openViewControls(page);
+  const utilitySummary = page.locator("details.utility-drawer > summary");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("details.utility-drawer")).toHaveJSProperty("open", false);
+  await expect(utilitySummary).toBeFocused();
+
+  await page.keyboard.press("/");
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toBeFocused();
+  await page.getByRole("searchbox", { name: "Search memos" }).blur();
+
+  await page.keyboard.press("n");
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator("#memo-content")).toBeFocused();
+
+  await openViewControls(page);
+  await page.getByRole("radio", { name: "Deep Dark" }).check();
+  await expect(page.locator("html")).toHaveAttribute("data-appearance", "deep-dark");
+  await expect(page.locator("#appearance-status")).toHaveText("Appearance: Deep Dark.");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-appearance", "deep-dark");
+  await openViewControls(page);
+  await expect(page.getByRole("radio", { name: "Deep Dark" })).toBeChecked();
+});
+
+// Native shell context coverage follows the primary shell tests.
+test("memo click opens editing while the context menu stays secondary", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Direct edit", content: "Open the memo directly" });
+
+  const card = page.locator(".memo-card", { hasText: "Open the memo directly" });
+  await expect(card.locator(".memo-editor")).toHaveCount(0);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const cardBox = await card.boundingBox();
+  const timeBox = await card.locator(".memo-card__time").boundingBox();
+  expect(cardBox).not.toBeNull();
+  expect(timeBox).not.toBeNull();
+  expect(timeBox.x - cardBox.x).toBeLessThan(26);
+  await expect(card.locator(".memo-card__time")).toHaveText("Just now");
+  await expect(card.locator(".memo-card__time")).not.toHaveAttribute("title", "");
+
+  const menu = card.locator("details.memo-card-menu");
+  await menu.locator(":scope > summary").click();
+  await expect(card.locator(".memo-select")).toHaveCSS("opacity", "0");
+  for (const action of ["Pin", "Duplicate", "Copy text", "Export .txt", "Archive", "Move to Trash"]) {
+    await expect(card.getByRole("button", { name: action, exact: true })).toBeVisible();
+  }
+  await expect(card.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
+
+  await page.locator("#memos-heading").click();
+  await expect(menu).toHaveJSProperty("open", false);
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toHaveValue("Open the memo directly");
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
+  await expect(card).toHaveAttribute("aria-expanded", "true");
+  await expect(card.locator(":scope > .memo-card__header")).toBeHidden();
+  const editorId = await card.locator(".memo-editor").getAttribute("id");
+  expect(editorId).toBeTruthy();
+  await expect(card).toHaveAttribute("aria-controls", editorId);
+  const editorBox = await card.boundingBox();
+  expect(editorBox).not.toBeNull();
+  expect(editorBox.width).toBeGreaterThanOrEqual(560);
+
+  await page.locator("#memos-heading").click();
+  await expect(card.locator(".memo-editor")).toBeHidden();
+  await expect(card).toHaveAttribute("aria-expanded", "false");
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(card.locator(".memo-editor")).toBeHidden();
+
+  await card.locator(".memo-card__content").click();
+  await expect(card.locator("[data-edit-field='content']")).toBeFocused();
+  await card.getByRole("button", { name: "Close editor" }).click();
+  await expect(card.locator(".memo-editor")).toBeHidden();
+});
+
 test("draft recovery and saved memo persistence survive reload", async ({ page }) => {
   await page.goto("/web/");
+  await openCapture(page);
   await page.locator("#memo-title").fill("Draft title");
-  await page.locator("#memo-color").selectOption("teal");
-  await page.locator("#memo-labels").fill("Work, Ideas");
+  await page.locator('#memo-form .color-swatch[data-color="teal"]').click();
+  const draftLabelEntry = page.locator("#memo-form .label-picker__entry");
+  await draftLabelEntry.fill("Work, Ideas");
+  await draftLabelEntry.press("Enter");
   await page.locator("#memo-content").fill("Recovered draft");
   await expect(page.getByText("Draft saved on this device.")).toBeVisible();
   await page.reload();
   await expect(page.locator("#memo-title")).toHaveValue("Draft title");
   await expect(page.locator("#memo-color")).toHaveValue("teal");
+  await expect(page.locator('#memo-form .color-swatch[data-color="teal"]')).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#memo-labels")).toHaveValue("Work, Ideas");
+  await expect(page.locator("#memo-form .label-chip--selected")).toHaveCount(2);
   await expect(page.locator("#memo-content")).toHaveValue("Recovered draft");
   await page.getByRole("button", { name: "Save memo" }).click();
   const card = page.locator(".memo-card", { hasText: "Recovered draft" });
@@ -37,21 +635,54 @@ test("draft recovery and saved memo persistence survive reload", async ({ page }
   expect(snapshot.memoLabels.filter((relation) => relation.memoId === saved.id)).toHaveLength(2);
 });
 
+test("label chips filter managed labels and make new labels explicit", async ({ page }) => {
+  await page.goto("/web/");
+  await captureMemo(page, { title: "Managed labels", content: "Seed labels", labels: "Work, Ideas, Research" });
+
+  await openCapture(page);
+  const entry = page.locator("#memo-form .label-picker__entry");
+
+  await entry.fill("wo");
+  await expect(page.getByRole("button", { name: "Add label Work" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add label Ideas" })).toHaveCount(0);
+
+  await entry.press("Escape");
+  await expect(entry).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Add label Ideas" })).toBeVisible();
+
+  await entry.fill("Fresh label");
+  const newLabel = page.getByRole("button", { name: "Use new label Fresh label" });
+  await expect(newLabel).toBeVisible();
+  await newLabel.click();
+
+  await expect(page.locator("#memo-labels")).toHaveValue("Fresh label");
+  await expect(page.locator("#memo-form .label-chip--selected")).toContainText("Fresh label");
+
+  await page.locator("#memo-content").fill("Create the new label with this memo");
+  await page.getByRole("button", { name: "Save memo" }).click();
+
+  const snapshot = await readManagedSnapshot(page);
+  expect(snapshot.labels.some((label) => label.name === "Fresh label")).toBe(true);
+});
+
 test("editing autosaves organization metadata and survives reload", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, { content: "Before edit" });
 
   const card = page.locator(".memo-card").first();
   await expect(card.locator(".memo-card__content")).toHaveText("Before edit");
-  await card.getByRole("button", { name: "Edit", exact: true }).click();
+  await card.locator(".memo-card__content").click();
   await card.locator("[data-edit-field='content']").fill("After edit");
-  await card.locator("[data-edit-field='color']").selectOption("purple");
-  await card.locator("[data-edit-field='labels']").fill("Research, Reference, research");
+  await card.locator('.memo-editor .color-swatch[data-color="purple"]').click();
+  const editLabelEntry = card.locator(".memo-editor .label-picker__entry");
+  await editLabelEntry.fill("Research, Reference, research");
+  await editLabelEntry.press("Enter");
   await expect(card.locator(".editor-status")).toHaveText("Saved.");
   await expect(card.locator(".memo-card__content")).toHaveText("After edit");
   await expect(card).toHaveAttribute("data-color", "purple");
-  await expect(card.getByText("Research", { exact: true })).toBeVisible();
-  await expect(card.getByText("Reference", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Close editor" }).click();
+  await expect(card.locator(".memo-card__meta").getByText("Research", { exact: true })).toBeVisible();
+  await expect(card.locator(".memo-card__meta").getByText("Reference", { exact: true })).toBeVisible();
 
   await page.reload();
   const reloaded = page.locator(".memo-card", { hasText: "After edit" });
@@ -67,12 +698,12 @@ test("pinning retains manual order across reload", async ({ page }) => {
 
   let first = page.locator(".memo-card", { hasText: "First pinned memo" });
   let second = page.locator(".memo-card", { hasText: "Second pinned memo" });
-  await first.getByRole("button", { name: "Pin", exact: true }).click();
-  await page.locator(".memo-card", { hasText: "Second pinned memo" }).getByRole("button", { name: "Pin", exact: true }).click();
+  await runMemoAction(first, "Pin");
+  await runMemoAction(page.locator(".memo-card", { hasText: "Second pinned memo" }), "Pin");
   await expect(page.locator(".memo-card").nth(0)).toContainText("First pinned memo");
 
-  second = page.locator(".memo-card", { hasText: "Second pinned memo" });
-  await second.getByRole("button", { name: "Move pin up", exact: true }).click();
+  first = page.locator(".memo-card", { hasText: "First pinned memo" });
+  await runMemoAction(first, "Move pin down");
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
   await expect(page.locator(".memo-card").nth(1)).toContainText("First pinned memo");
 
@@ -80,13 +711,14 @@ test("pinning retains manual order across reload", async ({ page }) => {
   await expect(page.locator(".memo-card").nth(0)).toContainText("Second pinned memo");
   await expect(page.locator(".memo-card").nth(1)).toContainText("First pinned memo");
   first = page.locator(".memo-card", { hasText: "First pinned memo" });
-  await first.getByRole("button", { name: "Unpin", exact: true }).click();
+  await runMemoAction(first, "Unpin");
   await expect(page.locator(".memo-card", { hasText: "First pinned memo" }).getByText("Pinned", { exact: true })).toHaveCount(0);
 });
 
 test("presentation mode is keyboard accessible and persists across reload", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, { content: "Presentation memo", color: "blue", labels: "Layout" });
+  await openViewControls(page);
 
   const list = page.locator("#memo-list");
   const comfortable = page.getByRole("radio", { name: "Comfortable" });
@@ -102,6 +734,7 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
   await expect(list).toHaveAttribute("data-presentation", "compact");
 
   await page.reload();
+  await openViewControls(page);
   await expect(compact).toBeChecked();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "compact");
   await listMode.check();
@@ -110,6 +743,7 @@ test("presentation mode is keyboard accessible and persists across reload", asyn
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
 
   await page.reload();
+  await openViewControls(page);
   await expect(page.getByRole("radio", { name: "Dense" })).toBeChecked();
   await expect(page.locator("#memo-list")).toHaveAttribute("data-presentation", "dense");
 });
@@ -119,38 +753,38 @@ test("Archive and Trash are recoverable before explicit permanent deletion", asy
   await captureMemo(page, { content: "Lifecycle memo" });
 
   let card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
-  await card.getByRole("button", { name: "Archive", exact: true }).click();
+  await runMemoAction(card, "Archive");
   await expect(card).toHaveCount(0);
 
   const location = page.getByRole("navigation", { name: "Memo location" });
   await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await runMemoAction(card, "Move to Trash");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Trash", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await runMemoAction(card, "Restore");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Archive", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Restore", exact: true }).click();
+  await runMemoAction(card, "Restore");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Memos", exact: true }).click();
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Move to Trash", exact: true }).click();
+  await runMemoAction(card, "Move to Trash");
   await expect(card).toHaveCount(0);
 
   await location.getByRole("button", { name: "Trash", exact: true }).click();
   page.once("dialog", (dialog) => dialog.accept());
   card = page.locator(".memo-card", { hasText: "Lifecycle memo" });
-  await card.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await runMemoAction(card, "Delete permanently");
   await expect(page.getByText("Trash is empty.")).toBeVisible();
 });
 
@@ -339,6 +973,9 @@ test("opening database v5 preserves existing v4 managed identities and adds an e
   await seedSchemaV4ManagedState(page);
   await page.goto("/web/");
   await expect(page.locator(".memo-card", { hasText: "Preserve managed identity through v5" })).toBeVisible();
+  const workSidebarLabel = page.locator('[data-sidebar-label-name="Work"]');
+  await expect(workSidebarLabel).toBeVisible();
+  await expect(workSidebarLabel.locator(".sidebar-label-dot")).toHaveCSS("background-color", "rgb(131, 104, 201)");
 
   const snapshot = await readManagedSnapshot(page);
   expect(snapshot.version).toBe(5);

@@ -1,7 +1,54 @@
 # GoreeCloud Memos — Changelogs
 
+## 2026-09-29 — local memo duplication candidate
+
+- Added **Duplicate** to active memo actions.
+- Duplication creates a new browser-local Active memo with copied title, content, color, and labels while leaving the source memo unchanged.
+- The duplicate intentionally starts unpinned with a new identifier and new creation timestamp; archive/trash state and pin ordering are not copied.
+- Added focused service coverage for source preservation and duplicate lifecycle defaults.
+- No schema, account, synchronization, server, backup, cloud, or cross-device authority was added.
+
+**Acceptance boundary:** Development candidate on PR #27. Fresh exact-head workflow validation and the existing integration/review/device/release gates remain required.
+
+## 2026-09-29 — versioned local-library export candidate
+
+- Added **Export library JSON** to the browser-local Workspace settings.
+- Added `goreecloud-memos-library-export` schema v1 with deterministic normalized Memo, Label, and Saved View records.
+- Includes Active, Archived, and Trashed memo lifecycle state; excludes drafts, recent-search history, appearance/presentation state, and guidance preferences.
+- Added stable UTC-date filenames plus unit coverage for deterministic serialization and Chromium coverage for the user-visible download path.
+- Preserved the authority boundary: export changes no data and does not claim import, round-trip restore, operational backup, synchronization, cloud, or Everkeep authority.
+
+**Acceptance boundary:** Development candidate on PR #27. Fresh exact-head workflow validation, integration, import/round-trip/recovery work, representative-browser accessibility/performance review, protection/review, release, production, Stable, Seal, and Anchor gates remain open.
+
+## 2026-09-29 — privacy-minimized recent searches candidate
+
+- Added a browser-local recent-search history that records a query only after the user explicitly submits it with Enter or reuses an existing recent search; ordinary search-as-you-type input remains ephemeral.
+- Bounded history to eight valid queries of at most 256 characters, with newest-first ordering and case-insensitive deduplication.
+- Added **Clear recent searches** without changing the current query, filters, Saved Views, or memo data.
+- Added malformed-storage recovery, unit tests, and Chromium coverage for non-persistence while typing, explicit submission, reload persistence, reuse, and clearing.
+- Added no account, synchronization, telemetry, network, server, or memo-schema authority. Fresh exact-head validation remains required.
+
+## 2026-09-28 — recoverable bulk memo lifecycle candidate
+
+- Extended the existing ephemeral browser selection with **Archive selected**, **Move to Trash**, and **Restore selected**.
+- Added one-transaction IndexedDB lifecycle updates that validate the full selection before writing, preventing partial mutation when one selected memo cannot perform the requested transition.
+- Preserved each trashed memo's prior Active or Archived location when restoring.
+- Kept bulk permanent deletion unavailable; permanent deletion remains an explicit single-memo Trash action.
+- Added service/unit and Chromium end-to-end coverage for reversible bulk lifecycle behavior.
+- No schema, account, synchronization, server, backup, or cross-device authority was added.
+- Exact head `35a17ca14bd58dd67b694cbdaa8d213e96a41eea` passed Platform Contract #82, Repository feature records #358, Validate #405, and Android Development Foundation #255.
+
+
+## 2026-09-28 — local memo text portability candidate
+
+- Added per-memo **Copy text** and **Export .txt** quick actions plus **Copy selected** / **Export selected** for the current ephemeral selection.
+- Added deterministic selected-memo text bundles that preserve selection order and existing memo metadata, with filesystem-safe filenames and unit/browser coverage.
+- Hardened compact memo action geometry to 49 CSS px after Chromium exposed sub-pixel rounding below the 48 px acceptance floor.
+- Exact candidate head `9f6b9e75fe1e04a5758cc4ebdd8e429182e1b703` passed all configured Memos workflow families. Full-library export/import round-trip, backup/recovery, synchronization, and cross-client portability remain open.
+
+
 **Record type:** Repository changelog and migration history  
-**Repository:** `GoreeCloud/goreecloud-memos`  
+**Repository:** `GoreeCloud/memos`  
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete and authoritative on `main`; PR #20 merged as `7985fed0bad91b5a04e8a586aefda6089086a120`, exact-head and exact-main validation passed, root `FEATURE-ROADMAP.md` is absent, and the mapped legacy Drive roadmap was permanently retired and verified absent on September 22, 2026.  
 **Runtime evidence baseline:** `d86dfb981830dc9941ab7b009fbbe18d818c3a63`; governance migration/reconciliation does not promote runtime state.  
@@ -10,6 +57,12 @@
 ## Authority and interpretation
 
 This file records meaningful changes accepted in repository history. The former Drive planning roadmap is now retired migration provenance only; it is not current authority. No dedicated `Change Log — Memos` Drive source was resolved during the bounded migration inventory, so no unidentified Drive changelog deletion is claimed.
+
+### September 28, 2026 — persistent contextual-hint dismissal and reset
+- Changed the workspace Quick tip dismissal from session-only state to browser-profile-local persistence so a dismissed optional hint stays dismissed after reload.
+- Added a **Reset dismissed hints** control in Guidance settings, independent from the global Contextual hints toggle and first-use setup replay.
+- Expanded Chromium end-to-end coverage for dismissal persistence, reload behavior, reset behavior, and reappearance after reset.
+- The feature remains local to the browser profile and adds no account, synchronization, telemetry, or network authority. Fresh exact-head validation is required for this Development candidate.
 
 ## Current repository changelog
 

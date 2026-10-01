@@ -81,6 +81,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run Chromium end-to-end tests
         run: npm run test:e2e
+      - name: Upload exact-head rendered visual review evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: memos-web-visual-review-${{ env.EVALUATED_REVISION }}
+          path: test-results/visual-review
+          if-no-files-found: warn
+          retention-days: 14
 
   repository-baseline:
     name: Repository baseline

@@ -1,12 +1,62 @@
 import { test, expect } from "@playwright/test";
 
+async function openCapture(page) {
+  const panel = page.locator("#capture-panel");
+  if (!(await panel.evaluate((element) => element.open))) {
+    await panel.locator(":scope > summary").click();
+  }
+}
+
 async function captureMemo(page, { title = "", content, color = "", labels = "" }) {
+  await openCapture(page);
   if (title) await page.locator("#memo-title").fill(title);
-  if (color) await page.locator("#memo-color").selectOption(color);
-  if (labels) await page.locator("#memo-labels").fill(labels);
+  if (color) await page.locator(`#memo-form .color-swatch[data-color="${color}"]`).click();
+  if (labels) {
+    const labelEntry = page.locator("#memo-form .label-picker__entry");
+    await labelEntry.fill(labels);
+    await labelEntry.press("Enter");
+  }
   await page.locator("#memo-content").fill(content);
   await page.getByRole("button", { name: "Save memo" }).click();
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".memo-card__content", { hasText: content })).toBeVisible();
+}
+
+async function openViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function closeViewControls(page) {
+  const drawer = page.locator("details.utility-drawer");
+  if (await drawer.evaluate((element) => element.open)) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function openLabelManager(page) {
+  const drawer = page.locator("details.manager-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function closeLabelManager(page) {
+  const drawer = page.locator("details.manager-drawer");
+  if (await drawer.evaluate((element) => element.open)) {
+    await drawer.locator(":scope > summary").click();
+  }
+}
+
+async function runMemoAction(card, name) {
+  const menu = card.locator("details.memo-card-menu");
+  if (!(await menu.evaluate((element) => element.open))) {
+    await menu.locator(":scope > summary").click();
+  }
+  await card.getByRole("button", { name, exact: true }).click();
 }
 
 test("local search and filters combine within the current lifecycle view and reset on reload", async ({ page }) => {
@@ -30,6 +80,7 @@ test("local search and filters combine within the current lifecycle view and res
     labels: "Research, Work"
   });
 
+  await openLabelManager(page);
   const ideasRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Ideas") });
   await ideasRow.getByLabel("Color for Ideas").selectOption("purple");
   await ideasRow.getByRole("button", { name: "Save details", exact: true }).click();
@@ -39,7 +90,21 @@ test("local search and filters combine within the current lifecycle view and res
   await workRow.getByLabel("Color for Work").selectOption("blue");
   await workRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Work.");
+  await closeLabelManager(page);
+  await expect(page.locator(".memo-card")).toHaveCount(3);
 
+  const sidebarWork = page.getByRole("button", { name: "Filter current view by label Work", exact: true });
+  await expect(sidebarWork).toHaveAttribute("aria-pressed", "false");
+  await sidebarWork.click();
+  await expect(page.locator("#memo-filter-label")).toHaveValue("Work");
+  await expect(page.locator(".memo-card")).toHaveCount(2);
+  const activeSidebarWork = page.getByRole("button", { name: "Clear label filter Work", exact: true });
+  await expect(activeSidebarWork).toHaveAttribute("aria-pressed", "true");
+  await activeSidebarWork.click();
+  await expect(page.locator("#memo-filter-label")).toHaveValue("all");
+  await expect(page.locator(".memo-card")).toHaveCount(3);
+
+  await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const color = page.locator("#memo-filter-color");
   const label = page.locator("#memo-filter-label");
@@ -56,7 +121,7 @@ test("local search and filters combine within the current lifecycle view and res
 
   await label.selectOption("Work");
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toBeVisible();
-  await expect(page.getByText("1 of 3 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 3 memos matches current filters")).toBeVisible();
 
   await labelColor.selectOption("purple");
   await expect(page.locator(".memo-card")).toHaveCount(0);
@@ -72,24 +137,27 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.locator(".memo-card", { hasText: "Garden" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toHaveCount(0);
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toHaveCount(0);
-  await expect(page.getByText("1 of 3 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 3 memos matches current filters")).toBeVisible();
 
   await page.getByRole("button", { name: "Clear search and filters" }).click();
+  await closeViewControls(page);
 
   const reference = page.locator(".memo-card", { hasText: "Reference" });
-  await reference.getByRole("button", { name: "Archive", exact: true }).click();
+  await runMemoAction(reference, "Archive");
   await page.getByRole("navigation", { name: "Memo location" }).getByRole("button", { name: "Archive", exact: true }).click();
 
   await search.fill("alpha");
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Project Alpha" })).toHaveCount(0);
-  await expect(page.getByText("1 of 1 archived memo shown")).toBeVisible();
+  await expect(page.getByText("1 of 1 archived memo matches current filters")).toBeVisible();
 
+  await openViewControls(page);
   await color.selectOption("green");
   await label.selectOption("Work");
   await expect(page.locator(".memo-card", { hasText: "Reference" })).toBeVisible();
 
   await page.reload();
+  await openViewControls(page);
   await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("");
   await expect(page.locator("#memo-filter-color")).toHaveValue("all");
   await expect(page.locator("#memo-filter-label")).toHaveValue("all");
@@ -98,6 +166,57 @@ test("local search and filters combine within the current lifecycle view and res
   await expect(page.locator(".memo-card", { hasText: "Garden" })).toBeVisible();
 });
 
+
+test("recent searches retain only explicit local submissions and can be cleared independently", async ({ page }) => {
+  await page.goto("/web/");
+
+  await captureMemo(page, {
+    title: "Recent Alpha",
+    content: "First recent-search target"
+  });
+  await captureMemo(page, {
+    title: "Recent Garden",
+    content: "Second recent-search target"
+  });
+
+  await openViewControls(page);
+  const search = page.getByRole("searchbox", { name: "Search memos" });
+  const recentPanel = page.locator("#recent-searches-panel");
+
+  await expect(recentPanel).toBeHidden();
+
+  await search.fill("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+  await expect(recentPanel).toBeHidden();
+
+  await search.press("Enter");
+  await expect(recentPanel).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search again for alpha", exact: true })).toBeVisible();
+
+  await search.fill("garden");
+  await search.press("Enter");
+  const recentButtons = page.locator("#recent-searches-list .recent-searches__query");
+  await expect(recentButtons).toHaveCount(2);
+  await expect(recentButtons.nth(0)).toHaveText("garden");
+  await expect(recentButtons.nth(1)).toHaveText("alpha");
+
+  await page.reload();
+  await openViewControls(page);
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Search again for alpha", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search again for garden", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Search again for alpha", exact: true }).click();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+  await expect(page.locator(".memo-card", { hasText: "Recent Garden" })).toHaveCount(0);
+
+  await openViewControls(page);
+  await page.getByRole("button", { name: "Clear recent searches", exact: true }).click();
+  await expect(recentPanel).toBeHidden();
+  await expect(page.getByRole("searchbox", { name: "Search memos" })).toHaveValue("alpha");
+  await expect(page.locator(".memo-card", { hasText: "Recent Alpha" })).toBeVisible();
+});
 
 test("advanced search expressions combine verified local dimensions and surface deterministic errors", async ({ page }) => {
   await page.goto("/web/");
@@ -114,18 +233,21 @@ test("advanced search expressions combine verified local dimensions and surface 
     labels: "Home"
   });
 
+  await openLabelManager(page);
   const projectRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Project Work") });
   await projectRow.getByLabel("Color for Project Work").selectOption("purple");
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+  await closeLabelManager(page);
 
+  await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const memoColor = page.locator("#memo-filter-color");
 
   await search.fill('advanced color:blue label:"Project Work" label-color:purple');
   await expect(page.locator(".memo-card", { hasText: "Expression Alpha" })).toBeVisible();
   await expect(page.locator(".memo-card", { hasText: "Expression Garden" })).toHaveCount(0);
-  await expect(page.getByText("1 of 2 memos shown")).toBeVisible();
+  await expect(page.getByText("1 of 2 memos matches current filters")).toBeVisible();
 
   await memoColor.selectOption("green");
   await expect(page.locator(".memo-card")).toHaveCount(0);
@@ -159,11 +281,14 @@ test("named saved views persist locally and restore the current query and direct
     labels: "Home"
   });
 
+  await openLabelManager(page);
   const projectRow = page.locator(".label-admin-row").filter({ has: page.getByLabel("Label name for Project Work") });
   await projectRow.getByLabel("Color for Project Work").selectOption("purple");
   await projectRow.getByRole("button", { name: "Save details", exact: true }).click();
   await expect(page.locator("#label-admin-status")).toHaveText("Saved details for Project Work.");
+  await closeLabelManager(page);
 
+  await openViewControls(page);
   const search = page.getByRole("searchbox", { name: "Search memos" });
   const memoColor = page.locator("#memo-filter-color");
   const label = page.locator("#memo-filter-label");
@@ -190,6 +315,7 @@ test("named saved views persist locally and restore the current query and direct
   await expect(page.locator(".memo-card")).toHaveCount(2);
 
   await page.reload();
+  await openViewControls(page);
   await expect(search).toHaveValue("");
   await expect(memoColor).toHaveValue("all");
   await expect(label).toHaveValue("all");

@@ -2,6 +2,8 @@
 
 **Verified:** 2026-09-17
 
+> Historical note: this audit records the repository identity that existed at the audited revision. Repository ID `1374108510` was later renamed in place to `GoreeCloud/memos`; the historical `GoreeCloud/goreecloud-memos` references below are intentionally preserved as dated audit evidence.
+
 ## Canonical repository state before implementation
 
 - Repository: `GoreeCloud/goreecloud-memos`.

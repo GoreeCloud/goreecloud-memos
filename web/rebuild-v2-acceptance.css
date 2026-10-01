@@ -1,0 +1,34 @@
+/* GoreeCloud Memos rebuild acceptance overrides */
+.hero-card[data-view-surface="active"] {
+  display: flex;
+  min-height: 0;
+  height: 0;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.memo-list[data-presentation="comfortable"] {
+  columns: 246px 4;
+}
+
+.memo-list[data-presentation="compact"] {
+  columns: 215px 5;
+}
+
+@media (max-width: 900px) {
+  .hero-card[data-view-surface="active"] {
+    display: flex;
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+    border: 0;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: none;
+  }
+}

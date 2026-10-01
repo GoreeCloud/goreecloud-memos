@@ -6,18 +6,72 @@ import { loadPresentationMode, savePresentationMode } from "../src/app/presentat
 import { ALL_COLORS, ALL_LABEL_COLORS, collectLabelOptions, filterMemos } from "../src/app/memo-query.mjs";
 import { parseSearchExpression } from "../src/app/search-expression.mjs";
 import { SavedViewService } from "../src/app/saved-view-service.mjs";
+import {
+  formatMemoPlainText,
+  formatMemosLibraryJson,
+  memoPlainTextFilename,
+  memosLibraryJsonFilename
+} from "../src/app/memo-portability.mjs";
+import { clearRecentSearches, loadRecentSearches, rememberRecentSearch } from "../src/app/recent-searches.mjs";
 
 const DRAFT_KEY = "goreecloud-memos:draft:v1";
 const AUTOSAVE_DELAY_MS = 450;
+const MEMO_RENDER_BATCH_SIZE = 200;
+const MEMO_PREVIEW_CHARACTER_LIMIT = 560;
+const MEMO_PREVIEW_LINE_LIMIT = 10;
+const memoTimestampFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short"
+});
+const memoShortDateFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric"
+});
+const memoRelativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, {
+  numeric: "auto"
+});
+
+function formatMemoTimestamp(value, now = Date.now()) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const current = new Date(now);
+  const sameDay =
+    date.getFullYear() === current.getFullYear() &&
+    date.getMonth() === current.getMonth() &&
+    date.getDate() === current.getDate();
+
+  if (sameDay) {
+    const ageMs = Math.max(0, current.getTime() - date.getTime());
+    if (ageMs < 60_000) return "Just now";
+    if (ageMs < 3_600_000) {
+      return memoRelativeTimeFormatter.format(-Math.max(1, Math.round(ageMs / 60_000)), "minute");
+    }
+    return memoRelativeTimeFormatter.format(-Math.max(1, Math.round(ageMs / 3_600_000)), "hour");
+  }
+
+  if (date.getFullYear() === current.getFullYear()) {
+    return memoShortDateFormatter.format(date);
+  }
+
+  return memoTimestampFormatter.format(date);
+}
 
 const form = document.querySelector("#memo-form");
+const capturePanel = document.querySelector("#capture-panel");
+const captureSummary = capturePanel?.querySelector(":scope > summary");
 const titleInput = document.querySelector("#memo-title");
 const colorInput = document.querySelector("#memo-color");
 const labelsInput = document.querySelector("#memo-labels");
 const contentInput = document.querySelector("#memo-content");
 const saveButton = document.querySelector("#save-button");
 const listElement = document.querySelector("#memo-list");
+const renderProgress = document.querySelector("#memo-render-progress");
+const renderProgressStatus = document.querySelector("#memo-render-progress-status");
+const renderMoreButton = document.querySelector("#memo-render-more");
 const template = document.querySelector("#memo-template");
+const editorTemplate = document.querySelector("#memo-editor-template");
 const status = document.querySelector("#status");
 const draftState = document.querySelector("#draft-state");
 const viewButtons = [...document.querySelectorAll("[data-view]")];
@@ -29,12 +83,18 @@ const filterLabelInput = document.querySelector("#memo-filter-label");
 const filterLabelColorInput = document.querySelector("#memo-filter-label-color");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const filterStatus = document.querySelector("#filter-status");
+const recentSearchesPanel = document.querySelector("#recent-searches-panel");
+const recentSearchesList = document.querySelector("#recent-searches-list");
+const recentSearchesStatus = document.querySelector("#recent-searches-status");
+const clearRecentSearchesButton = document.querySelector("#clear-recent-searches");
 const savedViewNameInput = document.querySelector("#saved-view-name");
 const savedViewSaveButton = document.querySelector("#saved-view-save");
 const savedViewSelect = document.querySelector("#saved-view-select");
 const savedViewApplyButton = document.querySelector("#saved-view-apply");
 const savedViewDeleteButton = document.querySelector("#saved-view-delete");
 const savedViewStatus = document.querySelector("#saved-view-status");
+const libraryExportButton = document.querySelector("#library-export");
+const libraryExportStatus = document.querySelector("#library-export-status");
 
 const store = new IndexedDbMemoStore();
 const service = new MemoService(store);
@@ -46,9 +106,60 @@ let currentPresentation = loadPresentationMode(localStorage);
 let refreshGeneration = 0;
 let managedLabels = [];
 let savedViews = [];
+let recentSearches = loadRecentSearches(localStorage);
+let renderedMemoContexts = new Map();
+let progressiveMemos = [];
+let progressiveRenderIndex = 0;
+let progressivePinnedIndexes = new Map();
+let progressivePinnedCount = 0;
 
 function setStatus(message) {
   status.textContent = message;
+}
+
+function renderRecentSearches() {
+  if (!recentSearchesPanel || !recentSearchesList || !clearRecentSearchesButton) return;
+
+  recentSearchesList.replaceChildren();
+  for (const query of recentSearches) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary recent-searches__query";
+    button.textContent = query;
+    button.title = query;
+    button.setAttribute("aria-label", `Search again for ${query}`);
+    button.addEventListener("click", () => {
+      searchInput.value = query;
+      rememberSubmittedSearch(query);
+      refreshFromFilterControl();
+      searchInput.focus();
+    });
+    recentSearchesList.append(button);
+  }
+
+  recentSearchesPanel.hidden = recentSearches.length === 0;
+  clearRecentSearchesButton.disabled = recentSearches.length === 0;
+}
+
+function rememberSubmittedSearch(value) {
+  const query = value.trim();
+  if (!query) return false;
+
+  try {
+    parseSearchExpression(query);
+  } catch {
+    return false;
+  }
+
+  const result = rememberRecentSearch(localStorage, query);
+  recentSearches = result.searches;
+  renderRecentSearches();
+  if (recentSearchesStatus) {
+    recentSearchesStatus.textContent = result.saved
+      ? "Recent searches stay only in this browser."
+      : "This browser could not store the recent search.";
+  }
+  return result.saved;
 }
 
 function applyPresentationMode(mode, { persist = false } = {}) {
@@ -103,9 +214,25 @@ function restoreDraft() {
   colorInput.value = typeof draft.color === "string" ? draft.color : "";
   labelsInput.value = typeof draft.labels === "string" ? draft.labels : "";
   if (titleInput.value || contentInput.value || colorInput.value || labelsInput.value) {
+    if (capturePanel) capturePanel.open = true;
     draftState.textContent = "Recovered a local draft.";
   }
 }
+
+const ACTION_ICON_PATHS = Object.freeze({
+  pin: ["M8 4h8", "M10 4l-1 6-3 3h12l-3-3-1-6", "M12 13v7"],
+  unpin: ["M8 4h8", "M10 4l-.7 4.2", "M14 4l1 6 3 3h-6", "M12 13v7", "M5 5l14 14"],
+  "pin-up": ["M12 19V6", "M7 11l5-5 5 5"],
+  "pin-down": ["M12 5v13", "M7 13l5 5 5-5"],
+  archive: ["M4 7h16", "M6 7v12h12V7", "M3 4h18v3H3z", "M9 11h6"],
+  trash: ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"],
+  "restore-archive": ["M4 7h16", "M6 7v12h12V7", "M3 4h18v3H3z", "M9 13h6", "M12 10v6", "M9 13l3-3 3 3"],
+  "restore-trash": ["M5 7h14", "M9 7V4h6v3", "M7 7l1 13h8l1-13", "M12 16V10", "M9 13l3-3 3 3"],
+  "delete-permanent": ["M5 7h14", "M9 7V4h6v3", "M8 10v7", "M12 10v7", "M16 10v7", "M7 7l1 13h8l1-13"],
+  duplicate: ["M8 8h10v10H8z", "M5 5h10v3", "M5 5v10h3"],
+  copy: ["M9 9h10v10H9z", "M5 5h10v4", "M5 5v10h4"],
+  export: ["M12 4v10", "M8 10l4 4 4-4", "M5 18h14"]
+});
 
 function createAction(label, action, memoId, { danger = false, disabled = false } = {}) {
   const button = document.createElement("button");
@@ -113,24 +240,51 @@ function createAction(label, action, memoId, { danger = false, disabled = false 
   button.className = danger ? "danger" : "secondary";
   button.dataset.action = action;
   button.dataset.memoId = memoId;
-  button.textContent = label;
+
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.classList.add("memo-action-icon");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("focusable", "false");
+  for (const pathData of ACTION_ICON_PATHS[action] ?? []) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    icon.append(path);
+  }
+
+  const text = document.createElement("span");
+  text.textContent = label;
+  button.append(icon, text);
   button.disabled = disabled;
   return button;
+}
+
+function createActionSeparator() {
+  const separator = document.createElement("span");
+  separator.className = "memo-action-separator";
+  separator.setAttribute("aria-hidden", "true");
+  return separator;
 }
 
 function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = {}) {
   if (currentView === "active") {
     if (memo.pinned) {
-      container.append(
-        createAction("Unpin", "unpin", memo.id),
-        createAction("Move pin up", "pin-up", memo.id, { disabled: pinnedIndex <= 0 }),
-        createAction("Move pin down", "pin-down", memo.id, { disabled: pinnedIndex < 0 || pinnedIndex >= pinnedCount - 1 })
-      );
+      container.append(createAction("Unpin", "unpin", memo.id));
+      if (pinnedCount > 1) {
+        container.append(
+          createAction("Move pin up", "pin-up", memo.id, { disabled: pinnedIndex <= 0 }),
+          createAction("Move pin down", "pin-down", memo.id, { disabled: pinnedIndex < 0 || pinnedIndex >= pinnedCount - 1 })
+        );
+      }
     } else {
       container.append(createAction("Pin", "pin", memo.id));
     }
     container.append(
-      createAction("Edit", "edit", memo.id),
+      createActionSeparator(),
+      createAction("Duplicate", "duplicate", memo.id),
+      createAction("Copy text", "copy", memo.id),
+      createAction("Export .txt", "export", memo.id),
+      createActionSeparator(),
       createAction("Archive", "archive", memo.id),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
@@ -140,6 +294,10 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
   if (currentView === "archived") {
     container.append(
       createAction("Restore", "restore-archive", memo.id),
+      createActionSeparator(),
+      createAction("Copy text", "copy", memo.id),
+      createAction("Export .txt", "export", memo.id),
+      createActionSeparator(),
       createAction("Move to Trash", "trash", memo.id, { danger: true })
     );
     return;
@@ -147,6 +305,10 @@ function renderActions(container, memo, { pinnedIndex = -1, pinnedCount = 0 } = 
 
   container.append(
     createAction("Restore", "restore-trash", memo.id),
+    createActionSeparator(),
+    createAction("Copy text", "copy", memo.id),
+    createAction("Export .txt", "export", memo.id),
+    createActionSeparator(),
     createAction("Delete permanently", "delete-permanent", memo.id, { danger: true })
   );
 }
@@ -162,9 +324,16 @@ function renderMemoMetadata(container, memo) {
   }
 
   if (memo.color) {
+    const colorName = `${memo.color[0].toUpperCase()}${memo.color.slice(1)}`;
     const color = document.createElement("span");
     color.className = "memo-badge memo-badge--color";
-    color.textContent = `Color: ${memo.color[0].toUpperCase()}${memo.color.slice(1)}`;
+    color.dataset.memoColor = memo.color;
+    color.setAttribute("aria-label", `Memo color: ${colorName}`);
+
+    const dot = document.createElement("span");
+    dot.className = "memo-color-dot";
+    dot.setAttribute("aria-hidden", "true");
+    color.append(dot);
     container.append(color);
   }
 
@@ -194,12 +363,77 @@ function renderMemoMetadata(container, memo) {
 
 function applyMemoToCard(card, memo) {
   card.dataset.color = memo.color ?? "none";
-  card.querySelector(".memo-card__title").textContent = memo.title || "Untitled memo";
-  card.querySelector(".memo-card__content").textContent = memo.content;
+  const displayTitle = memo.title || "Untitled memo";
+  card.querySelector(".memo-card__title").textContent = displayTitle;
+
+  if (currentView === "active") {
+    card.dataset.editable = "true";
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", `Edit memo: ${displayTitle}`);
+    card.setAttribute("aria-expanded", String(card.classList.contains("memo-card--editing")));
+    card.setAttribute("aria-controls", `memo-editor-${memo.id}`);
+  } else {
+    delete card.dataset.editable;
+    card.removeAttribute("tabindex");
+    card.removeAttribute("aria-label");
+    card.removeAttribute("aria-expanded");
+    card.removeAttribute("aria-controls");
+  }
+
+  const bulkSelect = card.querySelector("[data-bulk-select]");
+  if (bulkSelect) {
+    bulkSelect.value = memo.id;
+    bulkSelect.setAttribute("aria-label", `Select ${displayTitle}`);
+    bulkSelect.closest(".memo-select")?.setAttribute("aria-label", `Select ${displayTitle}`);
+  }
+
+  const content = card.querySelector(".memo-card__content");
+  const expandButton = card.querySelector("[data-expand-content]");
+  const contentWasExpanded = card.classList.contains("memo-card--content-expanded");
+  const contentNeedsPreview =
+    memo.content.length > MEMO_PREVIEW_CHARACTER_LIMIT ||
+    memo.content.split("\n").length > MEMO_PREVIEW_LINE_LIMIT;
+
+  content.textContent = memo.content;
+  content.id = `memo-content-${memo.id}`;
+  card.classList.toggle("memo-card--content-collapsed", contentNeedsPreview && !contentWasExpanded);
+  card.classList.toggle("memo-card--content-expanded", contentNeedsPreview && contentWasExpanded);
+
+  if (expandButton) {
+    expandButton.hidden = !contentNeedsPreview;
+    expandButton.setAttribute("aria-controls", content.id);
+    expandButton.setAttribute("aria-expanded", String(contentNeedsPreview && contentWasExpanded));
+    expandButton.textContent = contentNeedsPreview && contentWasExpanded ? "Show less" : "Show more";
+  }
+
   const time = card.querySelector(".memo-card__time");
+  const memoDate = new Date(memo.updatedAt);
   time.dateTime = memo.updatedAt;
-  time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(memo.updatedAt));
+  time.textContent = formatMemoTimestamp(memo.updatedAt);
+  time.title = memoTimestampFormatter.format(memoDate);
   renderMemoMetadata(card.querySelector(".memo-card__meta"), memo);
+}
+
+function summarizeMemoStates(memos) {
+  const counts = { active: 0, archived: 0, trashed: 0 };
+  for (const memo of memos) {
+    if (Object.hasOwn(counts, memo.state)) counts[memo.state] += 1;
+  }
+  return counts;
+}
+
+function notifyWorkspaceRendered({ view, memos, visibleMemos, labels, stateCounts, filtered, error = null }) {
+  document.dispatchEvent(new CustomEvent("goreecloud:memos-rendered", {
+    detail: {
+      view,
+      memos: [...memos],
+      visibleMemos: [...visibleMemos],
+      labels: [...labels],
+      stateCounts: { ...stateCounts },
+      filtered: Boolean(filtered),
+      error: error ? String(error.message ?? error) : null
+    }
+  }));
 }
 
 function hasActiveFilters() {
@@ -314,14 +548,69 @@ async function applySavedView(view) {
   filterColorInput.value = view.filters.color;
   filterLabelInput.value = view.filters.label;
   filterLabelColorInput.value = view.filters.labelColor;
-  await refresh();
+  await refreshAndWait();
   savedViewStatus.textContent = `Applied saved view "${view.name}" in the current memo location.`;
+}
+
+function updateMemoRenderProgress() {
+  if (!renderProgress || !renderProgressStatus || !renderMoreButton) return;
+
+  const total = progressiveMemos.length;
+  const remaining = Math.max(0, total - progressiveRenderIndex);
+  if (total <= MEMO_RENDER_BATCH_SIZE || remaining === 0) {
+    renderProgress.hidden = true;
+    renderProgressStatus.textContent = "";
+    return;
+  }
+
+  renderProgress.hidden = false;
+  renderProgressStatus.textContent = `Showing ${progressiveRenderIndex} of ${total} memos.`;
+  const nextBatch = Math.min(MEMO_RENDER_BATCH_SIZE, remaining);
+  renderMoreButton.textContent = remaining <= MEMO_RENDER_BATCH_SIZE
+    ? `Show remaining ${remaining}`
+    : `Show ${nextBatch} more`;
+}
+
+function appendMemoRenderBatch() {
+  if (progressiveRenderIndex >= progressiveMemos.length) {
+    updateMemoRenderProgress();
+    return;
+  }
+
+  const nextIndex = Math.min(progressiveRenderIndex + MEMO_RENDER_BATCH_SIZE, progressiveMemos.length);
+  const renderedCards = document.createDocumentFragment();
+
+  for (const memo of progressiveMemos.slice(progressiveRenderIndex, nextIndex)) {
+    const fragment = template.content.cloneNode(true);
+    const card = fragment.querySelector(".memo-card");
+    const pinnedIndex = progressivePinnedIndexes.get(memo.id) ?? -1;
+
+    card.dataset.memoId = memo.id;
+    renderedMemoContexts.set(memo.id, {
+      memo,
+      pinnedIndex,
+      pinnedCount: progressivePinnedCount
+    });
+
+    applyMemoToCard(card, memo);
+    renderedCards.append(fragment);
+  }
+
+  listElement.append(renderedCards);
+  progressiveRenderIndex = nextIndex;
+  updateMemoRenderProgress();
 }
 
 function renderMemos(memos, { filtered = false } = {}) {
   listElement.replaceChildren();
+  renderedMemoContexts = new Map();
+  progressiveMemos = memos;
+  progressiveRenderIndex = 0;
 
   if (memos.length === 0) {
+    progressivePinnedIndexes = new Map();
+    progressivePinnedCount = 0;
+    updateMemoRenderProgress();
     const empty = document.createElement("p");
     empty.className = "empty-state";
     empty.textContent = filtered
@@ -336,71 +625,102 @@ function renderMemos(memos, { filtered = false } = {}) {
   }
 
   const pinnedMemos = memos.filter((memo) => memo.pinned);
-  const pinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
-
-  for (const memo of memos) {
-    const fragment = template.content.cloneNode(true);
-    const card = fragment.querySelector(".memo-card");
-    const actions = fragment.querySelector(".memo-card__actions");
-    const editor = fragment.querySelector(".memo-editor");
-    const editTitle = fragment.querySelector("[data-edit-field='title']");
-    const editContent = fragment.querySelector("[data-edit-field='content']");
-    const editColor = fragment.querySelector("[data-edit-field='color']");
-    const editLabels = fragment.querySelector("[data-edit-field='labels']");
-
-    card.dataset.memoId = memo.id;
-    editor.dataset.memoId = memo.id;
-    editTitle.value = memo.title;
-    editContent.value = memo.content;
-    editColor.value = memo.color ?? "";
-    editLabels.value = labelsToInput(memo.labels);
-    applyMemoToCard(card, memo);
-    renderActions(actions, memo, {
-      pinnedIndex: pinnedIndexes.get(memo.id) ?? -1,
-      pinnedCount: pinnedMemos.length
-    });
-
-    listElement.append(fragment);
-  }
+  progressivePinnedIndexes = new Map(pinnedMemos.map((memo, index) => [memo.id, index]));
+  progressivePinnedCount = pinnedMemos.length;
+  appendMemoRenderBatch();
 }
 
 async function refresh() {
   const generation = ++refreshGeneration;
   const requestedView = currentView;
-  const [memos, labels] = await Promise.all([
-    service.list({ state: requestedView }),
-    labelService.list()
-  ]);
-  if (generation !== refreshGeneration || requestedView !== currentView) return;
+  listElement.setAttribute("aria-busy", "true");
 
-  managedLabels = labels;
-  updateLabelFilterOptions(memos);
-  const filtered = hasActiveFilters();
-  let filterState;
   try {
-    filterState = readFilterState();
-  } catch (error) {
-    const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
-    listElement.replaceChildren();
-    const message = document.createElement("p");
-    message.className = "empty-state";
-    message.textContent = `Search expression error: ${expressionError.message}`;
-    listElement.append(message);
-    updateFilterStatus(expressionError);
-    setStatus("Search expression needs correction.");
-    return;
-  }
+    const [allMemos, labels] = await Promise.all([
+      service.listAll(),
+      labelService.list()
+    ]);
+    if (generation !== refreshGeneration || requestedView !== currentView) return false;
 
-  const visibleMemos = filterMemos(memos, filterState, { managedLabels });
-  renderMemos(visibleMemos, { filtered });
-  updateFilterStatus();
+    const stateCounts = summarizeMemoStates(allMemos);
+    const memos = allMemos.filter((memo) => memo.state === requestedView);
+    managedLabels = labels;
+    updateLabelFilterOptions(memos);
+    const filtered = hasActiveFilters();
+    let filterState;
+    try {
+      filterState = readFilterState();
+    } catch (error) {
+      const expressionError = error instanceof Error ? error : new Error("Invalid search expression");
+      listElement.replaceChildren();
+      progressiveMemos = [];
+      progressiveRenderIndex = 0;
+      progressivePinnedIndexes = new Map();
+      progressivePinnedCount = 0;
+      updateMemoRenderProgress();
+      const message = document.createElement("p");
+      message.className = "empty-state";
+      message.textContent = `Search expression error: ${expressionError.message}`;
+      listElement.append(message);
+      updateFilterStatus(expressionError);
+      setStatus("Search expression needs correction.");
+      notifyWorkspaceRendered({
+        view: requestedView,
+        memos,
+        visibleMemos: [],
+        labels,
+        stateCounts,
+        filtered,
+        error: expressionError
+      });
+      return true;
+    }
 
-  const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
-  if (filtered) {
-    setStatus(`${visibleMemos.length} of ${memos.length} ${memos.length === 1 ? label : `${label}s`} shown`);
-  } else {
-    setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
+    const visibleMemos = filterMemos(memos, filterState, { managedLabels });
+    renderMemos(visibleMemos, { filtered });
+    updateFilterStatus();
+
+    const label = currentView === "active" ? "memo" : currentView === "archived" ? "archived memo" : "trashed memo";
+    if (filtered) {
+      const noun = memos.length === 1 ? label : `${label}s`;
+      const verb = visibleMemos.length === 1 ? "matches" : "match";
+      setStatus(`${visibleMemos.length} of ${memos.length} ${noun} ${verb} current filters`);
+    } else {
+      setStatus(`${memos.length} ${memos.length === 1 ? label : `${label}s`}`);
+    }
+
+    notifyWorkspaceRendered({
+      view: requestedView,
+      memos,
+      visibleMemos,
+      labels,
+      stateCounts,
+      filtered
+    });
+    return true;
+  } finally {
+    if (generation === refreshGeneration) {
+      listElement.setAttribute("aria-busy", "false");
+    }
   }
+}
+
+function waitForWorkspaceReady() {
+  if (listElement.getAttribute("aria-busy") !== "true") return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (listElement.getAttribute("aria-busy") === "true") return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(listElement, { attributes: true, attributeFilter: ["aria-busy"] });
+  });
+}
+
+async function refreshAndWait() {
+  const rendered = await refresh();
+  if (!rendered) await waitForWorkspaceReady();
 }
 
 function setView(nextView) {
@@ -410,16 +730,72 @@ function setView(nextView) {
     button.setAttribute("aria-pressed", String(selected));
     button.classList.toggle("secondary", !selected);
   }
-  return refresh();
+  return refreshAndWait();
 }
 
-function toggleEditor(button) {
-  const card = button.closest(".memo-card");
-  const editor = card.querySelector(".memo-editor");
-  editor.hidden = !editor.hidden;
-  button.textContent = editor.hidden ? "Edit" : "Close editor";
-  if (!editor.hidden) {
-    editor.querySelector("[data-edit-field='content']").focus();
+function hydrateMemoActions(card) {
+  const actions = card?.querySelector(".memo-card__actions");
+  const context = card ? renderedMemoContexts.get(card.dataset.memoId) : null;
+  if (!actions || !context || actions.dataset.hydrated === "true") return;
+
+  renderActions(actions, context.memo, {
+    pinnedIndex: context.pinnedIndex,
+    pinnedCount: context.pinnedCount
+  });
+  actions.dataset.hydrated = "true";
+}
+
+function ensureMemoEditor(card) {
+  let editor = card?.querySelector(".memo-editor");
+  if (editor) return editor;
+
+  const context = card ? renderedMemoContexts.get(card.dataset.memoId) : null;
+  if (!card || !context || !editorTemplate) return null;
+
+  const fragment = editorTemplate.content.cloneNode(true);
+  editor = fragment.querySelector(".memo-editor");
+  editor.dataset.memoId = context.memo.id;
+  editor.id = `memo-editor-${context.memo.id}`;
+  editor.querySelector("[data-edit-field='title']").value = context.memo.title;
+  editor.querySelector("[data-edit-field='content']").value = context.memo.content;
+  editor.querySelector("[data-edit-field='color']").value = context.memo.color ?? "";
+  editor.querySelector("[data-edit-field='labels']").value = labelsToInput(context.memo.labels);
+  card.append(fragment);
+  return editor;
+}
+
+function openMemoEditor(card, { focus = true } = {}) {
+  if (!card || currentView !== "active") return null;
+  const editor = ensureMemoEditor(card);
+  if (!editor) return null;
+
+  for (const otherCard of listElement.querySelectorAll(".memo-card--editing")) {
+    if (otherCard !== card) closeMemoEditor(otherCard, { focusCard: false });
+  }
+  closeOpenMemoMenus();
+
+  editor.hidden = false;
+  card.classList.add("memo-card--editing");
+  card.setAttribute("aria-expanded", "true");
+  if (focus) {
+    requestAnimationFrame(() => editor.querySelector("[data-edit-field='content']")?.focus());
+  }
+  return editor;
+}
+
+function closeMemoEditor(card, { focusCard = true } = {}) {
+  const editor = card?.querySelector(".memo-editor");
+  if (!editor) return;
+
+  editor.hidden = true;
+  card.classList.remove("memo-card--editing");
+  card.setAttribute("aria-expanded", "false");
+  if (focusCard) card.focus();
+}
+
+function closeOpenMemoMenus(except = null) {
+  for (const menu of listElement.querySelectorAll("details.memo-card-menu[open]")) {
+    if (menu !== except) menu.open = false;
   }
 }
 
@@ -440,6 +816,10 @@ function scheduleEditSave(editor) {
         color: editor.querySelector("[data-edit-field='color']").value,
         labels: parseLabelsInput(editor.querySelector("[data-edit-field='labels']").value)
       });
+      const existingContext = renderedMemoContexts.get(memoId);
+      if (existingContext) {
+        renderedMemoContexts.set(memoId, { ...existingContext, memo: updated });
+      }
       applyMemoToCard(editor.closest(".memo-card"), updated);
       editorStatus.textContent = "Saved.";
     } catch (error) {
@@ -458,6 +838,18 @@ function refreshFromFilterControl() {
 
 form.addEventListener("input", saveDraft);
 
+capturePanel?.addEventListener("toggle", () => {
+  if (!capturePanel.open) return;
+  requestAnimationFrame(() => {
+    if (!capturePanel.open) return;
+    const active = document.activeElement;
+    const userAlreadyEnteredComposer = active instanceof Element &&
+      active !== captureSummary &&
+      form.contains(active);
+    if (!userAlreadyEnteredComposer) contentInput.focus();
+  });
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   saveButton.disabled = true;
@@ -472,7 +864,8 @@ form.addEventListener("submit", async (event) => {
     form.reset();
     clearDraft();
     await setView("active");
-    contentInput.focus();
+    if (capturePanel) capturePanel.open = false;
+    captureSummary?.focus();
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Could not save memo");
   } finally {
@@ -495,6 +888,11 @@ for (const input of presentationInputs) {
 }
 
 searchInput.addEventListener("input", refreshFromFilterControl);
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  rememberSubmittedSearch(searchInput.value);
+});
 filterColorInput.addEventListener("change", refreshFromFilterControl);
 filterLabelInput.addEventListener("change", refreshFromFilterControl);
 filterLabelColorInput.addEventListener("change", refreshFromFilterControl);
@@ -504,6 +902,19 @@ clearFiltersButton.addEventListener("click", () => {
   filterLabelInput.value = "all";
   filterLabelColorInput.value = ALL_LABEL_COLORS;
   refreshFromFilterControl();
+  searchInput.focus();
+});
+
+clearRecentSearchesButton?.addEventListener("click", () => {
+  const cleared = clearRecentSearches(localStorage);
+  if (cleared) recentSearches = [];
+  else recentSearches = loadRecentSearches(localStorage);
+  renderRecentSearches();
+  if (recentSearchesStatus) {
+    recentSearchesStatus.textContent = cleared
+      ? "Recent searches cleared. The current search and memo data were not changed."
+      : "This browser could not clear recent searches.";
+  }
   searchInput.focus();
 });
 
@@ -537,6 +948,22 @@ savedViewApplyButton.addEventListener("click", async () => {
   }
 });
 
+renderMoreButton?.addEventListener("click", () => {
+  const firstNewCardIndex = progressiveRenderIndex;
+  appendMemoRenderBatch();
+
+  if (!renderProgress?.hidden) {
+    renderMoreButton.focus();
+    return;
+  }
+
+  const firstNewCard = listElement.querySelectorAll(".memo-card")[firstNewCardIndex];
+  if (firstNewCard instanceof HTMLElement) {
+    firstNewCard.tabIndex = -1;
+    firstNewCard.focus();
+  }
+});
+
 savedViewDeleteButton.addEventListener("click", async () => {
   const view = selectedSavedView();
   if (!view) return;
@@ -554,25 +981,212 @@ savedViewDeleteButton.addEventListener("click", async () => {
   }
 });
 
+libraryExportButton?.addEventListener("click", async () => {
+  libraryExportButton.disabled = true;
+  if (libraryExportStatus) libraryExportStatus.textContent = "Preparing local export…";
+
+  try {
+    const exportedAt = new Date();
+    const [memos, labels, views] = await Promise.all([
+      service.listAll(),
+      labelService.list(),
+      savedViewService.list()
+    ]);
+    const payload = formatMemosLibraryJson({
+      memos,
+      labels,
+      savedViews: views,
+      exportedAt
+    });
+    const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = memosLibraryJsonFilename(exportedAt);
+    download.hidden = true;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+
+    if (libraryExportStatus) {
+      libraryExportStatus.textContent =
+        `Exported ${memos.length} memos, ${labels.length} labels, and ${views.length} saved views. No local data was changed.`;
+    }
+  } catch {
+    if (libraryExportStatus) {
+      libraryExportStatus.textContent =
+        "Could not prepare the local library export. No local data was changed.";
+    }
+  } finally {
+    libraryExportButton.disabled = false;
+  }
+});
+
+const utilityManageLabelsButton = document.querySelector("#utility-manage-labels");
+const managerDrawer = document.querySelector("details.manager-drawer");
+const utilityDrawer = document.querySelector("details.utility-drawer");
+
+utilityManageLabelsButton?.addEventListener("click", () => {
+  if (utilityDrawer) utilityDrawer.open = false;
+  if (!managerDrawer) return;
+
+  managerDrawer.open = true;
+  requestAnimationFrame(() => {
+    managerDrawer.querySelector("[data-label-name], .drawer-panel button, .drawer-panel input, .drawer-panel select")?.focus();
+  });
+});
+
+document.addEventListener("goreecloud:memos-refresh-requested", async (event) => {
+  try {
+    await refreshAndWait();
+    event.detail?.resolve?.();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not refresh local memos";
+    setStatus(message);
+    event.detail?.reject?.(error instanceof Error ? error : new Error(message));
+  }
+});
+
 listElement.addEventListener("input", (event) => {
   const editor = event.target.closest(".memo-editor");
   if (editor) scheduleEditSave(editor);
 });
 
-listElement.addEventListener("click", async (event) => {
-  const button = event.target.closest("[data-action]");
-  if (!button) return;
+listElement.addEventListener("toggle", (event) => {
+  const menu = event.target.closest?.("details.memo-card-menu");
+  if (!menu?.open) return;
+  closeOpenMemoMenus(menu);
+  hydrateMemoActions(menu.closest(".memo-card"));
+}, true);
 
-  if (button.dataset.action === "edit") {
-    toggleEditor(button);
+document.addEventListener("click", (event) => {
+  if (!(event.target instanceof Element)) return;
+
+  if (!event.target.closest("details.memo-card-menu")) {
+    closeOpenMemoMenus();
+  }
+
+  const editingCard = listElement.querySelector(".memo-card--editing");
+  if (editingCard && !event.target.closest(".memo-card--editing")) {
+    closeMemoEditor(editingCard, { focusCard: false });
+  }
+
+  if (
+    managerDrawer?.open &&
+    !event.target.closest("details.manager-drawer") &&
+    !event.target.closest("#utility-manage-labels")
+  ) {
+    managerDrawer.open = false;
+  }
+
+  if (
+    utilityDrawer?.open &&
+    !event.target.closest("details.utility-drawer") &&
+    !event.target.closest("#sidebar-settings")
+  ) {
+    utilityDrawer.open = false;
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  const openMenu = listElement.querySelector("details.memo-card-menu[open]");
+  if (openMenu) {
+    openMenu.open = false;
+    openMenu.querySelector(":scope > summary")?.focus();
     return;
   }
+
+  if (managerDrawer?.open) {
+    managerDrawer.open = false;
+    utilityManageLabelsButton?.focus();
+    return;
+  }
+
+  if (utilityDrawer?.open) {
+    utilityDrawer.open = false;
+    utilityDrawer.querySelector(":scope > summary")?.focus();
+    return;
+  }
+
+  const editingCard = listElement.querySelector(".memo-card--editing");
+  if (editingCard) closeMemoEditor(editingCard);
+});
+
+listElement.addEventListener("click", async (event) => {
+  const closeEditorButton = event.target.closest("[data-editor-close]");
+  if (closeEditorButton) {
+    closeMemoEditor(closeEditorButton.closest(".memo-card"));
+    return;
+  }
+
+  const expandButton = event.target.closest("[data-expand-content]");
+  if (expandButton) {
+    const card = expandButton.closest(".memo-card");
+    if (!card) return;
+    const expanded = card.classList.toggle("memo-card--content-expanded");
+    card.classList.toggle("memo-card--content-collapsed", !expanded);
+    expandButton.setAttribute("aria-expanded", String(expanded));
+    expandButton.textContent = expanded ? "Show less" : "Show more";
+    return;
+  }
+
+  const menuSummary = event.target.closest("details.memo-card-menu > summary");
+  if (menuSummary) {
+    hydrateMemoActions(menuSummary.closest(".memo-card"));
+    return;
+  }
+
+  const button = event.target.closest("[data-action]");
+  if (!button) {
+    const card = event.target.closest(".memo-card[data-editable='true']");
+    const interactiveTarget = event.target.closest("button, input, select, textarea, summary, details, label, a, .memo-editor");
+    if (card && !interactiveTarget) openMemoEditor(card);
+    return;
+  }
+
+  const actionMenu = button.closest("details.memo-card-menu");
+  if (actionMenu) actionMenu.open = false;
 
   button.disabled = true;
   const memoId = button.dataset.memoId;
 
   try {
     switch (button.dataset.action) {
+      case "duplicate": {
+        const duplicate = await service.duplicate(memoId);
+        await setView("active");
+        setStatus(duplicate.title ? `Duplicated "${duplicate.title}".` : "Duplicated memo.");
+        return;
+      }
+      case "copy": {
+        const memo = await service.get(memoId);
+        if (!navigator.clipboard?.writeText) {
+          throw new Error("Clipboard access is not available in this browser.");
+        }
+        await navigator.clipboard.writeText(formatMemoPlainText(memo));
+        button.disabled = false;
+        setStatus("Copied memo text to the clipboard.");
+        return;
+      }
+      case "export": {
+        const memo = await service.get(memoId);
+        const blob = new Blob([formatMemoPlainText(memo)], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = memoPlainTextFilename(memo);
+        anchor.hidden = true;
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        button.disabled = false;
+        setStatus("Exported this memo as a local text file.");
+        return;
+      }
       case "pin":
         await service.pin(memoId);
         break;
@@ -614,8 +1228,16 @@ listElement.addEventListener("click", async (event) => {
   }
 });
 
+listElement.addEventListener("keydown", (event) => {
+  const card = event.target.closest?.(".memo-card[data-editable='true']");
+  if (!card || event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+  event.preventDefault();
+  openMemoEditor(card);
+});
+
 applyPresentationMode(currentPresentation);
 updateFilterStatus();
+renderRecentSearches();
 restoreDraft();
 Promise.all([refresh(), refreshSavedViews()]).catch((error) => {
   setStatus(error instanceof Error ? error.message : "Could not load local memos");

@@ -138,7 +138,7 @@ Current Saved View semantics are intentionally narrow:
 
 ## IndexedDB database version 5
 
-The browser database remains `goreecloud-memos-local`.
+The browser database remains `goreecloud-memos-local`. That storage namespace is intentionally retained for browser-data continuity across the verified repository rename to `GoreeCloud/memos`; it is a persisted compatibility identifier, not current repository-name authority.
 
 Version 5 retains the existing Memo/Label stores and adds:
 - `labels` object store keyed by stable Label UUID, with unique `nameKey` index.

@@ -1,14 +1,42 @@
 import { test, expect } from "@playwright/test";
 
+async function openCapture(page) {
+  const panel = page.locator("#capture-panel");
+  if (!(await panel.evaluate((element) => element.open))) {
+    await panel.locator(":scope > summary").click();
+  }
+  await expect(panel).toHaveJSProperty("open", true);
+}
+
 async function captureMemo(page, content, labels) {
-  await page.locator("#memo-labels").fill(labels);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
+  await openCapture(page);
+  const labelEntry = page.locator("#memo-form .label-picker__entry");
+  await labelEntry.fill(labels);
+  await labelEntry.press("Enter");
   await page.locator("#memo-content").fill(content);
+  await expect(page.locator("#memo-labels")).toHaveValue(labels);
+  await expect(page.locator("#memo-content")).toHaveValue(content);
   await page.getByRole("button", { name: "Save memo" }).click();
+  await expect(page.locator("#capture-panel")).toHaveJSProperty("open", false);
+  await expect(page.locator("#memo-list")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator(".memo-card", { hasText: content })).toBeVisible();
 }
 
 function labelRow(page, name) {
   return page.locator(".label-admin-row").filter({ has: page.getByLabel(`Label name for ${name}`) });
+}
+
+async function openLabelManager(page) {
+  const drawer = page.locator("details.manager-drawer");
+  if (!(await drawer.evaluate((element) => element.open))) {
+    await drawer.locator(":scope > summary").click();
+  }
+
+  await expect(drawer).toHaveJSProperty("open", true);
+  const panel = drawer.locator(".drawer-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel).toBeInViewport({ ratio: 0.5 });
 }
 
 async function readManagedSnapshot(page) {
@@ -44,6 +72,7 @@ test("managed labels rename, reject collisions, merge, and explicitly delete wit
   await page.goto("/web/");
   await captureMemo(page, "Alpha memo", "Work, Ideas");
   await captureMemo(page, "Beta memo", "work, Research");
+  await openLabelManager(page);
 
   await expect(page.getByLabel("Label name for Work")).toBeVisible();
   await expect(page.getByLabel("Label name for Ideas")).toBeVisible();
@@ -96,6 +125,7 @@ test("managed labels rename, reject collisions, merge, and explicitly delete wit
 test("managed label color, icon, and description persist without changing memo relationships", async ({ page }) => {
   await page.goto("/web/");
   await captureMemo(page, "Metadata memo", "Ideas");
+  await openLabelManager(page);
 
   const row = labelRow(page, "Ideas");
   await row.getByLabel("Color for Ideas").selectOption("purple");

@@ -4,10 +4,22 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 30_000,
   retries: 0,
-  workers: 2,
+  // Keep exact-state browser acceptance deterministic on constrained CI runners.
+  workers: 1,
   use: {
     baseURL: "http://127.0.0.1:4173",
-    trace: "retain-on-failure"
+    trace: "retain-on-failure",
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: "http://127.0.0.1:4173",
+          localStorage: [
+            { name: "goreecloud-memos:setup-complete:v1", value: "true" }
+          ]
+        }
+      ]
+    }
   },
   webServer: {
     command: "python3 -m http.server 4173 --bind 127.0.0.1",

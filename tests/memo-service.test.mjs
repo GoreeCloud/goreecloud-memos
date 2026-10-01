@@ -2,6 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { MemoService } from "../src/app/memo-service.mjs";
+import {
+  archiveMemo,
+  restoreArchivedMemo,
+  restoreTrashedMemo,
+  trashMemo
+} from "../src/domain/memo.mjs";
 
 class MemoryMemoStore {
   #records = new Map();
@@ -21,6 +27,23 @@ class MemoryMemoStore {
 
   async remove(id) {
     this.#records.delete(id);
+  }
+
+  async bulkUpdateState(memoIds, mode, changedAt) {
+    const planned = memoIds.map((id) => {
+      const memo = this.#records.get(id);
+      if (!memo) throw new Error(`memo not found: ${id}`);
+      if (mode === "archive") return archiveMemo(memo, changedAt);
+      if (mode === "trash") return trashMemo(memo, changedAt);
+      if (mode === "restore") {
+        return memo.state === "archived"
+          ? restoreArchivedMemo(memo, changedAt)
+          : restoreTrashedMemo(memo, changedAt);
+      }
+      throw new TypeError("mode must be archive, restore, or trash");
+    });
+    for (const memo of planned) this.#records.set(memo.id, structuredClone(memo));
+    return planned.map((memo) => structuredClone(memo));
   }
 }
 
@@ -43,6 +66,46 @@ test("capture persists memo organization metadata and active list returns it", a
   assert.equal(memos[0].content, "Remember this");
   assert.equal(memos[0].color, "green");
   assert.deepEqual(memos[0].labels, ["Work"]);
+});
+
+test("duplicate creates a new active unpinned memo without mutating the source", async () => {
+  const service = createService();
+  await service.capture({
+    title: "Reusable",
+    content: "Keep this text",
+    color: "teal",
+    labels: ["Work", "Reference"]
+  });
+  await service.pin("memo-1");
+
+  const duplicate = await service.duplicate("memo-1");
+  const source = await service.get("memo-1");
+
+  assert.equal(duplicate.id, "memo-2");
+  assert.equal(duplicate.title, source.title);
+  assert.equal(duplicate.content, source.content);
+  assert.equal(duplicate.color, source.color);
+  assert.deepEqual(duplicate.labels, source.labels);
+  assert.equal(duplicate.state, "active");
+  assert.equal(duplicate.pinned, false);
+  assert.equal(duplicate.pinOrder, null);
+  assert.equal(source.pinned, true);
+});
+
+test("listAll returns every lifecycle state in display order from one snapshot", async () => {
+  const service = createService();
+  await service.capture({ content: "Active one" });
+  await service.capture({ content: "Archive me" });
+  await service.capture({ content: "Trash me" });
+  await service.archive("memo-2");
+  await service.trash("memo-3");
+
+  const all = await service.listAll();
+  assert.equal(all.length, 3);
+  assert.deepEqual(new Set(all.map((memo) => memo.state)), new Set(["active", "archived", "trashed"]));
+  assert.equal(all.find((memo) => memo.id === "memo-1").state, "active");
+  assert.equal(all.find((memo) => memo.id === "memo-2").state, "archived");
+  assert.equal(all.find((memo) => memo.id === "memo-3").state, "trashed");
 });
 
 test("edit persists content, color, and labels", async () => {
@@ -105,4 +168,45 @@ test("permanent deletion is restricted to Trash", async () => {
   await service.trash("memo-1");
   await service.deletePermanently("memo-1");
   await assert.rejects(() => service.get("memo-1"), /memo not found/);
+});
+
+
+test("bulk lifecycle actions archive, trash and restore selected memos", async () => {
+  const service = createService();
+  await service.capture({ content: "First" });
+  await service.capture({ content: "Second" });
+  await service.capture({ content: "Third" });
+
+  const archived = await service.archiveMany(["memo-1", "memo-2"]);
+  assert.equal(archived.length, 2);
+  assert.deepEqual(
+    new Set((await service.list({ state: "archived" })).map((memo) => memo.id)),
+    new Set(["memo-1", "memo-2"])
+  );
+
+  await service.restoreMany(["memo-1", "memo-2"]);
+  assert.equal((await service.list({ state: "active" })).length, 3);
+
+  await service.trashMany(["memo-1", "memo-3"]);
+  assert.deepEqual(
+    new Set((await service.list({ state: "trashed" })).map((memo) => memo.id)),
+    new Set(["memo-1", "memo-3"])
+  );
+
+  await service.restoreMany(["memo-1", "memo-3"]);
+  assert.equal((await service.list({ state: "active" })).length, 3);
+});
+
+test("bulk lifecycle validation fails before mutating any selected memo", async () => {
+  const service = createService();
+  await service.capture({ content: "Already archived" });
+  await service.capture({ content: "Must stay active" });
+  await service.archive("memo-1");
+
+  await assert.rejects(
+    () => service.archiveMany(["memo-1", "memo-2"]),
+    /only active memos can be archived/
+  );
+  assert.equal((await service.get("memo-1")).state, "archived");
+  assert.equal((await service.get("memo-2")).state, "active");
 });

@@ -105,7 +105,7 @@ jobs:
           mkdir -p "$ARTIFACT_ROOT"
           cp "$APK" "$ARTIFACT_ROOT/"
           cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
-          repository=GoreeCloud/memos
+          repository=GoreeCloud/goreecloud-memos
           source_sha=$EVALUATED_REVISION
           application_id=com.goreecloud.memos.development
           version_name=0.1.0-dev.1+android.1
